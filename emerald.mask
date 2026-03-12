@@ -1,0 +1,3 @@
+#
+# /etc/emerald.mask: exclude packages from sysup
+#

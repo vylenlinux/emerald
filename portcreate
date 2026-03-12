@@ -1,0 +1,209 @@
+#!/bin/sh
+
+# portcreate - Create port templates with different build systems
+# Usage: portcreate [-b builder] <portname>
+
+usage() {
+    cat <<EOF
+Usage: portcreate [-b builder] <portname>
+
+Create a port template directory with BUILDFILE file.
+
+Options:
+  -b <builder>  Specify build system (default: autotools)
+                Available: autotools, meson, cmake, go, python
+  -h            Show this help message
+
+Examples:
+  portcreate myport              # Creates autotools template
+  portcreate -b meson myport     # Creates meson template
+  portcreate -b cmake myport     # Creates cmake template
+  portcreate -b go myport        # Creates go template
+  portcreate -b python myport    # Creates python template
+EOF
+	  exit 0
+}
+
+get_autotools_template() {
+	  cat <<EOF
+description=""
+maintainer="Vylen Linux Team"
+homepage=""
+
+name=PORTNAME
+version=
+release=1
+noextract=""
+backup=""
+source=""
+
+build() {
+	  cd $name-$version
+	  ./configure --prefix=/usr
+
+	  make
+	  make DESTDIR=$PKG install
+}
+EOF
+}
+
+get_meson_template() {
+	  cat <<EOF
+description=""
+maintainer="Vylen Linux Team"
+homepage=""
+
+name=PORTNAME
+version=
+release=1
+noextract=""
+backup=""
+source=""
+
+build() {
+	  vylen-meson $name-$version build \
+		    -Doption=false \
+		    -Doption2=true
+
+	  meson compile -C build
+	  DESTDIR=$PKG meson install --no-rebuild -C build
+}
+EOF
+}
+
+get_cmake_template() {
+	  cat <<EOF
+description=""
+maintainer="Vylen Linux Team"
+homepage=""
+
+name=PORTNAME
+version=
+release=1
+noextract=""
+backup=""
+source=""
+
+build() {
+	  cmake -S $name-$version -B build \
+		    -DCMAKE_INSTALL_PREFIX=/usr \
+		    -DCMAKE_INSTALL_LIBDIR=lib \
+		    -DCMAKE_INSTALL_LIBEXECDIR=lib \
+		    -DCMAKE_BUILD_TYPE=Release \
+		    -DCMAKE_C_FLAGS_RELEASE="$CFLAGS" \
+		    -DCMAKE_CXX_FLAGS_RELEASE="$CXXFLAGS" \
+		    -Wno-dev
+
+	  cmake --build build
+	  DESTDIR=$PKG cmake --install build
+}
+EOF
+}
+
+get_go_template() {
+    cat <<EOF
+description=""
+maintainer="Vylen Linux Team"
+homepage=""
+
+name=PORTNAME
+version=
+release=1
+noextract=""
+backup=""
+source=""
+
+build() {
+	  cd $name-$version
+
+	  export CGO_LDFLAGS="${LDFLAGS}"
+	  export CGO_CFLAGS="${CFLAGS}"
+	  export CGO_CPPFLAGS="${CPPFLAGS}"
+	  export CGO_CXXFLAGS="${CXXFLAGS}"
+	  export GOFLAGS="-buildmode=pie -trimpath -mod=readonly -modcacherw -ldflags=-linkmode=external"
+	  export GOPATH=$SRC/go
+	  export PATH=$PATH:$GOPATH/bin
+
+	  go build -o bin/$name *.go
+	  install -Dm755 bin/$name $PKG/usr/bin/$name
+}
+EOF
+}
+
+get_python_template() {
+	  cat <<EOF
+description=""
+maintainer="Vylen Linux Team"
+homepage=""
+
+name=PORTNAME
+version=
+release=1
+noextract=""
+backup=""
+source=""
+
+build() {
+	  cd $name-$version
+
+	  python3 setup.py build
+	  python3 setup.py install --prefix=/usr --root=$PKG
+}
+EOF
+}
+
+# Default builder
+BUILDER="autotools"
+
+# Parse options
+while getopts "b:h" opt; do
+	  case $opt in
+		    b) BUILDER="$OPTARG" ;;
+		    *) usage ;;
+    esac
+done
+
+shift $((OPTIND - 1))
+
+# Check if portname is provided
+if [ -z "$1" ]; then
+	  printf "ERROR: Port name is required!\n" >&2
+	  usage
+fi
+
+PORTNAME="$1"
+
+# Check if directory already exists
+if [ -d "$PORTNAME" ]; then
+	  printf "ERROR: Directory '%s' already exists!\n" "$PORTNAME" >&2
+	  exit 1
+fi
+
+# Create directory
+mkdir "$PORTNAME" || {
+	  printf "ERROR: Failed to create directory '%s'!\n" "$PORTNAME" >&2
+	  exit 1
+}
+
+# Generate appropriate template
+case "$BUILDER" in
+	  autotools|make) TEMPLATE=$(get_autotools_template) ;;
+	  meson) TEMPLATE=$(get_meson_template) ;;
+	  cmake) TEMPLATE=$(get_cmake_template) ;;
+	  go|golang) TEMPLATE=$(get_go_template) ;;
+	  python|python3) TEMPLATE=$(get_python_template) ;;
+
+	  *)
+		    printf "ERROR: Unknown builder '%s'!\n" "$BUILDER" >&2
+		    printf "Available builders: autotools, meson, cmake, go, python\n" >&2
+
+		    rm -rf "$PORTNAME"
+		    exit 1
+		;;
+esac
+
+# Replace PORTNAME placeholder and write to file
+printf "%s\n" "$TEMPLATE" | sed "s/PORTNAME/$PORTNAME/" > "$PORTNAME/BUILD"
+printf "Template port created for '%s' using '%s' build system.\n" "$PORTNAME" "$BUILDER"
+
+exit 0

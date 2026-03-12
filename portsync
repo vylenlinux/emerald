@@ -1,0 +1,177 @@
+#!/bin/sh
+
+#
+# portsync - POSIX-compliant script for emerald that synchronizes ports
+#
+
+# Print errors and exit
+die() {
+	  printf "ERROR: %b\n" "$*" >&2
+	  exit 1
+}
+
+# Check root permissions
+[ "$(id -u)" = 0 ] || die "This operation needs root access!"
+
+# Vars
+PRN=0
+RST=0
+HELP=0
+
+# Print informational messages
+msg() {
+	  printf "==> %s\n" "$1"
+}
+
+# Create directories if they don't exist
+mkd() {
+	  [ -d "$1" ] || mkdir -pv "$1" || die "Failed to create directory: $1"
+}
+
+# Wrapper for git commands with specific paths
+bare_git() {
+	  git --git-dir="$baredir/${portdir}.git" --work-tree="$worktree/$portdir" "$@"
+}
+
+# Show help message
+usage() {
+    cat <<EOF
+Usage:
+  portsync [options]
+  
+Options:
+  -p, --prune	prune local git repository
+  -r, --reset	reset git repositories
+  -h, --help	show this help message
+      
+EOF
+    exit 0
+}
+
+# Parse command line options
+parse_opts() {
+	  while [ "$1" ]; do
+		    case $1 in
+			      -p|--prune) PRN=1 ;;
+			      -r|--reset) RST=1 ;;
+			      -h|--help) HELP=1 ;;
+			      *) die "Invalid options: $1" ;;
+		    esac
+
+		    shift
+	  done
+}
+
+# Clean old objects from git repository
+prune_local() {
+	  msg "Pruning old objects from ${portdir}..."
+
+	  # Expire all old commits and their objects
+	  bare_git reflog expire --expire-unreachable=now --all || {
+		    printf "WARNING: Failed to expire reflog for %s\n" "$portdir" >&2
+		    return 1
+	  }
+
+	  # Remove old objects
+	  bare_git gc --quiet --aggressive --prune=all || {
+		    printf "WARNING: Failed to garbage collect for %s\n" "$portdir" >&2
+		    return 1
+	  }
+
+	  return 0
+}
+
+# Completely reset repositories
+reset_repos() {
+	  msg "Resetting repos..."
+	  rm -rf "$baredir" "$worktree" || die "Failed to remove repos during reset"
+
+	  msg "Repos reset complete. Now syncing..."
+}
+
+# Synchronize an individual repository
+sync_repo() {
+	  # Usage:
+	  #   sync_repo <repo dir> <repo url> <repo branch>
+	  #
+	  # Arguments:
+	  #   $1 - Repository destination directory
+	  #   $2 - Remote repository URL
+	  #   $3 - Branch to synchronize (optional, default: main)
+
+	  repodir="$1"
+	  portdir="${repodir##*/}"
+	  repourl="$2"
+	  repobranch="${3:-main}"
+
+	  msg "Fetching $2"
+
+	  # Check and create repository directory
+	  mkd "$repodir" || die "Failed to create directory: $repodir"
+	  cd "$repodir" || die "Failed to change to directory: $repodir"
+
+	  # Check if git directory exists
+	  [ -d "$baredir/${portdir}.git" ] || {
+		    # Initialize bare git repository
+		    git init --quiet --bare "$baredir/${portdir}.git" || die "Failed to initialize git repository for $portdir"
+
+		    # Add remote origin
+		    bare_git remote add origin "$repourl" 2>/dev/null || printf "WARNING: Remote origin already exists or failed to add for %s\n" "$portdir" >&2
+
+		    # Fetch the last commit
+		    bare_git fetch --depth=1 origin "$repobranch" || die "Failed to fetch from $repourl (branch: $repobranch).\nTry running: 'portsync -r'"
+
+		    # Reset the index and working tree
+		    bare_git reset --quiet --hard FETCH_HEAD || die "Failed to reset repository for $portdir.\nTry running: 'portsync -r'"
+
+		    # Switch to specified branch
+		    bare_git checkout --quiet "$repobranch" || die "Failed to checkout branch $repobranch for $portdir.\nTry running: 'portsync -r'"
+	  }
+
+	  # Pull and update
+	  bare_git pull --quiet "$repourl" "$repobranch" || die "Failed to pull updates from $repourl (branch: $repobranch).\nRepository may be out of sync. Try running: 'portsync -r'"
+
+	  # Optional prune
+	  [ "$PRN" -eq 1 ] && prune_local
+	  msg "${portdir} ports synced in $repodir"
+
+	  return 0
+}
+
+# ====== MAIN SCRIPT ======
+
+# Parse command line options
+parse_opts "$@"
+
+# Show help if requested
+[ "$HELP" -eq 1 ] && usage
+
+# Define working directories
+baredir="/var/cache/emerald/repos"
+mkd "$baredir" || die "Failed to create cache directory"
+
+worktree="/usr/ports"
+mkd "$worktree" || die "Failed to create worktree directory"
+
+# Check that configuration file exists
+repo_file="/etc/emerald.repo"
+[ -e "$repo_file" ] || die "Missing repo file: $repo_file"
+
+# Reset repositories if requested
+[ "$RST" -eq 1 ] && reset_repos
+
+# Process each repository from configuration file
+printf "%s\n" "Syncing PORTS..."
+
+while read -r repodir repourl repobranch _; do
+    # Skip comments and empty lines
+    case "$repodir" in
+        ""|"#"*) continue ;;
+    esac
+
+    [ -n "$repodir" ] && [ -n "$repourl" ] && {
+        sync_repo "$repodir" "$repourl" "${repobranch:-main}" || die "Sync failed for repository $repodir"
+    }
+done < "$repo_file"
+
+exit 0

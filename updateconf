@@ -1,0 +1,107 @@
+#!/bin/sh
+
+#
+# updateconf - Manage .epkgnew configuration files
+#
+# Description:
+#   This script helps system administrators merge new configuration files
+#   (with .epkgnew extension) with existing ones after package updates.
+#
+
+# Set default editor if not already set
+EDITOR=${EDITOR:-vim}
+
+# Verify editor exists
+command -v "$EDITOR" >/dev/null 2>&1 || {
+	  printf "Editor '%s' not exist. Append 'EDITOR=<your editor>' to %s.\n" "$EDITOR" "${0##*/}"
+	  exit 2
+}
+
+# Check for root privileges
+[ "$(id -u)" = 0 ] || {
+	  printf "This operation need root access. Exiting...\n"
+	  exit 1
+}
+
+# Find all .epkgnew files in /etc
+# Note: -regextype is GNU-specific, but commonly available
+epkgnew=$(find /etc -regextype posix-extended -regex ".+\.epkgnew" 2>/dev/null)
+
+# Exit if no .epkgnew files found
+[ -n "$epkgnew" ] || {
+	  printf "Nothing to do. Exiting...\n"
+	  exit 0
+}
+
+# Process each .epkgnew file
+for file in $epkgnew; do
+	  # Remove .epkgnew extension to get original filename
+	  currentfile=${file%.*}
+
+	  # If original file doesn't exist, remove the .epkgnew file
+	  if [ ! -e "$currentfile" ]; then
+		    printf "Remove '%s', '%s' not exist.\n" "$file" "$currentfile"
+		    rm -f "$file"
+
+		    sleep 1
+		    continue
+	  fi
+
+	  # Interactive loop for handling this file
+	  while true; do
+		    clear
+
+		    # Show unified diff between current and new file
+		    # Use --color=always if available (GNU extension, but gracefully degrades)
+		    diff -u "$currentfile" "$file" --color=always 2>/dev/null || diff -u "$currentfile" "$file"
+		    diff_result=$?
+
+		    # If files are identical, remove .epkgnew and continue
+		    if [ "$diff_result" -eq 0 ]; then
+			      printf "Remove '%s', no diff found.\n" "$file"
+			      rm -f "$file"
+
+			      sleep 1
+			      break
+		    fi
+
+		    # Display menu
+		    printf "\n"
+		    printf "File: %s\n" "$currentfile"
+		    printf "\n"
+		    printf "[U]pdate [D]iscard [E]dit [K]eep ?: "
+
+		    read -r ACTION
+		    printf "\n"
+
+		    # Process user's choice
+		    case "$ACTION" in
+			      U | u) printf "Replace '%s' with '%s'.\n" "$currentfile" "$file"
+			          mv -f "$file" "$currentfile"
+			          break
+			      ;;
+
+			      D | d) printf "Remove '%s'.\n" "$file"
+			          rm -f "$file"
+			          break
+			      ;;
+
+			      E | e) "$EDITOR" "$currentfile";;
+
+			      K | k)
+			          printf "Keeping both.\n"
+			          break
+			      ;;
+
+            # Invalid option - loop continues to show menu again
+			      *) ;;
+		    esac
+	  done
+
+	  sleep 1
+done
+
+clear
+printf "Done updating package's configuration files.\n"
+
+exit 0

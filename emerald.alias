@@ -1,0 +1,9 @@
+#
+# /etc/emerald.alias: emerald alias file
+#
+# format:
+#    <real package> <aliased package>
+#
+# example:
+#    openssl libressl
+#
