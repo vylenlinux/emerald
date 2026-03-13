@@ -5,10 +5,10 @@
 #    <repo directory> <repo url> <repo branch, "main" by default>
 #
 
-/usr/ports/main         https://gitlab.com/vylen/repositories/main
-/usr/ports/community    https://gitlab.com/vylen/repositories/community
-#/usr/ports/kde-lxqt    https://gitlab.com/vylen/repositories/kde-lxqt
-#/usr/ports/mate        https://gitlab.com/vylen/repositories/mate
-#/usr/ports/xfce        https://gitlab.com/vylen/repositories/xfce
-#/usr/ports/multilib    https://gitlab.com/vylen/repositories/multilib
-#/usr/ports/nonfree     https://gitlab.com/vylen/repositories/nonfree
+/usr/ports/main         https://gitlab.com/vylen/ports/main
+/usr/ports/community    https://gitlab.com/vylen/ports/community
+#/usr/ports/kde-lxqt    https://gitlab.com/vylen/ports/kde-lxqt
+#/usr/ports/mate        https://gitlab.com/vylen/ports/mate
+#/usr/ports/xfce        https://gitlab.com/vylen/ports/xfce
+#/usr/ports/multilib    https://gitlab.com/vylen/ports/multilib
+#/usr/ports/nonfree     https://gitlab.com/vylen/ports/nonfree
