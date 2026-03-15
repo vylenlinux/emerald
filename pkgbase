@@ -24,7 +24,7 @@ parseopt() {
 }
 
 help() {
-	  cat <<EOF
+	  cat <<'EOF'
 Usage:
   pkgbase [options] [packages]
   

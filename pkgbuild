@@ -534,7 +534,7 @@ parse_opts() {
 }
 
 help() {
-	cat <<EOF
+	cat <<'EOF'
 Usage:
   pkgbuild [ <options> <arguments> ]
 

@@ -35,7 +35,7 @@ bare_git() {
 
 # Show help message
 usage() {
-    cat <<EOF
+    cat <<'EOF'
 Usage:
   portsync [options]
   

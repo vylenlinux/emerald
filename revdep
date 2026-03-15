@@ -17,7 +17,7 @@ cleanup() {
 }
 
 help() {
-	  cat <<EOF
+	  cat <<'EOF'
 Usage:
   revdep [option] [arg]
   

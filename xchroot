@@ -21,7 +21,7 @@
 
 # Display usage information
 help() {
-	cat <<EOF
+	cat <<'EOF'
 
 Usage:
   xchroot <chroot-dir> [command]

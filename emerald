@@ -439,7 +439,7 @@ emerald_cache() {
         -s | --src) clean_pkg=0 ;;
 
         -h | --help)
-            cat <<EOF
+            cat <<'EOF'
 Usage: emerald cache [pkg|src]
 
   (no args)   clean packages AND sources cache
@@ -774,7 +774,7 @@ emerald_foreign() {
 }
 
 emerald_help() {
-    cat <<EOF
+    cat <<'EOF'
 Usage:
     emerald <options> [<arg>]
     

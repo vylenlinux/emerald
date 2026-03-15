@@ -38,7 +38,7 @@ msgerr() {
 }
 
 help() {
-    cat << 'EOF'
+    cat <<'EOF'
 Usage:
   pkgadd [ <options> <package.epkg.txz> ]
 

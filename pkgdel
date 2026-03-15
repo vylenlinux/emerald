@@ -22,7 +22,7 @@ msgerr() {
 }
 
 help() {
-	cat <<EOF
+	cat <<'EOF'
 Usage:
   pkgdel [ <options> <package name> ]
 

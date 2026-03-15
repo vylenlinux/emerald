@@ -13,7 +13,7 @@ BASERB=1
 
 # Display usage information and exit
 help() {
-	cat <<EOF
+	cat <<'EOF'
 Usage:
    pkgrebuild <options>
 
