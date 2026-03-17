@@ -21,11 +21,11 @@ Examples:
   portcreate -b go myport        # Creates go template
   portcreate -b python myport    # Creates python template
 EOF
-	  exit 0
+    exit 0
 }
 
 get_autotools_template() {
-	  cat <<'EOF'
+    cat <<'EOF'
 description=""
 maintainer="Vylen Linux Team"
 homepage=""
@@ -38,17 +38,17 @@ backup=""
 source=""
 
 build() {
-    cd $name-$version
+    cd "${name}-${version}"
     ./configure --prefix=/usr
 
     make
-    make DESTDIR=$PKG install
+    make DESTDIR="${PKG}" install
 }
 EOF
 }
 
 get_meson_template() {
-	  cat <<'EOF'
+    cat <<'EOF'
 description=""
 maintainer="Vylen Linux Team"
 homepage=""
@@ -61,18 +61,18 @@ backup=""
 source=""
 
 build() {
-    vylen-meson $name-$version build \
+    vylen-meson "${name}-${version}" build \
         -Doption=false \
         -Doption2=true
 
     meson compile -C build
-    DESTDIR=$PKG meson install --no-rebuild -C build
+    DESTDIR="${PKG}" meson install --no-rebuild -C build
 }
 EOF
 }
 
 get_cmake_template() {
-	  cat <<'EOF'
+    cat <<'EOF'
 description=""
 maintainer="Vylen Linux Team"
 homepage=""
@@ -85,7 +85,7 @@ backup=""
 source=""
 
 build() {
-    cmake -S $name-$version -B build \
+    cmake -S "${name}-${version}" -B build \
         -DCMAKE_INSTALL_PREFIX=/usr \
         -DCMAKE_INSTALL_LIBDIR=lib \
         -DCMAKE_INSTALL_LIBEXECDIR=lib \
@@ -95,7 +95,7 @@ build() {
         -Wno-dev
 
     cmake --build build
-    DESTDIR=$PKG cmake --install build
+    DESTDIR="${PKG}" cmake --install build
 }
 EOF
 }
@@ -114,24 +114,24 @@ backup=""
 source=""
 
 build() {
-    cd $name-$version
+    cd "${name}-${version}"
 
     export CGO_LDFLAGS="${LDFLAGS}"
     export CGO_CFLAGS="${CFLAGS}"
     export CGO_CPPFLAGS="${CPPFLAGS}"
     export CGO_CXXFLAGS="${CXXFLAGS}"
     export GOFLAGS="-buildmode=pie -trimpath -mod=readonly -modcacherw -ldflags=-linkmode=external"
-    export GOPATH=$SRC/go
-    export PATH=$PATH:$GOPATH/bin
+    export GOPATH="${SRC}/go"
+    export PATH="${PATH}:${GOPATH}/bin"
 
-    go build -o bin/$name *.go
-    install -Dm755 bin/$name $PKG/usr/bin/$name
+    go build -o "bin/${name}" *.go
+    install -Dm755 "bin/${name}" "${PKG}/usr/bin/${name}"
 }
 EOF
 }
 
 get_python_template() {
-	  cat <<'EOF'
+    cat <<'EOF'
 description=""
 maintainer="Vylen Linux Team"
 homepage=""
@@ -144,10 +144,10 @@ backup=""
 source=""
 
 build() {
-    cd $name-$version
+    cd "${name}-${version}"
 
     python3 setup.py build
-    python3 setup.py install --prefix=/usr --root=$PKG
+    python3 setup.py install --prefix=/usr --root="${PKG}"
 }
 EOF
 }
@@ -157,9 +157,9 @@ BUILDER="autotools"
 
 # Parse options
 while getopts "b:h" opt; do
-	  case $opt in
-		    b) BUILDER="$OPTARG" ;;
-		    *) usage ;;
+    case $opt in
+        b) BUILDER="$OPTARG" ;;
+        *) usage ;;
     esac
 done
 
@@ -167,38 +167,38 @@ shift $((OPTIND - 1))
 
 # Check if portname is provided
 if [ -z "$1" ]; then
-	  printf "ERROR: Port name is required!\n" >&2
-	  usage
+    printf "ERROR: Port name is required!\n" >&2
+    usage
 fi
 
 PORTNAME="$1"
 
 # Check if directory already exists
 if [ -d "$PORTNAME" ]; then
-	  printf "ERROR: Directory '%s' already exists!\n" "$PORTNAME" >&2
-	  exit 1
+    printf "ERROR: Directory '%s' already exists!\n" "$PORTNAME" >&2
+    exit 1
 fi
 
 # Create directory
 mkdir "$PORTNAME" || {
-	  printf "ERROR: Failed to create directory '%s'!\n" "$PORTNAME" >&2
-	  exit 1
+    printf "ERROR: Failed to create directory '%s'!\n" "$PORTNAME" >&2
+    exit 1
 }
 
 # Generate appropriate template
 case "$BUILDER" in
-	  autotools|make) TEMPLATE=$(get_autotools_template) ;;
-	  meson) TEMPLATE=$(get_meson_template) ;;
-	  cmake) TEMPLATE=$(get_cmake_template) ;;
-	  go|golang) TEMPLATE=$(get_go_template) ;;
-	  python|python3) TEMPLATE=$(get_python_template) ;;
+    autotools | make) TEMPLATE=$(get_autotools_template) ;;
+    meson) TEMPLATE=$(get_meson_template) ;;
+    cmake) TEMPLATE=$(get_cmake_template) ;;
+    go | golang) TEMPLATE=$(get_go_template) ;;
+	  python | python3) TEMPLATE=$(get_python_template) ;;
 
-	  *)
-		    printf "ERROR: Unknown builder '%s'!\n" "$BUILDER" >&2
-		    printf "Available builders: autotools, meson, cmake, go, python\n" >&2
+    *)
+        printf "ERROR: Unknown builder '%s'!\n" "$BUILDER" >&2
+        printf "Available builders: autotools, meson, cmake, go, python\n" >&2
 
-		    rm -rf "$PORTNAME"
-		    exit 1
+        rm -rf "$PORTNAME"
+        exit 1
 		;;
 esac
 

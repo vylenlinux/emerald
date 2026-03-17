@@ -13,7 +13,7 @@ get_realpath() {
     # If the argument is a directory, just use cd -P and pwd -P
     [ -d "$1" ] && {
         CDPATH= cd -P -- "$1" && pwd -P;
-        return;
+        return
     }
 
     # Otherwise, handle it as a file
@@ -69,6 +69,7 @@ extract_opts() {
                 while [ -n "$rest" ]; do
                     chr="${rest%"${rest#?}"}"
                     opts="$opts -$chr"
+
                     rest=${rest#?}
                 done
             ;;
@@ -238,12 +239,14 @@ if [ ! "$IGNORE_CONFLICT" ]; then
                 if ! grep -Fqx "$line" "$ROOT_DIR/$PKGDB_DIR/$name"; then
                     _f=$(grep -x "^$line$" "$ROOT_DIR/$PKGDB_DIR"/* | cut -d : -f1 | awk -F / '{print $(NF)}' | head -n1 | grep -vx "$name")
                     _f=${_f:-(none)}
+
                     printf '%s %s\n' "$_f" "$line"
                     touch "$TMP_CONFLICT"
                 fi
             else
                 _f=$(grep -x "^$line$" "$ROOT_DIR/$PKGDB_DIR"/* | cut -d : -f1 | awk -F / '{print $(NF)}' | head -n1)
                 _f=${_f:-(none)}
+
                 printf '%s %s\n' "$_f" "$line"
                 touch "$TMP_CONFLICT"
             fi
@@ -281,8 +284,8 @@ done
 
 # Remove old files from old package that do not exist in new package
 if [ "$UPGRADE_PKG" ] || [ "$REINSTALL_PKG" ]; then
-	  # awk replacement for tail + tac (no POSIX)
-	  awk 'NR>1 { lines[n++] = $0 } END { while (n--) print lines[n] }' "$ROOT_DIR/$PKGDB_DIR/$name" | while read -r line; do
+    # awk replacement for tail + tac (no POSIX)
+    awk 'NR>1 { lines[n++] = $0 } END { while (n--) print lines[n] }' "$ROOT_DIR/$PKGDB_DIR/$name" | while read -r line; do
         case $line in
             */[) ;;
 

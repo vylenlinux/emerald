@@ -6,33 +6,33 @@
 #
 
 parseopt() {
-	  while [ "$1" ]; do
-		    case "$1" in
-			      -n) dryrun=1 ;;
-			      -y) yes="$1" ;;
+    while [ "$1" ]; do
+        case "$1" in
+            -n) dryrun=1 ;;
+            -y) yes="$1" ;;
 
-			      -h)
-			          help;
-			          exit 0
-			      ;;
+            -h)
+                help;
+                exit 0
+            ;;
 
-			      *) pkg="$pkg $1" ;;
-		    esac
+            *) pkg="$pkg $1" ;;
+        esac
 
-		    shift
-	  done
+        shift
+    done
 }
 
 help() {
-	  cat <<'EOF'
+    cat <<'EOF'
 Usage:
   pkgbase [options] [packages]
-  
+
 Options:
   -n  dry-run (show what would be removed without doing it)
   -y  don't ask user confirmation
   -h  print this help message
-  
+
 Description:
   Removes all packages except base and specified packages.
   Keeps all dependencies of base and specified packages.
@@ -62,42 +62,42 @@ printf "Searching for base package...\n"
 BASE=$(find "$PKGDB_DIR" -type f -name 'base*' -exec basename {} \;)
 
 if [ -z "$BASE" ]; then
-	  printf "Error: base package not found in $PKGDB_DIR\n" >&2
-	  exit 1
+    printf "Error: base package not found in $PKGDB_DIR\n" >&2
+    exit 1
 fi
 
 printf "Calculate packages to keep...\n"
 keep=$(emerald deplist $BASE $pkg | awk '{print $2}')
 
 if [ -z "$keep" ]; then
-	  printf "Warning: no packages marked to keep\n" >&2
+    printf "Warning: no packages marked to keep\n" >&2
 fi
 
 printf "Calculate selected packages to remove...\n"
 # Build list of packages to remove
 
 for installed_pkg in $(find "$PKGDB_DIR" -type f 2>/dev/null | sed 's|.*/||'); do
-	  # Check if package is in keep list
-	  printf '%s\n' "$keep" | grep -qx "$installed_pkg" || remove="$remove $installed_pkg"
+    # Check if package is in keep list
+    printf '%s\n' "$keep" | grep -qx "$installed_pkg" || remove="$remove $installed_pkg"
 done
 
 # Execute removal or show dry-run
 if [ -n "$remove" ]; then
-	  if [ "$dryrun" = 1 ]; then
-		    printf "DRY-RUN MODE - No packages will be removed\n"
-		    printf "The following packages would be removed:\n"
+    if [ "$dryrun" = 1 ]; then
+        printf "DRY-RUN MODE - No packages will be removed\n"
+        printf "The following packages would be removed:\n"
 
-		    for pkg_to_remove in $remove; do
-			      printf "  - %s\n" "$pkg_to_remove"
-		    done
+        for pkg_to_remove in $remove; do
+            printf "  - %s\n" "$pkg_to_remove"
+        done
 
-		    printf "\nThis is dry-run, no real action is run!\n"
-	  else
-		    # Execute actual removal
-		    emerald remove $yes $remove || error=1
-	  fi
+        printf "\nThis is dry-run, no real action is run!\n"
+    else
+        # Execute actual removal
+        emerald remove $yes $remove || error=1
+    fi
 else
-	  printf "Already on base, nothing to remove.\n"
+    printf "Already on base, nothing to remove.\n"
 fi
 
 exit "$error"

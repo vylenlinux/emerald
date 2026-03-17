@@ -1,4 +1,5 @@
 #!/bin/sh
+
 #
 # pkgrebuild - Rebuild base packages in correct toolchain order
 #
@@ -13,7 +14,7 @@ BASERB=1
 
 # Display usage information and exit
 help() {
-	cat <<'EOF'
+    cat <<'EOF'
 Usage:
    pkgrebuild <options>
 
@@ -29,100 +30,100 @@ EOF
 
 # Verify root privileges - required for package installation
 [ "$(id -u)" = "0" ] || {
-	  msgerr "Rebuild packages requires root access!"
-	  help
+    msgerr "Rebuild packages requires root access!"
+    help
 
-	  exit 1
+    exit 1
 }
 
 # Print informational message to stdout
 msg() {
-	  printf "==> %s\n" "$1"
+    printf "==> %s\n" "$1"
 }
 
 # Print error message to stderr
 msgerr() {
-	  printf "ERROR: %s\n" "$1" >&2
+    printf "ERROR: %s\n" "$1" >&2
 }
 
 # Parse command line options, build toolchain and base by default
 parse_opts() {
-	  while [ "$1" ]; do
-		    case "$1" in
-			      "") : ;;  # default: rebuild toolchain and base
-			      -t | --toolchain) BASERB=0 ;;
-			      -b | --base) TCRB=0 ;;
-			      -h | --help) help ;;
+    while [ "$1" ]; do
+        case "$1" in
+            "") : ;;  # default: rebuild toolchain and base
+            -t | --toolchain) BASERB=0 ;;
+            -b | --base) TCRB=0 ;;
+            -h | --help) help ;;
 
-			      *)
-			          msg "Invalid option! ($1)";
-			          exit 1
-			      ;;
-		    esac
+            *)
+                msg "Invalid option! ($1)";
+                exit 1
+            ;;
+        esac
 
-		    shift
-	  done
+        shift
+    done
 }
 
 # Rebuild toolchain packages in proper dependency order
 toolchain_rebuild() {
-	  msg "Rebuilding toolchain..."
+    msg "Rebuilding toolchain..."
 
-	  # Iterate through toolchain packages in dependency order
-	  for tc in $TOOLCHAIN; do
-		    # Skip if package already rebuilt (recorded in tracking list)
-		    if ! grep -Fx "$tc" "$LIST" >/dev/null 2>&1; then
-			      # Remove -pass1 suffix to get actual package name
-			      pkgname="$(printf "%s" "$tc" | sed 's/-pass1//')"
+    # Iterate through toolchain packages in dependency order
+    for tc in $TOOLCHAIN; do
+        # Skip if package already rebuilt (recorded in tracking list)
+        if ! grep -Fx "$tc" "$LIST" >/dev/null 2>&1; then
+            # Remove -pass1 suffix to get actual package name
+            pkgname="$(printf "%s" "$tc" | sed 's/-pass1//')"
 
-			      # Force rebuild of package
-			      emerald build -f "$pkgname" || exit 1
+            # Force rebuild of package
+            emerald build -f "$pkgname" || exit 1
 
-			      # Record package as rebuilt (prevents duplicate builds)
-			      printf "%s\n" "$tc" >> "$LIST"
+            # Record package as rebuilt (prevents duplicate builds)
+            printf "%s\n" "$tc" >> "$LIST"
 
-			      # Install rebuilt package to system
-			      emerald install -r "$pkgname" || exit 1
-		    fi
-	  done
+            # Install rebuilt package to system
+            emerald install -r "$pkgname" || exit 1
+        fi
+    done
 
-	  msg "Rebuilding toolchain done."
+    msg "Rebuilding toolchain done."
 }
 
 # Rebuild all base system packages except toolchain components
 base_rebuild() {
-	  # Locate base package in database
-	  BASE=$(find "$PKGDB_DIR" -type f -name 'base*' 2>/dev/null | sed 's|.*/||' | head -n 1)
+    # Locate base package in database
+    BASE=$(find "$PKGDB_DIR" -type f -name 'base*' 2>/dev/null | sed 's|.*/||' | head -n 1)
 
-	  # Validate that base package was found
-	  if [ -z "$BASE" ]; then
-		    msgerr "No base package found in $PKGDB_DIR"
-		    exit 1
-	  fi
+    # Validate that base package was found
+    if [ -z "$BASE" ]; then
+        msgerr "No base package found in $PKGDB_DIR"
+        exit 1
+    fi
 
-	  msg "Rebuilding $BASE..."
+    msg "Rebuilding $BASE..."
 
-	  # Get dependency list for base package and process each dependency
-	  for pkg in $(emerald deplist "$BASE" | awk '{print $2}'); do
-		    # Skip toolchain packages - these are handled by toolchain_rebuild()
-		    case "$pkg" in
-			      linux-api-headers|glibc|binutils|gcc|libtool|libxcrypt|libmpc|elfutils|libmpfr) continue ;;
-		    esac
+    # Get dependency list for base package and process each dependency
+    for pkg in $(emerald deplist "$BASE" | awk '{print $2}'); do
+        # Skip toolchain packages - these are handled by toolchain_rebuild()
+        case "$pkg" in
+            linux-api-headers | glibc | binutils | gcc | libtool | libxcrypt | libmpc | elfutils | libmpfr) continue ;;
+        esac
 
-		    # Skip if package already rebuilt (recorded in tracking list)
-		    if ! grep -Fx "$pkg" "$LIST" >/dev/null 2>&1; then
-			      # Force rebuild of package
-			      emerald build -f "$pkg" || exit 1
+        # Skip if package already rebuilt (recorded in tracking list)
+        if ! grep -Fx "$pkg" "$LIST" >/dev/null 2>&1; then
+            # Force rebuild of package
+            emerald build -f "$pkg" || exit 1
 
-			      # Record package as rebuilt (prevents duplicate builds)
-			      printf "%s\n" "$pkg" >> "$LIST"
+            # Record package as rebuilt (prevents duplicate builds)
+            printf "%s\n" "$pkg" >> "$LIST"
 
-			      # Install rebuilt package to system
-			      emerald install -r "$pkg" || exit 1
-		    fi
-	  done
+            # Install rebuilt package to system
+            emerald install -r "$pkg" || exit 1
+        fi
+    done
 
-	  msg "Rebuilding $BASE done."
+    msg "Rebuilding $BASE done."
 }
 
 # Initialize tracking file to record which packages have been rebuilt
@@ -130,8 +131,8 @@ base_rebuild() {
 LIST="/tmp/$(basename "$0")-list"
 
 touch "$LIST" || {
-	  msgerr "Cannot create temporary file: $LIST"
-	  exit 1
+    msgerr "Cannot create temporary file: $LIST"
+    exit 1
 }
 
 # Define toolchain build order:

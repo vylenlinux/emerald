@@ -59,14 +59,14 @@ colors_vylen() {
 
 load_colors() {
     # reset all vars
-	  COLOR1=
-	  COLOR2=
-	  COLOR3=
-	  COLOR4=
-	  COLOR5=
-	  CRESET=
+    COLOR1=
+    COLOR2=
+    COLOR3=
+    COLOR4=
+    COLOR5=
+    CRESET=
 
-	  [ "$NOCOLOR" = "yes" ] && return 0
+    [ "$NOCOLOR" = "yes" ] && return 0
 
     case "$THEME" in
         dracula) colors_dracula ;;
@@ -79,156 +79,156 @@ load_colors() {
 load_colors
 
 needroot() {
-	  [ "$(id -u)" = 0 ] || {
-		    msgerr "this operation need root access!"
-		    exit 1
-	  }
+    [ "$(id -u)" = 0 ] || {
+        msgerr "this operation need root access!"
+        exit 1
+    }
 }
 
 msg() {
-	  printf "${COLOR2}==>${CRESET} %s\n" "$1"
+    printf "${COLOR2}==>${CRESET} %s\n" "$1"
 }
 
 msginst() {
-	  printf "[${COLOR2}i${CRESET}] %s\n" "$1"
+    printf "[${COLOR2}i${CRESET}] %s\n" "$1"
 }
 
 msgmiss() {
-	  printf "[${COLOR3}m${CRESET}] %s\n" "$1"
+    printf "[${COLOR3}m${CRESET}] %s\n" "$1"
 }
 
 msgnoinst() {
-	  printf "[-] %s\n" "$1"
+    printf "[-] %s\n" "$1"
 }
 
 msgerr() {
-	  printf "${COLOR1}ERROR:${CRESET} %s\n" "$1" >&2
+    printf "${COLOR1}ERROR:${CRESET} %s\n" "$1" >&2
 }
 
 msgwarn() {
-	  printf "${COLOR3}WARNING:${CRESET} %s\n" "$1" >&2
+    printf "${COLOR3}WARNING:${CRESET} %s\n" "$1" >&2
 }
 
 msg_portnotfound() {
-	  printf "%s\n" "Port '$1' not found."
+    printf "%s\n" "Port '$1' not found."
 }
 
 msg_portnotinstalled() {
-	  printf "%s\n" "Port '$1' not installed."
+    printf "%s\n" "Port '$1' not installed."
 }
 
 msg_portalreadyinstalled() {
-	  printf "%s\n" "Port '$1' already installed."
+    printf "%s\n" "Port '$1' already installed."
 }
 
 msg_depsstatus() {
-	  for i in "$@"; do
-		    if emerald_isinstalled "$i"; then
-			      msginst "$i"
-		    elif getportpath "$i" >/dev/null; then
-			      msgnoinst "$i"
-		    else
-			      msgmiss "$i"
-		    fi
-	  done
+    for i in "$@"; do
+        if emerald_isinstalled "$i"; then
+            msginst "$i"
+        elif getportpath "$i" >/dev/null; then
+            msgnoinst "$i"
+        else
+            msgmiss "$i"
+        fi
+    done
 
-	  unset i
+    unset i
 }
 
 getportpath() {
-	  for repo in $PORT_REPO; do
-		    if [ -f "$repo/$1/$BUILD_SCRIPT" ]; then
-			      dirname "$repo/$1/$BUILD_SCRIPT"
-			      return 0
-		    fi
-	  done
+    for repo in $PORT_REPO; do
+        if [ -f "$repo/$1/$BUILD_SCRIPT" ]; then
+            dirname "$repo/$1/$BUILD_SCRIPT"
+            return 0
+        fi
+    done
 
-	  return 1
+    return 1
 }
 
 
 get_iversion() {
-	  awk 'NR==1 {print $1"-"$2}' "$PKGDB_DIR/$1" 2>/dev/null
+    awk 'NR==1 {print $1"-"$2}' "$PKGDB_DIR/$1" 2>/dev/null
 }
 
 get_version() {
-	  p=$(getportpath "$1") || return 1
+    p=$(getportpath "$1") || return 1
 
-	  awk '/^version=/{
-	      v=$0;
+    awk '/^version=/{
+        v=$0;
 
-	      sub(/^version=/, "", v);
-	      gsub(/["'\'']/, "", v);
-	  } /^release=/{
-	      r=$0;
+        sub(/^version=/, "", v);
+        gsub(/["'\'']/, "", v);
+    } /^release=/{
+        r=$0;
 
-	      sub(/^release=/, "", r);
-	      gsub(/["'\'']/, "", r)
-	  } END {
-		     if (v == "") v=0;
-		     if (r == "") r=0;
+        sub(/^release=/, "", r);
+        gsub(/["'\'']/, "", r)
+    } END {
+        if (v == "") v=0;
+        if (r == "") r=0;
 
-		     print v "-" r;
-		}' "$p/$BUILD_SCRIPT"
+        print v "-" r;
+    }' "$p/$BUILD_SCRIPT"
 }
 
 allinstalled() {
-	  find "$PKGDB_DIR" -maxdepth 1 -type f -printf '%f\n'
+    find "$PKGDB_DIR" -maxdepth 1 -type f -printf '%f\n'
 }
 
 vercomp() {	
-	  [ "$1" = "$2" ] && return 0
+    [ "$1" = "$2" ] && return 0
 
-	  # - If sorted (exit code 0): $1 <= $2, but we know $1 != $2, so $1 < $2 → return 1
-	  # - If not sorted (exit code 1): $1 > $2 → return 2
-	  printf '%s\n%s\n' "$1" "$2" | sort -VC && return 1 || return 2
+    # - If sorted (exit code 0): $1 <= $2, but we know $1 != $2, so $1 < $2 → return 1
+    # - If not sorted (exit code 1): $1 > $2 → return 2
+    printf '%s\n%s\n' "$1" "$2" | sort -VC && return 1 || return 2
 }
 
 deps_alias() {
-	  for d in $deps; do
-		    [ "$(grep -w "^$d" "$ALIAS_FILE")" ] && printf "%s\n" "$(grep -w "^$d" "$ALIAS_FILE" | awk '{print $2}')" || printf "%s\n" "$d"
-	  done
+    for d in $deps; do
+        [ "$(grep -w "^$d" "$ALIAS_FILE")" ] && printf "%s\n" "$(grep -w "^$d" "$ALIAS_FILE" | awk '{print $2}')" || printf "%s\n" "$d"
+    done
 }
 
 get_depends() {
-	  ppath=$(getportpath "$1") || return 0
+    ppath=$(getportpath "$1") || return 0
 
-	  [ -f "$ppath/depends" ] && deps=$(grep -Ev '^$' "$ppath/depends") || return 0
-	  [ "$ALIAS_PORT" = "yes" ] && deps_alias "$deps" || printf "%s\n" "$deps"
+    [ -f "$ppath/depends" ] && deps=$(grep -Ev '^$' "$ppath/depends") || return 0
+    [ "$ALIAS_PORT" = "yes" ] && deps_alias "$deps" || printf "%s\n" "$deps"
 }
 
 confirm() {
-	  printf "%s" "$1 (Y/n) "
-	  read -r response
+    printf "%s" "$1 (Y/n) "
+    read -r response
 
-	  case "$response" in
-		    [Nn][Oo]|[Nn])
-		        printf "%s\n" "$2";
-		        return 2
-		    ;;
+    case "$response" in
+        [Nn][Oo] | [Nn])
+            printf "%s\n" "$2";
+            return 2
+        ;;
 
-		    *) : ;;
-	  esac
+        *) : ;;
+    esac
 
-	  return 0
+    return 0
 }
 
 checktool() {
-	  command -v "$1" >/dev/null 2>&1 || {
-	      msgerr "'$1' not exist in your system!"
-	      exit 1
-	  }
+    command -v "$1" >/dev/null 2>&1 || {
+        msgerr "'$1' not exist in your system!"
+        exit 1
+    }
 }
 
 needarg() {
-	  [ "$*" ] || {
-		    printf "%s\n" "This operation required an arguments!"
-		    exit 1
-	  }
+    [ "$*" ] || {
+        printf "%s\n" "This operation required an arguments!"
+        exit 1
+    }
 }
 
 settermtitle() {
-	printf "\033]0;%s\a" "$*"
+    printf "\033]0;%s\a" "$*"
 }
 
 summary_show() {
@@ -279,85 +279,85 @@ summary_title() {
 }
 
 emerald_build() {
-	  failed_builds=""
+    failed_builds=""
 
-	  while [ "$1" ]; do
-		    case $1 in
-			      -i | -u | -r | -g | -p ) ;;
-			      --log) LOG=1 ;;
-			      -k) KEEP_GOING_LOCAL=1 ;;
-			      -*) OPTS="$OPTS $1" ;;
-			      *) PKGNAME="$PKGNAME $1" ;;
-		    esac
+    while [ "$1" ]; do
+        case $1 in
+            -i | -u | -r | -g | -p ) ;;
+            --log) LOG=1 ;;
+            -k) KEEP_GOING_LOCAL=1 ;;
+            -*) OPTS="$OPTS $1" ;;
+            *) PKGNAME="$PKGNAME $1" ;;
+        esac
 
-		    shift
-	  done
+        shift
+    done
 
-	  [ "$PKGNAME" ] || {
-		    printf "%s\n" "Please specify package(s) to build."
-		    return 1
-	  }
+    [ "$PKGNAME" ] || {
+        printf "%s\n" "Please specify package(s) to build."
+        return 1
+    }
 
-	  for pkg in $PKGNAME; do
-		    ppath=$(getportpath "$pkg") || {
-			      msg_portnotfound "$pkg"
+    for pkg in $PKGNAME; do
+        ppath=$(getportpath "$pkg") || {
+            msg_portnotfound "$pkg"
 
-			      # If keep going is enabled, log and continue
-			      if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
-				        failed_builds="$failed_builds $pkg"
-				        continue
-			      else
-				        return 1
-			      fi
-		    }
+            # If keep going is enabled, log and continue
+            if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
+                failed_builds="$failed_builds $pkg"
+                continue
+            else
+                return 1
+            fi
+        }
 
-		    cd "$ppath" || return 1
-		        settermtitle "Building $pkg..."
+        cd "$ppath" || return 1
+            settermtitle "Building $pkg..."
 
-		        # Run pkgbuild and capture the result
-		        if [ "$LOG" ]; then
-			          if pkgbuild $OPTS | tee "/var/log/$pkg-$(get_version "$pkg")-build-$(date +%Y-%m-%d-%H:%M).log"; then
-				            settermtitle "Building $pkg done."
-			          else
-				            settermtitle "Building $pkg failed."
+            # Run pkgbuild and capture the result
+            if [ "$LOG" ]; then
+                if pkgbuild $OPTS | tee "/var/log/$pkg-$(get_version "$pkg")-build-$(date +%Y-%m-%d-%H:%M).log"; then
+                    settermtitle "Building $pkg done."
+                else
+                    settermtitle "Building $pkg failed."
 
-				            if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
-					              msgwarn "Build failed for '$pkg', continuing with next package..."
-					              failed_builds="$failed_builds $pkg"
-				            else
-					              return 1
-				            fi
-			          fi
-		        else
-			          if pkgbuild $OPTS; then
-				            settermtitle "Building $pkg done."
-			          else
-				            settermtitle "Building $pkg failed."
-
-				            if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
-					              msgwarn "Build failed for '$pkg', continuing with next package..."
-					              failed_builds="$failed_builds $pkg"
-				            else
+                    if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
+                        msgwarn "Build failed for '$pkg', continuing with next package..."
+                        failed_builds="$failed_builds $pkg"
+                    else
                         return 1
-				            fi
-			          fi
-		        fi
-		    cd - >/dev/null || return 1
-	  done
+                    fi
+                fi
+            else
+                if pkgbuild $OPTS; then
+                    settermtitle "Building $pkg done."
+                else
+                    settermtitle "Building $pkg failed."
 
-	  # Show error summary if exist
-	  FAILED_PKGS="$failed_builds"
-	  SKIPPED_PKGS=""
+                    if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
+                        msgwarn "Build failed for '$pkg', continuing with next package..."
+                        failed_builds="$failed_builds $pkg"
+                    else
+                        return 1
+                    fi
+                fi
+            fi
+        cd - >/dev/null || return 1
+    done
 
-	  summary_show "$FAILED_PKGS" "$SKIPPED_PKGS" "build"
-	  [ -n "$FAILED_PKGS" ] && return 1
+    # Show error summary if exist
+    FAILED_PKGS="$failed_builds"
+    SKIPPED_PKGS=""
 
-	  return 0
+    summary_show "$FAILED_PKGS" "$SKIPPED_PKGS" "build"
+    [ -n "$FAILED_PKGS" ] && return 1
+
+    return 0
 }
 
 human_size() {
-	  # Converts bytes to a human-readable size with one decimal
-	  b=$1
+    # Converts bytes to a human-readable size with one decimal
+    b=$1
 
     awk -v b="$b" 'BEGIN {
         suf="B K M G T P";
@@ -373,10 +373,10 @@ human_size() {
 
         printf "%.1f%s", val, u[i];
     }'
-}  
+}
 
 diff_lists() {
-	  # Diff lists (all - keep)
+    # Diff lists (all - keep)
     all="$1"
     keep="$2"
     out=""
@@ -397,13 +397,13 @@ diff_lists() {
 }
 
 show_list() {
-	  # Show files and sizes
+    # Show files and sizes
     list="$1"
     dir="$2"
 
     [ -z "$list" ] && return 0
         
-	  # Print list, one file per line
+    # Print list, one file per line
     oldIFS=$IFS
     IFS='|'
 
@@ -479,7 +479,7 @@ EOF
 
     # Scan PKGDB to determine what to keep
     for portname in $(allinstalled); do
-	      # Cache portpath to avoid calling getportpath multiple times
+        # Cache portpath to avoid calling getportpath multiple times
         portpath=$(getportpath "$portname")
 
         if [ -z "$portpath" ]; then
@@ -530,78 +530,78 @@ EOF
         [ -n "$to_remove_pkg" ] && printf '%s' "$to_remove_pkg" | tr '|' '\n' | xargs -P "$(nproc)" -I{} rm -f "$PACKAGE_DIR/{}"
         [ -n "$to_remove_src" ] && printf '%s' "$to_remove_src" | tr '|' '\n' | xargs -P "$(nproc)" -I{} rm -f "$SOURCE_DIR/{}"
 
-	      msg "Old caches removed!"
+        msg "Old caches removed!"
 	  fi
 }
 
 emerald_cat() {
-	  needarg "$@"
+    needarg "$@"
 
-	  PPATH=$(getportpath "$1") || {
-		    msg_portnotfound "$1"
-		    return 1
-	  }
+    PPATH=$(getportpath "$1") || {
+        msg_portnotfound "$1"
+        return 1
+    }
 
-	  cat "$PPATH/$BUILD_SCRIPT"
+    cat "$PPATH/$BUILD_SCRIPT"
 }
 
 emerald_config() {
-	  printf '%-12b%s%b %s\n' "$COLOR5" "MAINOPTS:" "$CRESET" "$MAINOPTS"
-	  printf '%-12b%s%b %s\n' "$COLOR5" "REPO_FILE:" "$CRESET" "$REPO_FILE"
-	  printf '%-12b%s%b %s\n' "$COLOR5" "MASK_FILE:" "$CRESET" "$MASK_FILE"
-	  printf '%-12b%s%b %s\n' "$COLOR5" "CONFIG_FILE:" "$CRESET" "$CONFIG_FILE"
-	  printf '%-12b%s%b %b%s%b\n' "$COLOR5" "CFLAGS:" "$CRESET" "$COLOR2" "$CFLAGS" "$CRESET"
-	  printf '%-12b%s%b %b%s%b\n' "$COLOR5" "CXXFLAGS:" "$CRESET" "$COLOR2" "$CXXFLAGS" "$CRESET"
-	  printf '%-12b%s%b %b%s%b\n' "$COLOR5" "FCFLAGS:" "$CRESET" "$COLOR2" "$FCFLAGS"" $CRESET"
-	  printf '%-12b%s%b %b%s%b\n' "$COLOR5" "FFLAGS:" "$CRESET" "$COLOR2" "$FFLAGS" "$CRESET"
-	  printf '%-12b%s%b %b%s%b\n' "$COLOR5" "MAKEFLAGS:" "$CRESET" "$COLOR2" "$MAKEFLAGS" "$CRESET"
-	  printf '%-12b%s%b %b%s%b\n' "$COLOR5" "LDFLAGS:" "$CRESET" "$COLOR2" "$LDFLAGS" "$CRESET"
-	  printf '%-12b%s%b %b%s%b\n' "$COLOR5" "RUSTFLAGS:" "$CRESET" "$COLOR2" "$RUSTFLAGS" "$CRESET"
-	  printf '%-12b%s%b %b%s%b\n' "$COLOR5" "CURL_OPTS:" "$CRESET" "$COLOR4" "$CURL_OPTS" "$CRESET"
-	  printf '%-12b%s%b %b%s%b\n' "$COLOR5" "COMPRESSION_MODE:" "$CRESET" "$COLOR4" "$COMPRESSION_MODE" "$CRESET"
-	  printf '%-12b%s%b %b%s%b\n' "$COLOR5" "NO_STRIP:" "$CRESET" "$COLOR4" "$NO_STRIP" "$CRESET"
-	  printf '%-12b%s%b %b%s%b\n' "$COLOR5" "IGNORE_CHECKSUM:" "$CRESET" "$COLOR4" "$IGNORE_CHECKSUM" "$CRESET"
-	  printf '%-12b%s%b %b%s%b\n' "$COLOR5" "KEEP_LIBTOOL:" "$CRESET" "$COLOR4" "$KEEP_LIBTOOL" "$CRESET"
-	  printf '%-12b%s%b %b%s%b\n' "$COLOR5" "KEEP_LOCALE:" "$CRESET" "$COLOR4" "$KEEP_LOCALE" "$CRESET"
-	  printf '%-12b%s%b %b%s%b\n' "$COLOR5" "KEEP_DOC:" "$CRESET" "$COLOR4" "$KEEP_DOC" "$CRESET"
-	  printf '%-12b%s%b %b%s%b\n' "$COLOR5" "KEEP_GOING:" "$CRESET" "$COLOR4" "$KEEP_GOING" "$CRESET"
-	  printf '%-12b%s%b %s\n' "$COLOR5" "SOURCE_DIR:" "$CRESET" "$SOURCE_DIR"
-	  printf '%-12b%s%b %s\n' "$COLOR5" "PACKAGE_DIR:" "$CRESET" "$PACKAGE_DIR"
-	  printf '%-12b%s%b\n' "$COLOR5" "PORT_REPO:" "$CRESET"
+    printf '%-12b%s%b %s\n' "$COLOR5" "MAINOPTS:" "$CRESET" "$MAINOPTS"
+    printf '%-12b%s%b %s\n' "$COLOR5" "REPO_FILE:" "$CRESET" "$REPO_FILE"
+    printf '%-12b%s%b %s\n' "$COLOR5" "MASK_FILE:" "$CRESET" "$MASK_FILE"
+    printf '%-12b%s%b %s\n' "$COLOR5" "CONFIG_FILE:" "$CRESET" "$CONFIG_FILE"
+    printf '%-12b%s%b %b%s%b\n' "$COLOR5" "CFLAGS:" "$CRESET" "$COLOR2" "$CFLAGS" "$CRESET"
+    printf '%-12b%s%b %b%s%b\n' "$COLOR5" "CXXFLAGS:" "$CRESET" "$COLOR2" "$CXXFLAGS" "$CRESET"
+    printf '%-12b%s%b %b%s%b\n' "$COLOR5" "FCFLAGS:" "$CRESET" "$COLOR2" "$FCFLAGS"" $CRESET"
+    printf '%-12b%s%b %b%s%b\n' "$COLOR5" "FFLAGS:" "$CRESET" "$COLOR2" "$FFLAGS" "$CRESET"
+    printf '%-12b%s%b %b%s%b\n' "$COLOR5" "MAKEFLAGS:" "$CRESET" "$COLOR2" "$MAKEFLAGS" "$CRESET"
+    printf '%-12b%s%b %b%s%b\n' "$COLOR5" "LDFLAGS:" "$CRESET" "$COLOR2" "$LDFLAGS" "$CRESET"
+    printf '%-12b%s%b %b%s%b\n' "$COLOR5" "RUSTFLAGS:" "$CRESET" "$COLOR2" "$RUSTFLAGS" "$CRESET"
+    printf '%-12b%s%b %b%s%b\n' "$COLOR5" "CURL_OPTS:" "$CRESET" "$COLOR4" "$CURL_OPTS" "$CRESET"
+    printf '%-12b%s%b %b%s%b\n' "$COLOR5" "COMPRESSION_MODE:" "$CRESET" "$COLOR4" "$COMPRESSION_MODE" "$CRESET"
+    printf '%-12b%s%b %b%s%b\n' "$COLOR5" "NO_STRIP:" "$CRESET" "$COLOR4" "$NO_STRIP" "$CRESET"
+    printf '%-12b%s%b %b%s%b\n' "$COLOR5" "IGNORE_CHECKSUM:" "$CRESET" "$COLOR4" "$IGNORE_CHECKSUM" "$CRESET"
+    printf '%-12b%s%b %b%s%b\n' "$COLOR5" "KEEP_LIBTOOL:" "$CRESET" "$COLOR4" "$KEEP_LIBTOOL" "$CRESET"
+    printf '%-12b%s%b %b%s%b\n' "$COLOR5" "KEEP_LOCALE:" "$CRESET" "$COLOR4" "$KEEP_LOCALE" "$CRESET"
+    printf '%-12b%s%b %b%s%b\n' "$COLOR5" "KEEP_DOC:" "$CRESET" "$COLOR4" "$KEEP_DOC" "$CRESET"
+    printf '%-12b%s%b %b%s%b\n' "$COLOR5" "KEEP_GOING:" "$CRESET" "$COLOR4" "$KEEP_GOING" "$CRESET"
+    printf '%-12b%s%b %s\n' "$COLOR5" "SOURCE_DIR:" "$CRESET" "$SOURCE_DIR"
+    printf '%-12b%s%b %s\n' "$COLOR5" "PACKAGE_DIR:" "$CRESET" "$PACKAGE_DIR"
+    printf '%-12b%s%b\n' "$COLOR5" "PORT_REPO:" "$CRESET"
 
-	  for i in $PORT_REPO; do
-		    printf '  %-10s %s\n' "" "$i"
-	  done
+    for i in $PORT_REPO; do
+        printf '  %-10s %s\n' "" "$i"
+    done
 
-	  return 0
+    return 0
 }
 
 emerald_dependent() {
-	  needarg "$@"
+    needarg "$@"
 
-	  if [ "$(getportpath "$1")" ]; then
-		    for repo in $PORT_REPO; do
-			      grep -l "^$1$" "$repo"/*/depends 2>/dev/null | awk -F'/' '{print $(NF-1)}'
-		    done | sort -u | while read -r dpd; do
-			      msg_depsstatus "$dpd"
-		    done
-	  else
-		    msg_portnotfound "$1"
-		    return 1
-	  fi
+    if [ "$(getportpath "$1")" ]; then
+        for repo in $PORT_REPO; do
+            grep -l "^$1$" "$repo"/*/depends 2>/dev/null | awk -F'/' '{print $(NF-1)}'
+        done | sort -u | while read -r dpd; do
+            msg_depsstatus "$dpd"
+        done
+    else
+        msg_portnotfound "$1"
+        return 1
+    fi
 }
 
 emerald_depends() {
-	  needarg "$@"
+    needarg "$@"
 
-	  if getportpath "$1" >/dev/null; then
-		    depends=$(get_depends "$1")
-	  else
-		    msg_portnotfound "$1"
-		    return 1
-	  fi
+    if getportpath "$1" >/dev/null; then
+        depends=$(get_depends "$1")
+    else
+        msg_portnotfound "$1"
+        return 1
+    fi
 
-	  msg_depsstatus $depends
+    msg_depsstatus $depends
 }
 
 deplist() {
@@ -630,7 +630,7 @@ deplist() {
             *" $dep "*) continue ;;
         esac
 
-	      if ! getportpath "$dep" >/dev/null 2>&1; then
+        if ! getportpath "$dep" >/dev/null 2>&1; then
             MISSINGDEP="$MISSINGDEP $dep($pkg) "
         else
             deplist "$dep"
@@ -730,54 +730,54 @@ $(awk '/^version=/ {
 }' "$2/$1/$BUILD_SCRIPT")
 EOF
 
-	  emerald_isinstalled "$1" && ins="[${COLOR2}i${CRESET}]" || ins="[ ]"
-	  printf "%b %b(%s)%b %s %b%s-%s%b\n" "$ins" "$COLOR5" "${2##*/}" "$CRESET" "$1" "$COLOR4" "$dversion" "$drelease" "$CRESET"
+    emerald_isinstalled "$1" && ins="[${COLOR2}i${CRESET}]" || ins="[ ]"
+    printf "%b %b(%s)%b %s %b%s-%s%b\n" "$ins" "$COLOR5" "${2##*/}" "$CRESET" "$1" "$COLOR4" "$dversion" "$drelease" "$CRESET"
 }
 
 emerald_dup() {	
-	  dup=$(find $PORT_REPO -type d -printf '%P\n'| sort | uniq -d)
+    dup=$(find $PORT_REPO -type d -printf '%P\n'| sort | uniq -d)
 
-	  if [ "$dup" ] ; then
-		    for dport in $dup; do
-			      for drepo in $PORT_REPO; do
-				        [ -d "$drepo/$dport" ] && dup_status "$dport" "$drepo"
-			      done
-		    done
-	  else
-		    msg "No duplicate ports found."
-	  fi
+    if [ "$dup" ] ; then
+        for dport in $dup; do
+            for drepo in $PORT_REPO; do
+                [ -d "$drepo/$dport" ] && dup_status "$dport" "$drepo"
+            done
+        done
+    else
+        msg "No duplicate ports found."
+    fi
 
-	  return 0
+    return 0
 }
 
 emerald_files() {	
-	  needarg "$@"
+    needarg "$@"
 
-	  if emerald_isinstalled "$1"; then
-		    cat "$PKGDB_DIR/$1"
-	  else
-		    msg_portnotinstalled "$1"
-	  fi
+    if emerald_isinstalled "$1"; then
+        cat "$PKGDB_DIR/$1"
+    else
+        msg_portnotinstalled "$1"
+    fi
 }
 
 emerald_foreign() {
-	  for pkg in $(allinstalled); do
-		    if ! getportpath "$pkg" >/dev/null; then
-			      iversion=$(get_iversion "$pkg")
-			      printf "%s %s\n" "$pkg" "$iversion"
-		    fi
+    for pkg in $(allinstalled); do
+        if ! getportpath "$pkg" >/dev/null; then
+            iversion=$(get_iversion "$pkg")
+            printf "%s %s\n" "$pkg" "$iversion"
+        fi
 
-		    unset pkg iversion
-	  done
+        unset pkg iversion
+    done
 
-	  return 0
+    return 0
 }
 
 emerald_help() {
     cat <<'EOF'
 Usage:
     emerald <options> [<arg>]
-    
+
 Options:
     sync                   <arg>    update ports database (use portsync arg)
                                     -p, --prune   prune local git repository
@@ -793,7 +793,7 @@ Options:
                                     -y            skip ask user confirmation
                                     -C, --clean   remove downloaded sources and prebuilt packages
                                     --log         log build process (/var/log/name-version-release-date.log)
-	
+
     install      <ports>   <arg>    install ports (use pkgbuild arg, except '-i' & '-u')
                                     -c            ignore conflict when installing package
                                     -f            force rebuild package
@@ -836,7 +836,7 @@ Options:
 
     remove       <ports>   <arg>    remove installed ports (use pkgdel arg)
                                     -y            skip ask user confirmation
-									
+
     deplist      <ports>            print all dependencies for ports
                                     -q            skip installed ports
                                     --exclude=*   exclude dependencies, comma separated
@@ -891,7 +891,7 @@ emerald_info() {
         return 1
     }
 
-IFS='|' read -r version release commit desc maint homep <<EOF
+    IFS='|' read -r version release commit desc maint homep <<EOF
 $(awk '/^version=/ {
     sub(/version=/, "");
     v = $0;
@@ -947,381 +947,381 @@ EOF
 }
 
 hook() {
-	  # hook <stage> <action> [port]
-	  # if using -o (download only), dont run hook
-	  [ "$DOWNLOAD_ONLY" ] && return 0
+    # hook <stage> <action> [port]
+    # if using -o (download only), dont run hook
+    [ "$DOWNLOAD_ONLY" ] && return 0
 
-	  # silent sanity check
-	  [ "$1" ] && [ "$2" ] || return 0
+    # silent sanity check
+    [ "$1" ] && [ "$2" ] || return 0
 
-	  hook_stage="$1"
-	  hook_action="$2"
-	  port="$3"
+    hook_stage="$1"
+    hook_action="$2"
+    port="$3"
 
-	  if [ "$port" ]; then
-		    hook_dir="$(getportpath "$port")" || return 1
-	  else
-		    hook_dir="."
-	  fi
+    if [ "$port" ]; then
+        hook_dir="$(getportpath "$port")" || return 1
+    else
+        hook_dir="."
+    fi
 
-	  hook="$hook_dir/$hook_stage-$hook_action"
+    hook="$hook_dir/$hook_stage-$hook_action"
 
-	  # hook are optional
-	  if [ -f "$hook" ]; then
-		    msg "hook $hook_stage-$hook_action"
-		    sh "$hook"
-	  fi
+    # hook are optional
+    if [ -f "$hook" ]; then
+        msg "hook $hook_stage-$hook_action"
+        sh "$hook"
+    fi
 }
 
 emerald_hook() {
-	  needroot
+    needroot
 
-	  if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
-		    msgwarn "Usage: emerald hook <stage> <action> <port>"
+    if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
+        msgwarn "Usage: emerald hook <stage> <action> <port>"
 
-		    msg "emerald hook <pre|post> <install|remove> <port>"
-		    msg "Example: emerald hook post install linux"
+        msg "emerald hook <pre|post> <install|remove> <port>"
+        msg "Example: emerald hook post install linux"
 
-		    return 1
-	  fi
+        return 1
+    fi
 
-	  stage="$1"
-	  action="$2"
-	  port="$3"
+    stage="$1"
+    action="$2"
+    port="$3"
 
-	  case "$stage" in
-	      pre|post) ;;
+    case "$stage" in
+        pre | post) ;;
 
-	      *)
-	          msgerr "stage must be 'pre' or 'post'"
-	          return 1
-	      ;;
-	  esac
+        *)
+            msgerr "stage must be 'pre' or 'post'"
+            return 1
+        ;;
+    esac
 
-	  case "$action" in
-	      install | remove) ;;
+    case "$action" in
+        install | remove) ;;
 
-	      *)
-	          msgerr "action must be 'install' or 'remove'"
-	          return 1
-	      ;;
-	  esac
+        *)
+            msgerr "action must be 'install' or 'remove'"
+            return 1
+        ;;
+    esac
 
-	  hook "$stage" "$action" "$port"
+    hook "$stage" "$action" "$port"
 }
 
 emerald_install() {
-	  needroot "Installing package"
+    needroot "Installing package"
 
-	  failed_installs=""
-	  skipped_installs=""
+    failed_installs=""
+    skipped_installs=""
 
-	  while [ "$1" ]; do
-	      case $1 in
-			      -i|-u) ;;
-			      -r) REINSTALL=1 ;;
+    while [ "$1" ]; do
+        case $1 in
+            -i | -u) ;;
+            -r) REINSTALL=1 ;;
 
-			      -o)
-			          DOWNLOAD_ONLY=1;
-			          OPTS="$OPTS $1"
-			      ;;
+            -o)
+                DOWNLOAD_ONLY=1;
+                OPTS="$OPTS $1"
+            ;;
 
-			      -y) NOCONFIRM=1 ;;
-			      -n) NO_DEP=1 ;;
-			      -k) KEEP_GOING_LOCAL=1 ;;
-			      --exclude=*) EXOPT=$1 ;;
-			      -*) OPTS="$OPTS $1" ;;
-			      *) PKGNAME="$PKGNAME $1" ;;
-		    esac
+            -y) NOCONFIRM=1 ;;
+            -n) NO_DEP=1 ;;
+            -k) KEEP_GOING_LOCAL=1 ;;
+            --exclude=*) EXOPT=$1 ;;
+            -*) OPTS="$OPTS $1" ;;
+            *) PKGNAME="$PKGNAME $1" ;;
+        esac
 
-		    shift
-	  done
+        shift
+    done
 
-	  [ "$PKGNAME" ] || {
-		    printf "%s\n" "Please specify package(s) to install."
-		    return 1
-	  }
+    [ "$PKGNAME" ] || {
+        printf "%s\n" "Please specify package(s) to install."
+        return 1
+    }
 
-	  # if reinstall, dont calculate dep, just reinstall it then exit
-	  if [ "$REINSTALL" = 1 ]; then
-		    error=0
+    # if reinstall, dont calculate dep, just reinstall it then exit
+    if [ "$REINSTALL" = 1 ]; then
+        error=0
 
-		    for ii in $PKGNAME; do
-			      if [ ! "$(getportpath "$ii")" ]; then
-				        msg_portnotfound "$ii"
+        for ii in $PKGNAME; do
+            if [ ! "$(getportpath "$ii")" ]; then
+                msg_portnotfound "$ii"
 
-				        if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
-					          failed_installs="$failed_installs $ii"
-					          continue
-				        else
-					          return 1
-				        fi
-			      elif ! emerald_isinstalled "$ii"; then
-				        msg_portnotinstalled "$ii"
+                if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
+                    failed_installs="$failed_installs $ii"
+                    continue
+                else
+                    return 1
+                fi
+            elif ! emerald_isinstalled "$ii"; then
+                msg_portnotinstalled "$ii"
 
-				        if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
-					          failed_installs="$failed_installs $ii"
-					          continue
-				        else
-					          return 1
-				        fi
-			      else
-				        cd "$(getportpath "$ii")" || return 1
-					          settermtitle "Reinstalling $ii..."
+                if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
+                    failed_installs="$failed_installs $ii"
+                    continue
+                else
+                    return 1
+                fi
+            else
+                cd "$(getportpath "$ii")" || return 1
+                    settermtitle "Reinstalling $ii..."
 
-					          if pkgbuild $OPTS -r; then
-						            done_pkg="$done_pkg $ii"
-					          else
-						            if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
-							              msgwarn "Reinstall failed for '$ii', continuing with next package..."
+                    if pkgbuild $OPTS -r; then
+                        done_pkg="$done_pkg $ii"
+                    else
+                        if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
+                            msgwarn "Reinstall failed for '$ii', continuing with next package..."
 
-							              failed_installs="$failed_installs $ii"
-							              error=1
-						            else
-							              error=1
+                            failed_installs="$failed_installs $ii"
+                            error=1
+                        else
+                            error=1
 
-							              cd - >/dev/null || return 1
-							              break
-						            fi
-					          fi
-				        cd - >/dev/null || return 1
-			      fi
-		    done
-
-		    [ "$done_pkg" ] && emerald_trigger "$done_pkg"
-
-		    # Show error summary if exist
-		    FAILED_PKGS="$failed_installs"
-		    SKIPPED_PKGS=""
-
-		    summary_show "$FAILED_PKGS" "$SKIPPED_PKGS" "reinstall"
-		    settermtitle "Package(s) reinstalled."
-
-		    return "$error"
-	  fi
-
-	  # No dep
-	  if [ "$NO_DEP" = 1 ]; then
-		    error=0
-
-		    for ii in $PKGNAME; do
-			      if [ ! "$(getportpath "$ii")" ]; then
-				        msg_portnotfound "$ii"
-
-				        if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
-					          failed_installs="$failed_installs $ii"
-					          continue
-				        else
-					          return 1
-				        fi
-			      elif emerald_isinstalled "$ii"; then
-				        msg_portalreadyinstalled "$ii"
-				        skipped_installs="$skipped_installs $ii"
-
-				        continue
-			      else
-				        cd "$(getportpath "$ii")" || return 1
-					          settermtitle "Installing $ii..."
-
-					          if pkgbuild -i $OPTS; then
-						            done_pkg="$done_pkg $ii"
-						            world_add "$ii"
-					          else
-						            if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
-							              msgwarn "Install failed for '$ii', continuing with next package..."
-
-							              failed_installs="$failed_installs $ii"
-							              error=1
-						            else
-							              error=1
-
-							              cd - >/dev/null || return 1
-							              break
-						            fi
-					          fi
-				        cd - >/dev/null || return 1
-			      fi
-		    done
-
-		    [ "$done_pkg" ] && emerald_trigger "$done_pkg"
-
-		    # Show error summary if exist
-		    FAILED_PKGS="$failed_installs"
-		    SKIPPED_PKGS=""
-
-		    summary_show "$FAILED_PKGS" "$SKIPPED_PKGS" "install"
-		    settermtitle "Package(s) installed."
-
-		    return "$error"
-	  fi
-
-	  for i in $PKGNAME; do
-		    if [ ! "$(getportpath "$i")" ]; then
-			      msg_portnotfound "$i"
-		    elif emerald_isinstalled "$i"; then
-			      msg_portalreadyinstalled "$i"
-		    else
-			      IPKG="$IPKG $i"
-		    fi
-	  done
-
-	  [ "$IPKG" ] || return 0
-
-	  printf "%s\n" "Resolving dependencies..."
-	  INST="$(emerald_deplist -q "$IPKG" "$EXOPT")"
-
-	  if [ "$INST" ]; then
-		    printf "\n"
-
-		    pkgcount=0
-		    installmsg="ACTION#PORTNAME#VERSION"
-
-		    for pkg in $INST; do
-			      pkgcount=$(( pkgcount + 1 ))
-			      installmsg="$installmsg install#$pkg#$(get_version "$pkg")"
-		    done
-
-		    printf "%s\n" "$installmsg" | tr ' ' '\n' | tr '#' ' ' | column -t
-		    printf "\n"
-        printf "( %s install )\n" "$pkgcount"
-		    printf "\n"
-
-		    if [ ! "$NOCONFIRM" ]; then
-		        confirm "Continue install package(s)?" "Package installation cancelled." || exit $?
-	          printf "\n"
-		    fi
-
-		    error=0
-		    count=0
-        total=$(printf "%s\n" "$INST" | wc -w)
-
-		    for int in $INST; do
-		        count=$(( count + 1 ))
-
-			      if portpathh=$(getportpath "$int"); then
-				        cd "$portpathh" || return 1
-					          settermtitle "[ $count/$total ] installing $int..."
-					          hook "pre" "install"
-
-					          if pkgbuild -i $OPTS; then
-				                if [ "$(printf "%s\n" "$IPKG" | tr ' ' '\n' | grep -x "$int")" ]; then
-					                  world_add "$int"
-				                fi
-
-						            hook "post" "install"
-						            done_pkg="$done_pkg $int"
-					          else
-						            if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
-					                  msgwarn "Install failed for '$int', continuing with next package..."
-
-					                  failed_installs="$failed_installs $int"
-					                  error=1
-						            else
-							              error=1
-
-							              cd - >/dev/null || return 1
-							              break
-						            fi
-					          fi
-				        cd - >/dev/null || return 1
-			      else
-		            msgwarn "Skipping missing package: $int"
-		            skipped_installs="$skipped_installs $int"
-			      fi
-
-			      unset portpathh
-		    done
+                            cd - >/dev/null || return 1
+                            break
+                        fi
+                    fi
+                cd - >/dev/null || return 1
+            fi
+        done
 
         [ "$done_pkg" ] && emerald_trigger "$done_pkg"
 
-		    # Show error summary if exist
-		    FAILED_PKGS="$failed_installs"
-        SKIPPED_PKGS="$skipped_installs"
+        # Show error summary if exist
+        FAILED_PKGS="$failed_installs"
+        SKIPPED_PKGS=""
 
-		    summary_show "$FAILED_PKGS" "$SKIPPED_PKGS" "install"
-		    summary_title "$error" "$done_pkg" "$count" "$total" "installed"
+        summary_show "$FAILED_PKGS" "$SKIPPED_PKGS" "reinstall"
+        settermtitle "Package(s) reinstalled."
 
         return "$error"
-	  fi
+    fi
+
+    # No dep
+    if [ "$NO_DEP" = 1 ]; then
+        error=0
+
+        for ii in $PKGNAME; do
+            if [ ! "$(getportpath "$ii")" ]; then
+                msg_portnotfound "$ii"
+
+                if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
+                    failed_installs="$failed_installs $ii"
+                    continue
+                else
+                    return 1
+                fi
+            elif emerald_isinstalled "$ii"; then
+                msg_portalreadyinstalled "$ii"
+                skipped_installs="$skipped_installs $ii"
+
+                continue
+            else
+                cd "$(getportpath "$ii")" || return 1
+                    settermtitle "Installing $ii..."
+
+                    if pkgbuild -i $OPTS; then
+                        done_pkg="$done_pkg $ii"
+                        world_add "$ii"
+                    else
+                        if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
+                            msgwarn "Install failed for '$ii', continuing with next package..."
+
+                            failed_installs="$failed_installs $ii"
+                            error=1
+                        else
+                            error=1
+
+                            cd - >/dev/null || return 1
+                            break
+                        fi
+                    fi
+                cd - >/dev/null || return 1
+            fi
+        done
+
+        [ "$done_pkg" ] && emerald_trigger "$done_pkg"
+
+        # Show error summary if exist
+        FAILED_PKGS="$failed_installs"
+        SKIPPED_PKGS=""
+
+        summary_show "$FAILED_PKGS" "$SKIPPED_PKGS" "install"
+        settermtitle "Package(s) installed."
+
+        return "$error"
+    fi
+
+    for i in $PKGNAME; do
+        if [ ! "$(getportpath "$i")" ]; then
+            msg_portnotfound "$i"
+        elif emerald_isinstalled "$i"; then
+            msg_portalreadyinstalled "$i"
+        else
+            IPKG="$IPKG $i"
+        fi
+    done
+
+    [ "$IPKG" ] || return 0
+
+    printf "%s\n" "Resolving dependencies..."
+    INST="$(emerald_deplist -q "$IPKG" "$EXOPT")"
+
+    if [ "$INST" ]; then
+        printf "\n"
+
+        pkgcount=0
+        installmsg="ACTION#PORTNAME#VERSION"
+
+        for pkg in $INST; do
+            pkgcount=$(( pkgcount + 1 ))
+            installmsg="$installmsg install#$pkg#$(get_version "$pkg")"
+        done
+
+        printf "%s\n" "$installmsg" | tr ' ' '\n' | tr '#' ' ' | column -t
+        printf "\n"
+        printf "( %s install )\n" "$pkgcount"
+        printf "\n"
+
+        if [ ! "$NOCONFIRM" ]; then
+            confirm "Continue install package(s)?" "Package installation cancelled." || exit $?
+            printf "\n"
+        fi
+
+        error=0
+        count=0
+        total=$(printf "%s\n" "$INST" | wc -w)
+
+        for int in $INST; do
+            count=$(( count + 1 ))
+
+            if portpathh=$(getportpath "$int"); then
+                cd "$portpathh" || return 1
+                    settermtitle "[ $count/$total ] installing $int..."
+                    hook "pre" "install"
+
+                    if pkgbuild -i $OPTS; then
+                        if [ "$(printf "%s\n" "$IPKG" | tr ' ' '\n' | grep -x "$int")" ]; then
+                            world_add "$int"
+                        fi
+
+                        hook "post" "install"
+                        done_pkg="$done_pkg $int"
+                    else
+                        if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
+                            msgwarn "Install failed for '$int', continuing with next package..."
+
+                            failed_installs="$failed_installs $int"
+                            error=1
+                        else
+                            error=1
+
+                            cd - >/dev/null || return 1
+                            break
+                        fi
+                    fi
+                cd - >/dev/null || return 1
+            else
+                msgwarn "Skipping missing package: $int"
+                skipped_installs="$skipped_installs $int"
+            fi
+
+            unset portpathh
+        done
+
+        [ "$done_pkg" ] && emerald_trigger "$done_pkg"
+
+        # Show error summary if exist
+        FAILED_PKGS="$failed_installs"
+        SKIPPED_PKGS="$skipped_installs"
+
+        summary_show "$FAILED_PKGS" "$SKIPPED_PKGS" "install"
+        summary_title "$error" "$done_pkg" "$count" "$total" "installed"
+
+        return "$error"
+    fi
 }
 
 emerald_installed() {
-	  for all in $(allinstalled); do
-		    printf "%s %s\n" "$all" "$(get_iversion "$all")"
-	  done
+    for all in $(allinstalled); do
+        printf "%s %s\n" "$all" "$(get_iversion "$all")"
+    done
 
-	  return 0
+    return 0
 }
 
 emerald_integrity() {
-	  needroot
+    needroot
 
-	  if [ "$1" ]; then
-		    pkg="$1"
-		    printf "%s\n" "Checking '$pkg' integrity..."
+    if [ "$1" ]; then
+        pkg="$1"
+        printf "%s\n" "Checking '$pkg' integrity..."
 
-		    [ -f "$PKGDB_DIR/$pkg" ] || {
-			      msg_portnotinstalled "$pkg"
-			      return 1
-		    }
+        [ -f "$PKGDB_DIR/$pkg" ] || {
+            msg_portnotinstalled "$pkg"
+            return 1
+        }
 
-		    found=0
+        found=0
 
-		    {
-		        read -r _   # skip header
+        {
+            read -r _   # skip header
 
-		        while IFS= read -r line; do
-			          [ -e "/$line" ] && continue
-			          found=1
+            while IFS= read -r line; do
+                [ -e "/$line" ] && continue
+                found=1
 
-			          [ -L "/$line" ] && printf "broken symlink %s: /%s\n" "$pkg" "$line" || printf "file missing %s: /%s\n" "$pkg" "$line"
-		        done
-		    } < "$PKGDB_DIR/$pkg"
+                [ -L "/$line" ] && printf "broken symlink %s: /%s\n" "$pkg" "$line" || printf "file missing %s: /%s\n" "$pkg" "$line"
+            done
+        } < "$PKGDB_DIR/$pkg"
 
-		    [ "$found" -eq 0 ] && msg "'$pkg' integrity is OK!"
-	  else
-		    printf "%s\n" "Checking ports integrity..."
-		    interr=$(mktemp) || return 1
+        [ "$found" -eq 0 ] && msg "'$pkg' integrity is OK!"
+    else
+        printf "%s\n" "Checking ports integrity..."
+        interr=$(mktemp) || return 1
 
-		    allinstalled | xargs -P "$(nproc)" -I{} sh -c '
-		        pkg="$1"
-			      db="$2/$pkg"
-			      interr="$3"
+        allinstalled | xargs -P "$(nproc)" -I{} sh -c '
+            pkg="$1"
+            db="$2/$pkg"
+            interr="$3"
 
-			      [ -f "$db" ] || exit 0
+            [ -f "$db" ] || exit 0
 
-			      {
-			          read -r _
+            {
+                read -r _
 
-			          while IFS= read -r line; do
-				            [ -e "/$line" ] && continue
+                while IFS= read -r line; do
+                    [ -e "/$line" ] && continue
 
-				            # mark error
-				            printf 1 >> "$interr"
+                    # mark error
+                    printf 1 >> "$interr"
 
-				            [ -L "/$line" ] && printf "broken symlink %s: /%s\n" "$pkg" "$line" || printf "missing file %s: /%s\n" "$pkg" "$line"
+                    [ -L "/$line" ] && printf "broken symlink %s: /%s\n" "$pkg" "$line" || printf "missing file %s: /%s\n" "$pkg" "$line"
 			          done
-			      } < "$db"
-		    ' _ {} "$PKGDB_DIR" "$interr"
+            } < "$db"
+        ' _ {} "$PKGDB_DIR" "$interr"
 
-		    [ ! -s "$interr" ] && msg "No integrity issues found!"
-		    rm -f "$interr"
-	  fi
+        [ ! -s "$interr" ] && msg "No integrity issues found!"
+        rm -f "$interr"
+    fi
 }
 
 emerald_isinstalled() {
     [ "$1" ] || return 1
-	  [ -f "$PKGDB_DIR/$1" ] || return 1
+    [ -f "$PKGDB_DIR/$1" ] || return 1
 
-	  return 0
+    return 0
 }
 
 emerald_locate() {
-	  needarg "$@"
+    needarg "$@"
 
-	  for repo in $PORT_REPO; do
-		    grep -Ri "$@" "$repo"/*/.pkgfiles 2>/dev/null | sed 's/:/ /;s/\/\.pkgfiles//' | awk '{print $1,$4}'
-	  done
+    for repo in $PORT_REPO; do
+        grep -Ri "$@" "$repo"/*/.pkgfiles 2>/dev/null | sed 's/:/ /;s/\/\.pkgfiles//' | awk '{print $1,$4}'
+    done
 }
 
 emerald_missingdep() {
@@ -1352,247 +1352,247 @@ EOF
 }
 
 emerald_orphan() {
-	  tmpdeplistworld="/tmp/.deplistworld.$"
-	  tmpallinstalled="/tmp/.allinstalled.$"
+    tmpdeplistworld="/tmp/.deplistworld.$"
+    tmpallinstalled="/tmp/.allinstalled.$"
 
-	  for i in $(cat "$WORLD_FILE"); do
-		    printf "%s\n" "$@" | tr ' ' '\n' | grep -qx "$i" && continue
-		    printf "%s\n" "$DEP" | tr ' ' '\n' | grep -qx "$i" && continue
+    for i in $(cat "$WORLD_FILE"); do
+        printf "%s\n" "$@" | tr ' ' '\n' | grep -qx "$i" && continue
+        printf "%s\n" "$DEP" | tr ' ' '\n' | grep -qx "$i" && continue
 
-		    deplist "$i"
-	  done
+        deplist "$i"
+    done
 
-	  printf "%s\n" "$DEP" | tr ' ' '\n' > "$tmpdeplistworld"
-	  allinstalled > "$tmpallinstalled"
+    printf "%s\n" "$DEP" | tr ' ' '\n' > "$tmpdeplistworld"
+    allinstalled > "$tmpallinstalled"
 
-	  grep -xvF -f "$tmpdeplistworld" "$tmpallinstalled"
-	  rm "$tmpallinstalled" "$tmpdeplistworld"
+    grep -xvF -f "$tmpdeplistworld" "$tmpallinstalled"
+    rm "$tmpallinstalled" "$tmpdeplistworld"
 }
 
 check_outdated() {
-	  for pkg in $(allinstalled); do
-		    NEWINSTALLED=0
-		    MASKED=0
+    for pkg in $(allinstalled); do
+        NEWINSTALLED=0
+        MASKED=0
 
-		    pvr=$(get_version "$pkg") || continue
-		    ivr=$(get_iversion "$pkg") || continue
+        pvr=$(get_version "$pkg") || continue
+        ivr=$(get_iversion "$pkg") || continue
 
-		    [ "$pvr" = "$ivr" ] && continue
+        [ "$pvr" = "$ivr" ] && continue
 
-		    iversion=${ivr%-*}
-		    irelease=${ivr#*-}
+        iversion=${ivr%-*}
+        irelease=${ivr#*-}
 
-		    if [ "$version" != "$iversion" ]; then
-			      vercomp "$version" "$iversion"
-			      [ $? = 1 ] && NEWINSTALLED=1
-		    elif [ "$release" != "$irelease" ]; then
-			      vercomp "$release" "$irelease"
-			      [ $? = 1 ] && NEWINSTALLED=1
-		    fi
+        if [ "$version" != "$iversion" ]; then
+            vercomp "$version" "$iversion"
+            [ $? = 1 ] && NEWINSTALLED=1
+        elif [ "$release" != "$irelease" ]; then
+            vercomp "$release" "$irelease"
+            [ $? = 1 ] && NEWINSTALLED=1
+        fi
 
-		    [ "$(grep -Ev '^(#|$| )' "$MASK_FILE" | grep -x "$pkg")" ] && MASKED=1
-		    printf "%s#%s#%s#%s#%s\n" "$pkg" "$ivr" "$pvr" "$NEWINSTALLED" "$MASKED"
-	  done
+        [ "$(grep -Ev '^(#|$| )' "$MASK_FILE" | grep -x "$pkg")" ] && MASKED=1
+        printf "%s#%s#%s#%s#%s\n" "$pkg" "$ivr" "$pvr" "$NEWINSTALLED" "$MASKED"
+    done
 }
 
 emerald_outdate() {
-	  for i in $(check_outdated); do
-		    OUTDATE=1
-		    unset ii
+    for i in $(check_outdated); do
+        OUTDATE=1
+        unset ii
 
-		    pname=${i%%#*}; i=${i#*#}
-		    oldver=${i%%#*}; i=${i#*#}
-		    newver=${i%%#*}; i=${i#*#}
-		    newins=${i%%#*}; i=${i#*#}
-		    masked=${i%%#*}; i=${i#*#}
+        pname=${i%%#*}; i=${i#*#}
+        oldver=${i%%#*}; i=${i#*#}
+        newver=${i%%#*}; i=${i#*#}
+        newins=${i%%#*}; i=${i#*#}
+        masked=${i%%#*}; i=${i#*#}
 
-		    [ "$newins" = 1 ] && ii=" [newer installed]"
-		    [ "$masked" = 1 ] && ii="$ii [masked]"
+        [ "$newins" = 1 ] && ii=" [newer installed]"
+        [ "$masked" = 1 ] && ii="$ii [masked]"
 
-		    printf "%s %s => %s%s\n" "$pname" "$oldver" "$newver" "$ii"
-	  done
+        printf "%s %s => %s%s\n" "$pname" "$oldver" "$newver" "$ii"
+    done
 
-	  [ ! "$OUTDATE" ] && msg "All packages are up to date."
+    [ ! "$OUTDATE" ] && msg "All packages are up to date."
 }
 
 emerald_path() {
-	  needarg "$@"
+    needarg "$@"
 
-	  if PPATH=$(getportpath "$1"); then
-		    printf "%s\n" "$PPATH"
-	  else
-		    msg_portnotfound "$1"
-		    return 1
-	  fi
+    if PPATH=$(getportpath "$1"); then
+        printf "%s\n" "$PPATH"
+    else
+        msg_portnotfound "$1"
+        return 1
+    fi
 }
 
 emerald_provide() {
-	  needarg "$@"
-	  grep -R "$1" "$PKGDB_DIR" | sed "s:$PKGDB_DIR/::" | tr : "\t"
+    needarg "$@"
+    grep -R "$1" "$PKGDB_DIR" | sed "s:$PKGDB_DIR/::" | tr : "\t"
 }
 
 emerald_purge() {
-	  needroot "Purging package"
+    needroot "Purging package"
 
-	  while [ "$1" ]; do
-		    case $1 in
-			      -*) PURGEOPTS="$PURGEOPTS $1" ;;
-			      *) PURGENAME="$PURGENAME $1" ;;
-		    esac
+    while [ "$1" ]; do
+        case $1 in
+            -*) PURGEOPTS="$PURGEOPTS $1" ;;
+            *) PURGENAME="$PURGENAME $1" ;;
+        esac
 
-		    shift
-	  done
+        shift
+    done
 
-	  if [ "$PURGENAME" ]; then
-		    for i in $PURGENAME; do
-			      emerald_isinstalled "$i" || {
-				        msg_portnotinstalled "$i"
-				        needexit=1
-			      }
-		    done
-	  fi
+    if [ "$PURGENAME" ]; then
+        for i in $PURGENAME; do
+            emerald_isinstalled "$i" || {
+                msg_portnotinstalled "$i"
+                needexit=1
+            }
+        done
+    fi
 
-	  [ "$needexit" ] && exit 1
-	  printf "%s\n" "Resolving dependencies..."
+    [ "$needexit" ] && exit 1
+    printf "%s\n" "Resolving dependencies..."
 
-	  orphan=$(emerald_orphan "$PURGENAME")
+    orphan=$(emerald_orphan "$PURGENAME")
 
-	  if [ "$PURGENAME" ]; then
-		    for purge in $PURGENAME; do
-			      unset DEP pkg
-			      deplist "$purge"
+    if [ "$PURGENAME" ]; then
+        for purge in $PURGENAME; do
+            unset DEP pkg
+            deplist "$purge"
 
-			      for ii in $DEP; do
-				        printf "%s\n" "$orphan" | tr ' ' '\n' | grep -qx "$ii" && pkg="$pkg $ii"
-			      done
+            for ii in $DEP; do
+                printf "%s\n" "$orphan" | tr ' ' '\n' | grep -qx "$ii" && pkg="$pkg $ii"
+            done
 
-			      [ "$pkg" ] || printf "%s\n" "Cant purge '$purge', it required by other package(s)..."
+            [ "$pkg" ] || printf "%s\n" "Cant purge '$purge', it required by other package(s)..."
 
-			      if [ "$remove" ]; then
-				        remove="$remove $pkg"
-			      else
-				        remove="$pkg"
-			      fi
-		    done
-	  else
-		    remove=$orphan
-	  fi
+            if [ "$remove" ]; then
+                remove="$remove $pkg"
+            else
+                remove="$pkg"
+            fi
+        done
+    else
+        remove=$orphan
+    fi
 
-	  if [ "$remove" ]; then
-		    emerald_remove $remove $PURGEOPTS
-	  else
-		    printf "%s\n" "No orphan packages found..."
-	  fi
+    if [ "$remove" ]; then
+        emerald_remove $remove $PURGEOPTS
+    else
+        printf "%s\n" "No orphan packages found..."
+    fi
 }
 
 emerald_redeps() {
-	  needarg "$@"
+    needarg "$@"
 
-	  if [ "$1" ]; then
-		    while [ "$1" ]; do
-			      case $1 in
-				        --fix | -f) fix="yes" ;;
-				        --help | -h) emerald_help ;;
-				        *) pkg="$pkg $1" ;;
-			      esac
+    if [ "$1" ]; then
+        while [ "$1" ]; do
+            case $1 in
+                --fix | -f) fix="yes" ;;
+                --help | -h) emerald_help ;;
+                *) pkg="$pkg $1" ;;
+            esac
 
-			      shift
-		    done
-	  fi
+            shift
+        done
+    fi
 	
-	  ppath=$(getportpath $pkg) || {
-		    msg_portnotfound $pkg
-		    return 1
-	  }
+    ppath=$(getportpath $pkg) || {
+        msg_portnotfound $pkg
+        return 1
+    }
 
-	  for i in $pkg; do
-		    [ "$(get_depends "$i")" ] || continue
+    for i in $pkg; do
+        [ "$(get_depends "$i")" ] || continue
 
-		    for d in $(get_depends "$i"); do
-			      for dd in $(get_depends "$i"); do
-				        [ "$dd" = "$d" ] && continue
+        for d in $(get_depends "$i"); do
+            for dd in $(get_depends "$i"); do
+                [ "$dd" = "$d" ] && continue
 
-				        [ "$(emerald deplist "$d" | awk '{print $2}' | grep -x "$dd")" ] && {
-					          printf "[%s] %s (already pulled from %s)\n" "$i" "$dd" "$d"
+                [ "$(emerald deplist "$d" | awk '{print $2}' | grep -x "$dd")" ] && {
+                    printf "[%s] %s (already pulled from %s)\n" "$i" "$dd" "$d"
 
-					          [ "$fix" = "yes" ] && {
-						            # Remove from depends file
-						            sed -i "/^$dd$/d" "$ppath/depends"
-						            msg " $dd removed from $i depends"
-					          }
-				        }
-			      done
-		    done
-	  done
+                    [ "$fix" = "yes" ] && {
+                        # Remove from depends file
+                        sed -i "/^$dd$/d" "$ppath/depends"
+                        msg " $dd removed from $i depends"
+                    }
+                }
+            done
+        done
+    done
 }
 
 emerald_remove() {
-	  needroot "Removing package"
+    needroot "Removing package"
 
-	  while [ "$1" ]; do
-		    case $1 in
-			      -y | --yes) NOCONFIRM=1 ;;
-			      -*) OPTS="$OPTS $1" ;;
-			      *) PKGNAME="$PKGNAME $1" ;;
-		    esac
+    while [ "$1" ]; do
+        case $1 in
+            -y | --yes) NOCONFIRM=1 ;;
+            -*) OPTS="$OPTS $1" ;;
+            *) PKGNAME="$PKGNAME $1" ;;
+        esac
 
-		    shift
-	  done
+        shift
+    done
 
-	  [ "$PKGNAME" ] || {
-		    printf "%s\n" "Please specify package(s) to remove."
-		    return 1
-	  }
+    [ "$PKGNAME" ] || {
+        printf "%s\n" "Please specify package(s) to remove."
+        return 1
+    }
 
-	  for i in $PKGNAME; do
-		    if ! emerald_isinstalled "$i"; then
-			      msg_portnotinstalled "$i"
-		    else
-			      IPKG="$IPKG $i"
-		    fi
-	  done
+    for i in $PKGNAME; do
+        if ! emerald_isinstalled "$i"; then
+            msg_portnotinstalled "$i"
+        else
+            IPKG="$IPKG $i"
+        fi
+    done
 
     [ "$IPKG" ] || return 0
 
-	  printf "%s\n" "Removing packages..."
-	  printf "\n"
+    printf "%s\n" "Removing packages..."
+    printf "\n"
 
-	  pkgcount=0
-	  count=0
-	  installmsg="ACTION#PORTNAME#VERSION"
+    pkgcount=0
+    count=0
+    installmsg="ACTION#PORTNAME#VERSION"
 
-	  for pkg in $IPKG; do
-		    pkgcount=$(( pkgcount + 1 ))
-		    installmsg="$installmsg remove#$pkg#$(get_iversion "$pkg")"
-	  done
+    for pkg in $IPKG; do
+        pkgcount=$(( pkgcount + 1 ))
+        installmsg="$installmsg remove#$pkg#$(get_iversion "$pkg")"
+    done
 
-	  printf "%s\n" "$installmsg" | tr ' ' '\n' | tr '#' ' ' | column -t
-	  printf "\n"
-	  printf "( %s remove )\n" "$pkgcount"
-	  printf "\n"
+    printf "%s\n" "$installmsg" | tr ' ' '\n' | tr '#' ' ' | column -t
+    printf "\n"
+    printf "( %s remove )\n" "$pkgcount"
+    printf "\n"
 
-	  [ "$NOCONFIRM" ] || {
-		    confirm "Continue remove package(s)?" "Package removing cancelled." || exit $?
-		    printf "\n"
-	  }
+    [ "$NOCONFIRM" ] || {
+        confirm "Continue remove package(s)?" "Package removing cancelled." || exit $?
+        printf "\n"
+    }
 
-	  for pkg in $IPKG; do
-		    count=$(( count + 1 ))
-		    settermtitle "[ $count/$pkgcount ] Removing $pkg..."
+    for pkg in $IPKG; do
+        count=$(( count + 1 ))
+        settermtitle "[ $count/$pkgcount ] Removing $pkg..."
 
-		    hook "pre" "remove" "$pkg"
-		    printf "remove: %s %s...\n" "$pkg" "$(get_iversion "$pkg")"
+        hook "pre" "remove" "$pkg"
+        printf "remove: %s %s...\n" "$pkg" "$(get_iversion "$pkg")"
 
-		    pkgdel "$pkg" $OPTS || {
-			      error=1
-			      break
-		    }
+        pkgdel "$pkg" $OPTS || {
+            error=1
+            break
+        }
 
-		    world_del "$pkg"
-		    hook "post" "remove" "$pkg"
-	  done
+        world_del "$pkg"
+        hook "post" "remove" "$pkg"
+    done
 
-	  settermtitle "$pkgcount package(s) removed."
+    settermtitle "$pkgcount package(s) removed."
 }
 
 emerald_search() {
@@ -1621,9 +1621,9 @@ $(awk '/^name=/ {
 }' "$repo/$port/$BUILD_SCRIPT")
 EOF
 
-	          # Check if package is installed and format output
-	          emerald_isinstalled "$name" && ins="[${COLOR2}i${CRESET}]" || ins="[ ]"
-	          printf "%b %b(%s)%b %b%s%b %b%s-%s%b %s\n" "$ins" "$COLOR5" "${repo##*/}" "$CRESET" "$COLOR2" "$name" "$CRESET" "$COLOR4" "$version" "$release" "$CRESET" "$desc"
+            # Check if package is installed and format output
+            emerald_isinstalled "$name" && ins="[${COLOR2}i${CRESET}]" || ins="[ ]"
+            printf "%b %b(%s)%b %b%s%b %b%s-%s%b %s\n" "$ins" "$COLOR5" "${repo##*/}" "$CRESET" "$COLOR2" "$name" "$CRESET" "$COLOR4" "$version" "$release" "$CRESET" "$desc"
         done
     done
 
@@ -1632,588 +1632,588 @@ EOF
 }
 
 emerald_sync() {	
-	  portsync "$@"
+    portsync "$@"
 }
 
 emerald_sysup() {
-	  needroot "Upgrading package"
-	  failed_upgrades=""
+    needroot "Upgrading package"
+    failed_upgrades=""
 
-	  while [ "$1" ]; do
-		    case $1 in
-			      -i | -u | -r ) ;;
+    while [ "$1" ]; do
+        case $1 in
+            -i | -u | -r ) ;;
 
-			      -o)
-			          DOWNLOAD_ONLY=1;
-			          OPTS="$OPTS $1"
-			      ;;
+            -o)
+                DOWNLOAD_ONLY=1;
+                OPTS="$OPTS $1"
+            ;;
 
-			      -y) NOCONFIRM=1 ;;
-			      -n) NODEP=1 ;;
-			      -k) KEEP_GOING_LOCAL=1 ;;
-			      --exclude=*) EXOPT=$1 ;;
-			      -*) OPTS="$OPTS $1" ;;
-		    esac
+            -y) NOCONFIRM=1 ;;
+            -n) NODEP=1 ;;
+            -k) KEEP_GOING_LOCAL=1 ;;
+            --exclude=*) EXOPT=$1 ;;
+            -*) OPTS="$OPTS $1" ;;
+        esac
 
-		    shift
-	  done
+        shift
+    done
 
-	  printf "%s\n" "Checking for outdated packages..."
-	  PKGOUTDATE=$(check_outdated)
+    printf "%s\n" "Checking for outdated packages..."
+    PKGOUTDATE=$(check_outdated)
 
-	  # filter out masked
-	  for i in $PKGOUTDATE; do
-		    case $i in
-			      *#1) continue ;;
-			      *) ii="$ii ${i%%#*}" ;;
-		    esac
-	  done
+    # filter out masked
+    for i in $PKGOUTDATE; do
+        case $i in
+            *#1) continue ;;
+            *) ii="$ii ${i%%#*}" ;;
+        esac
+    done
 
-	  EXPKG=${EXOPT#*=}
+    EXPKG=${EXOPT#*=}
 
-	  for i in $ii; do
-		    printf "%s\n" "$EXPKG" | tr ',' '\n' | grep -x "$i" >/dev/null || PKG="$PKG $i"
-	  done
+    for i in $ii; do
+        printf "%s\n" "$EXPKG" | tr ',' '\n' | grep -x "$i" >/dev/null || PKG="$PKG $i"
+    done
 
-	  [ "$PKG" ] || {
-		    printf "%s\n" "All packages are up to date."
-		    return 0
-	  }
+    [ "$PKG" ] || {
+        printf "%s\n" "All packages are up to date."
+        return 0
+    }
 
-	  [ "$(printf "%s\n" "$PKG" | grep -w emerald)" ] && {
-		    printf "\n"
-		    msgwarn "Please upgrade 'emerald' first."
+    [ "$(printf "%s\n" "$PKG" | grep -w emerald)" ] && {
+        printf "\n"
+        msgwarn "Please upgrade 'emerald' first."
 
-		    msg "Run 'emerald upgrade emerald' as root."
-		    return 1
-	  }
+        msg "Run 'emerald upgrade emerald' as root."
+        return 1
+    }
 
-	  UPGPKG=0
-	  NEWPKG=0
-	  installmsg="ACTION#PORTNAME#VERSION#OLDVERSION"
+    UPGPKG=0
+    NEWPKG=0
+    installmsg="ACTION#PORTNAME#VERSION#OLDVERSION"
 
-	  if [ "$NODEP" != 1 ]; then
-		    printf "%s\n" "Resolving dependencies..."
-		    DEP=$(emerald_deplist "$PKG" "$EXOPT" | awk '{print $2}')
+    if [ "$NODEP" != 1 ]; then
+        printf "%s\n" "Resolving dependencies..."
+        DEP=$(emerald_deplist "$PKG" "$EXOPT" | awk '{print $2}')
 
-		    printf "\n"
+        printf "\n"
 
-		    for d in $DEP; do
-			      if [ "$(printf "%s\n" "$PKG" | tr ' ' '\n' | grep -x "$d")" = "$d" ]; then
-				        installmsg="$installmsg upgrade#$d#$(get_version "$d")#$(get_iversion "$d")"
-				        WILLINSTALL="$WILLINSTALL $d"
+        for d in $DEP; do
+            if [ "$(printf "%s\n" "$PKG" | tr ' ' '\n' | grep -x "$d")" = "$d" ]; then
+                installmsg="$installmsg upgrade#$d#$(get_version "$d")#$(get_iversion "$d")"
+                WILLINSTALL="$WILLINSTALL $d"
 
-				        UPGPKG=$(( UPGPKG + 1 ))
-			      elif ! emerald_isinstalled "$d" && [ "$(getportpath "$d")" ]; then
-				        installmsg="$installmsg install#$d#$(get_version "$d")#$(get_iversion "$d")"
-				        WILLINSTALL="$WILLINSTALL $d"
+                UPGPKG=$(( UPGPKG + 1 ))
+            elif ! emerald_isinstalled "$d" && [ "$(getportpath "$d")" ]; then
+                installmsg="$installmsg install#$d#$(get_version "$d")#$(get_iversion "$d")"
+                WILLINSTALL="$WILLINSTALL $d"
 
-				        NEWPKG=$(( NEWPKG + 1 ))
-			      fi
-		    done
-	  else
-		    printf "\n"
+                NEWPKG=$(( NEWPKG + 1 ))
+            fi
+        done
+    else
+        printf "\n"
 
-		    for dd in $PKG; do
-			      printf "[${COLOR2}u${CRESET}] %s  " "$dd"
+        for dd in $PKG; do
+            printf "[${COLOR2}u${CRESET}] %s  " "$dd"
 
-			      WILLINSTALL="$WILLINSTALL $dd"
-			      UPGPKG=$(( UPGPKG + 1 ))
-		    done
-	  fi
+            WILLINSTALL="$WILLINSTALL $dd"
+            UPGPKG=$(( UPGPKG + 1 ))
+        done
+    fi
 
-	  printf "%s\n" "$installmsg" | tr ' ' '\n' | tr '#' ' ' | column -t
-	  printf "\n"
-	  printf "( %s upgrade, %s new install )\n" "$UPGPKG" "$NEWPKG"
-	  printf "\n"
+    printf "%s\n" "$installmsg" | tr ' ' '\n' | tr '#' ' ' | column -t
+    printf "\n"
+    printf "( %s upgrade, %s new install )\n" "$UPGPKG" "$NEWPKG"
+    printf "\n"
 
-	  [ "$NOCONFIRM" ] || {
-		    confirm "Continue upgrade/install these package(s)?" "Package upgrade cancelled." || exit $?
-		    printf "\n"
-	  }
+    [ "$NOCONFIRM" ] || {
+        confirm "Continue upgrade/install these package(s)?" "Package upgrade cancelled." || exit $?
+        printf "\n"
+    }
 
-	  error=0
-	  count=0
-	  total=$(printf "%s\n" "$WILLINSTALL" | wc -w)
+    error=0
+    count=0
+    total=$(printf "%s\n" "$WILLINSTALL" | wc -w)
 
-	  for inst in $WILLINSTALL; do # install all required dependencies and target packages itself
-		    count=$(( count + 1 ))
+    for inst in $WILLINSTALL; do # install all required dependencies and target packages itself
+        count=$(( count + 1 ))
 
-		    cd "$(getportpath "$inst")" || return 1
-		        if ! emerald_isinstalled "$inst"; then
-			          settermtitle "[ $count/$total ] Installing $inst..."
-			          hook "pre" "install"
+        cd "$(getportpath "$inst")" || return 1
+            if ! emerald_isinstalled "$inst"; then
+                settermtitle "[ $count/$total ] Installing $inst..."
+                hook "pre" "install"
 
-			          if pkgbuild -i $OPTS; then
-				            hook "post" "install"
-				            done_pkg="$done_pkg $inst"
-			          else
-				            if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
-					              msgwarn "Install failed for '$inst', continuing with next package..."
+                if pkgbuild -i $OPTS; then
+                    hook "post" "install"
+                    done_pkg="$done_pkg $inst"
+                else
+                    if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
+                        msgwarn "Install failed for '$inst', continuing with next package..."
 
-					              failed_upgrades="$failed_upgrades $inst"
-					              error=1
-				            else
-					              error=1
+                        failed_upgrades="$failed_upgrades $inst"
+                        error=1
+                    else
+                        error=1
 
-					              cd - >/dev/null || return 1
-					              break
-				            fi
-			          fi
-		        else
-			          settermtitle "[ $count/$total ] Upgrading $inst..."
-			          hook "pre" "install"
+                        cd - >/dev/null || return 1
+                        break
+                    fi
+                fi
+            else
+                settermtitle "[ $count/$total ] Upgrading $inst..."
+                hook "pre" "install"
 
-			          if pkgbuild -u $OPTS; then
-				            hook "post" "install"
-				            done_pkg="$done_pkg $inst"
-			          else
-				            if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
-					              msgwarn "Upgrade failed for '$inst', continuing with next package..."
+                if pkgbuild -u $OPTS; then
+                    hook "post" "install"
+                    done_pkg="$done_pkg $inst"
+                else
+                    if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
+                        msgwarn "Upgrade failed for '$inst', continuing with next package..."
 
-					              failed_upgrades="$failed_upgrades $inst"
-					              error=1
-				            else
-					              error=1
+                        failed_upgrades="$failed_upgrades $inst"
+                        error=1
+                    else
+                        error=1
 
-					              cd - >/dev/null || return 1
-					              break
-				            fi
-			          fi
-		        fi
-		    cd - >/dev/null || return 1
-	  done
+                        cd - >/dev/null || return 1
+                        break
+                    fi
+                fi
+            fi
+        cd - >/dev/null || return 1
+    done
 
-	  [ "$done_pkg" ] && emerald_trigger "$done_pkg"
+    [ "$done_pkg" ] && emerald_trigger "$done_pkg"
 
-	  # Show error summary if exist
-	  FAILED_PKGS="$failed_upgrades"
-	  SKIPPED_PKGS=""
+    # Show error summary if exist
+    FAILED_PKGS="$failed_upgrades"
+    SKIPPED_PKGS=""
 
-	  summary_show "$FAILED_PKGS" "$SKIPPED_PKGS" "upgrade"
-	  summary_title "$error" "$done_pkg" "$count" "$total" "upgraded"
+    summary_show "$FAILED_PKGS" "$SKIPPED_PKGS" "upgrade"
+    summary_title "$error" "$done_pkg" "$count" "$total" "upgraded"
 
-	  return "$error"
+    return "$error"
 }
 
 trigger_fccache() {
-	  command -v fc-cache >/dev/null || return 0
+    command -v fc-cache >/dev/null || return 0
 
-	  printf '%s\n' "$PKGFILES" | grep -q "^usr/share/fonts/" && {
-		    msg "Updating fontconfig cache..."
-		    fc-cache -sf
-	  }
+    printf '%s\n' "$PKGFILES" | grep -q "^usr/share/fonts/" && {
+        msg "Updating fontconfig cache..."
+        fc-cache -sf
+    }
 }
 
 trigger_gdkpixbufcache() {
-	  command -v gdk-pixbuf-query-loaders >/dev/null || return 0
+    command -v gdk-pixbuf-query-loaders >/dev/null || return 0
 
-	  printf '%s\n' "$PKGFILES" | grep -q "^usr/lib/gdk-pixbuf-2.0/2.10.0/loaders/" && {
-		    msg "Probing GDK-Pixbuf loader modules..."
-		    gdk-pixbuf-query-loaders --update-cache
-	  }
+    printf '%s\n' "$PKGFILES" | grep -q "^usr/lib/gdk-pixbuf-2.0/2.10.0/loaders/" && {
+        msg "Probing GDK-Pixbuf loader modules..."
+        gdk-pixbuf-query-loaders --update-cache
+    }
 }
 
 trigger_giomodules() {
-	  command -v gio-querymodules >/dev/null || return 0
+    command -v gio-querymodules >/dev/null || return 0
 
-	  printf '%s\n' "$PKGFILES" | grep -q "^usr/lib/gio/modules/" && {
-		    msg "Updating GIO module cache..."
-		    gio-querymodules /usr/lib/gio/modules
-	  }
+    printf '%s\n' "$PKGFILES" | grep -q "^usr/lib/gio/modules/" && {
+        msg "Updating GIO module cache..."
+        gio-querymodules /usr/lib/gio/modules
+    }
 }
 
 trigger_glibschema() {
-	  command -v glib-compile-schemas >/dev/null || return 0
+    command -v glib-compile-schemas >/dev/null || return 0
 
-	  printf '%s\n' "$PKGFILES" | grep -q "^usr/share/glib-2.0/schemas/" && {
-		    msg "Compiling GSettings XML schema files..."
-		    glib-compile-schemas /usr/share/glib-2.0/schemas
-	  }
+    printf '%s\n' "$PKGFILES" | grep -q "^usr/share/glib-2.0/schemas/" && {
+        msg "Compiling GSettings XML schema files..."
+        glib-compile-schemas /usr/share/glib-2.0/schemas
+    }
 }
 
 trigger_gtk2immodules() {
-	  command -v gtk-query-immodules-2.0 >/dev/null || return 0
+    command -v gtk-query-immodules-2.0 >/dev/null || return 0
 
-	  printf '%s\n' "$PKGFILES" | grep -q "^usr/lib/gtk-2.0/2.10.0/immodules/" && {
-		    msg "Probing GTK2 input method modules..."
-		    gtk-query-immodules-2.0 --update-cache
-	  }
+    printf '%s\n' "$PKGFILES" | grep -q "^usr/lib/gtk-2.0/2.10.0/immodules/" && {
+        msg "Probing GTK2 input method modules..."
+        gtk-query-immodules-2.0 --update-cache
+    }
 }
 
 trigger_gtk3immodules() {
-	  command -v gtk-query-immodules-3.0 >/dev/null || return 0
+    command -v gtk-query-immodules-3.0 >/dev/null || return 0
 
-	  printf '%s\n' "$PKGFILES" | grep -q "^usr/lib/gtk-3.0/3.0.0/immodules/" && {
-		    msg "Probing GTK3 input method modules..."
-		    gtk-query-immodules-3.0 --update-cache
-	  }
+    printf '%s\n' "$PKGFILES" | grep -q "^usr/lib/gtk-3.0/3.0.0/immodules/" && {
+        msg "Probing GTK3 input method modules..."
+        gtk-query-immodules-3.0 --update-cache
+    }
 }
 
 trigger_iconcache() {
-	  command -v gtk-update-icon-cache >/dev/null || return 0
+    command -v gtk-update-icon-cache >/dev/null || return 0
 
-	  printf '%s\n' "$PKGFILES" | grep -q "^usr/share/icons/" && {
-		    msg "Updating icon theme caches..."
+    printf '%s\n' "$PKGFILES" | grep -q "^usr/share/icons/" && {
+        msg "Updating icon theme caches..."
 
-		    for dir in /usr/share/icons/* ; do
-			      if [ -e "$dir/index.theme" ]; then
-				        gtk-update-icon-cache -q "$dir" 2>/dev/null
-			      else
-				        rm -f "$dir/icon-theme.cache"
-				        rmdir --ignore-fail-on-non-empty "$dir"
-			      fi
-		    done
-	  }
+        for dir in /usr/share/icons/* ; do
+            if [ -e "$dir/index.theme" ]; then
+                gtk-update-icon-cache -q "$dir" 2>/dev/null
+            else
+                rm -f "$dir/icon-theme.cache"
+                rmdir --ignore-fail-on-non-empty "$dir"
+            fi
+        done
+    }
 }
 
 trigger_udevdb() {
-	  command -v udevadm >/dev/null || return 0
+    command -v udevadm >/dev/null || return 0
 
-	  printf '%s\n' "$PKGFILES" | grep -q "^etc/udev/hwdb.d/" && {
-		    msg "Updating hardware database..."
-		    udevadm hwdb --update
-	  }
+    printf '%s\n' "$PKGFILES" | grep -q "^etc/udev/hwdb.d/" && {
+        msg "Updating hardware database..."
+        udevadm hwdb --update
+    }
 }
 
 trigger_fontcache() {
-	  command -v mkfontdir >/dev/null || return 0
-	  command -v mkfontscale >/dev/null || return 0
+    command -v mkfontdir >/dev/null || return 0
+    command -v mkfontscale >/dev/null || return 0
 
-	  printf '%s\n' "$PKGFILES" | grep -q "^usr/share/fonts/" && {
-		    msg "Updating X fontdir indices..."
+    printf '%s\n' "$PKGFILES" | grep -q "^usr/share/fonts/" && {
+        msg "Updating X fontdir indices..."
 
-		    for dir in $(find /usr/share/fonts -maxdepth 1 -type d \( ! -path /usr/share/fonts \)); do
-			      rm -f "$dir/fonts.scale" "$dir/fonts.dir" "$dir/.uuid"
-			      rmdir --ignore-fail-on-non-empty "$dir"
+        for dir in $(find /usr/share/fonts -maxdepth 1 -type d \( ! -path /usr/share/fonts \)); do
+            rm -f "$dir/fonts.scale" "$dir/fonts.dir" "$dir/.uuid"
+            rmdir --ignore-fail-on-non-empty "$dir"
 
-			      [ -d "$dir" ] || continue
+            [ -d "$dir" ] || continue
 
-			      mkfontdir "$dir"
-			      mkfontscale "$dir"
-		    done
-	  }
+            mkfontdir "$dir"
+            mkfontscale "$dir"
+        done
+    }
 }
 
 trigger_desktopdb() {
-	  command -v update-desktop-database >/dev/null || return 0
+    command -v update-desktop-database >/dev/null || return 0
 
-	  printf '%s\n' "$PKGFILES" | grep -q "^usr/share/applications/" && {
-		    msg "Updating desktop file MIME type cache..."
-		    update-desktop-database --quiet
-	  }
+    printf '%s\n' "$PKGFILES" | grep -q "^usr/share/applications/" && {
+        msg "Updating desktop file MIME type cache..."
+        update-desktop-database --quiet
+    }
 }
 
 trigger_mimedb() {
-	  command -v update-mime-database >/dev/null || return 0
+    command -v update-mime-database >/dev/null || return 0
 
-	  printf '%s\n' "$PKGFILES" | grep -q "^usr/share/mime/" && {
-		    msg "Updating the MIME type database..."
-		    update-mime-database /usr/share/mime
-	  }
+    printf '%s\n' "$PKGFILES" | grep -q "^usr/share/mime/" && {
+        msg "Updating the MIME type database..."
+        update-mime-database /usr/share/mime
+    }
 }
 
 emerald_trigger() {
-	  needroot "Run trigger"
+    needroot "Run trigger"
 
-	  # If using -o (download only), don't run trigger
-	  if [ ! "$DOWNLOAD_ONLY" ]; then
-		    [ "$@" ] || set -- $(allinstalled)
+    # If using -o (download only), don't run trigger
+    if [ ! "$DOWNLOAD_ONLY" ]; then
+        [ "$@" ] || set -- $(allinstalled)
 
-		    for t in mimedb desktopdb fontcache fccache udevdb iconcache gtk3immodules gtk2immodules glibschema giomodules gdkpixbufcache; do
-			      # shellcheck disable=SC2068
-			      for p in $@; do
-				        # Only 1 disk read per port
-				        PKGFILES=$(cat "$PKGDB_DIR/$p")
-				        trigger_$t "$p" && break
-			      done
-		    done
-	  fi
+        for t in mimedb desktopdb fontcache fccache udevdb iconcache gtk3immodules gtk2immodules glibschema giomodules gdkpixbufcache; do
+            # shellcheck disable=SC2068
+            for p in $@; do
+                # Only 1 disk read per port
+                PKGFILES=$(cat "$PKGDB_DIR/$p")
+                trigger_$t "$p" && break
+            done
+        done
+    fi
 }
 
 emerald_upgrade() {
-	  needroot "Upgrading package"
-	  failed_upgrades=""
+    needroot "Upgrading package"
+    failed_upgrades=""
 
-	  while [ "$1" ]; do
-		    case $1 in
-			      -i|-r) ;;
-			      -y) NOCONFIRM=1 ;;
+    while [ "$1" ]; do
+        case $1 in
+            -i | -r) ;;
+            -y) NOCONFIRM=1 ;;
 
-			      -o)
-			          DOWNLOAD_ONLY=1;
-			          OPTS="$OPTS $1"
-			      ;;
+            -o)
+                DOWNLOAD_ONLY=1;
+                OPTS="$OPTS $1"
+            ;;
 
-			      -d) NO_DEP=1 ;;
-			      -k) KEEP_GOING_LOCAL=1 ;;
-			      --exclude=*) EXOPT=$1 ;;
-			      -*) OPTS="$OPTS $1" ;;
-			      *) PKGNAME="$PKGNAME $1" ;;
-		    esac
+            -d) NO_DEP=1 ;;
+            -k) KEEP_GOING_LOCAL=1 ;;
+            --exclude=*) EXOPT=$1 ;;
+            -*) OPTS="$OPTS $1" ;;
+            *) PKGNAME="$PKGNAME $1" ;;
+        esac
 
-		    shift
-	  done
+        shift
+    done
 
-	  [ "$PKGNAME" ] || {
-		    printf "%s\n" "Please specify package(s) to upgrade."
-		    return 1
-	  }
+    [ "$PKGNAME" ] || {
+        printf "%s\n" "Please specify package(s) to upgrade."
+        return 1
+    }
 
-	  for pkg in $PKGNAME; do
-		    if ! emerald_isinstalled "$pkg"; then
-			      msg_portnotinstalled "$pkg"
+    for pkg in $PKGNAME; do
+        if ! emerald_isinstalled "$pkg"; then
+            msg_portnotinstalled "$pkg"
 
-			      if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
-				        failed_upgrades="$failed_upgrades $pkg"
-				        continue
-			      else
-				        continue
-			      fi
-		    elif [ ! "$(getportpath "$pkg")" ]; then
-			      printf "%s\n" "Package '$pkg' not exist."
+            if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
+                failed_upgrades="$failed_upgrades $pkg"
+                continue
+            else
+                continue
+            fi
+        elif [ ! "$(getportpath "$pkg")" ]; then
+            printf "%s\n" "Package '$pkg' not exist."
 
-			      if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
-				        failed_upgrades="$failed_upgrades $pkg"
-				        continue
-			      else
-				        continue
-			      fi
-		    else
-			      if [ "$(get_iversion "$pkg")" = "$(get_version "$pkg")" ]; then
-				        printf "%s\n" "Package '$pkg' is up to date."
-				        continue
-			      fi
-		    fi
+            if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
+                failed_upgrades="$failed_upgrades $pkg"
+                continue
+            else
+                continue
+            fi
+        else
+            if [ "$(get_iversion "$pkg")" = "$(get_version "$pkg")" ]; then
+                printf "%s\n" "Package '$pkg' is up to date."
+                continue
+            fi
+        fi
 
-		    upkg="$upkg $pkg"
-	  done
+        upkg="$upkg $pkg"
+    done
 
-	  [ "$upkg" ] || return 0
+    [ "$upkg" ] || return 0
 
-	  UPGPKG=0
-	  NEWPKG=0
-	  installmsg="ACTION#PORTNAME#VERSION#OLDVERSION"
+    UPGPKG=0
+    NEWPKG=0
+    installmsg="ACTION#PORTNAME#VERSION#OLDVERSION"
 
-	  if [ "$NODEP" != 1 ]; then
-		    printf "%s\n" "Resolving dependencies..."
-		    DEP=$(emerald_deplist "$upkg" "$EXOPT" | awk '{print $2}')
-		    printf "\n"
+    if [ "$NODEP" != 1 ]; then
+        printf "%s\n" "Resolving dependencies..."
+        DEP=$(emerald_deplist "$upkg" "$EXOPT" | awk '{print $2}')
+        printf "\n"
 
         for d in $DEP; do
-			      if [ "$(printf "%s\n" "$upkg" | tr ' ' '\n' | grep -x "$d")" = "$d" ]; then
-				        installmsg="$installmsg upgrade#$d#$(get_version "$d")#$(get_iversion "$d")"
+            if [ "$(printf "%s\n" "$upkg" | tr ' ' '\n' | grep -x "$d")" = "$d" ]; then
+                installmsg="$installmsg upgrade#$d#$(get_version "$d")#$(get_iversion "$d")"
 
-				        WILLINSTALL="$WILLINSTALL $d"
-				        UPGPKG=$(( UPGPKG + 1 ))
-			      elif ! emerald_isinstalled "$d" && [ "$(getportpath "$d")" ]; then
-				        installmsg="$installmsg install#$d#$(get_version "$d")#$(get_iversion "$d")"
+                WILLINSTALL="$WILLINSTALL $d"
+                UPGPKG=$(( UPGPKG + 1 ))
+            elif ! emerald_isinstalled "$d" && [ "$(getportpath "$d")" ]; then
+                installmsg="$installmsg install#$d#$(get_version "$d")#$(get_iversion "$d")"
 
-				        WILLINSTALL="$WILLINSTALL $d"
-				        NEWPKG=$(( NEWPKG + 1 ))
-			      fi
-		    done
-	  else
-		    printf "\n"
+                WILLINSTALL="$WILLINSTALL $d"
+                NEWPKG=$(( NEWPKG + 1 ))
+            fi
+        done
+    else
+        printf "\n"
 
-		    for dd in $upkg; do
-			      installmsg="$installmsg upgrade#$dd#$(get_version "$dd")#$(get_iversion "$dd")"
+        for dd in $upkg; do
+            installmsg="$installmsg upgrade#$dd#$(get_version "$dd")#$(get_iversion "$dd")"
 
-			      WILLINSTALL="$WILLINSTALL $dd"
-			      UPGPKG=$(( UPGPKG + 1 ))
-		    done
-	  fi
+            WILLINSTALL="$WILLINSTALL $dd"
+            UPGPKG=$(( UPGPKG + 1 ))
+        done
+    fi
 
-	  printf "%s\n" "$installmsg" | tr ' ' '\n' | tr '#' ' ' | column -t
-	  printf "\n"
-	  printf "( %s upgrade, %s new install )\n" "$UPGPKG" "$NEWPKG"
-	  printf "\n"
+    printf "%s\n" "$installmsg" | tr ' ' '\n' | tr '#' ' ' | column -t
+    printf "\n"
+    printf "( %s upgrade, %s new install )\n" "$UPGPKG" "$NEWPKG"
+    printf "\n"
 
-	  [ "$NOCONFIRM" ] || {
-		    confirm "Continue upgrade/install these package(s)?" "Package upgrade cancelled." || exit $?
-		    printf "\n"
-	  }
+    [ "$NOCONFIRM" ] || {
+        confirm "Continue upgrade/install these package(s)?" "Package upgrade cancelled." || exit $?
+        printf "\n"
+    }
 
-	  error=0
-	  count=0
-	  total=$(printf "%s\n" "$WILLINSTALL" | wc -w)
+    error=0
+    count=0
+    total=$(printf "%s\n" "$WILLINSTALL" | wc -w)
 
-	  for inst in $WILLINSTALL; do # install all required dependencies and target packages itself
-		    count=$(( count + 1 ))
+    for inst in $WILLINSTALL; do # install all required dependencies and target packages itself
+        count=$(( count + 1 ))
 
-		    cd "$(getportpath "$inst")" || return 1
-		        if ! emerald_isinstalled "$inst"; then
-			          settermtitle "[ $count/$total ] Installing $inst..."
-			          hook "pre" "install"
+        cd "$(getportpath "$inst")" || return 1
+            if ! emerald_isinstalled "$inst"; then
+                settermtitle "[ $count/$total ] Installing $inst..."
+                hook "pre" "install"
 
-			          if pkgbuild -i $OPTS; then
-				            hook "post" "install"
-				            done_pkg="$done_pkg $inst"
-			          else
-				            if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
-					              msgwarn "Install failed for '$inst', continuing with next package..."
+                if pkgbuild -i $OPTS; then
+                    hook "post" "install"
+                    done_pkg="$done_pkg $inst"
+                else
+                    if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
+                        msgwarn "Install failed for '$inst', continuing with next package..."
 
-					              failed_upgrades="$failed_upgrades $inst"
-					              error=1
-				            else
-					              error=1
+                        failed_upgrades="$failed_upgrades $inst"
+                        error=1
+                    else
+                        error=1
 
-					              cd - >/dev/null || return 1
-					              break
-				            fi
-			          fi
-		        else
-			          settermtitle "[ $count/$total ] Upgrading $inst..."
-			          hook "pre" "install"
+                        cd - >/dev/null || return 1
+                        break
+                    fi
+                fi
+            else
+                settermtitle "[ $count/$total ] Upgrading $inst..."
+                hook "pre" "install"
 
-			          if pkgbuild -u $OPTS; then
-				            hook "post" "install"
-				            done_pkg="$done_pkg $inst"
-			          else
-				            if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
-					              msgwarn "Upgrade failed for '$inst', continuing with next package..."
+                if pkgbuild -u $OPTS; then
+                    hook "post" "install"
+                    done_pkg="$done_pkg $inst"
+                else
+                    if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
+                        msgwarn "Upgrade failed for '$inst', continuing with next package..."
 
-					              failed_upgrades="$failed_upgrades $inst"
-					              error=1
-				            else
-					              error=1
+                        failed_upgrades="$failed_upgrades $inst"
+                        error=1
+                    else
+                        error=1
 
-					              cd - >/dev/null || return 1
-					              break
-				            fi
-			          fi
-		        fi
-		    cd - >/dev/null || return 1
-	  done
+                        cd - >/dev/null || return 1
+                        break
+                    fi
+                fi
+            fi
+        cd - >/dev/null || return 1
+    done
 
-	  [ "$done_pkg" ] && emerald_trigger "$done_pkg"
+    [ "$done_pkg" ] && emerald_trigger "$done_pkg"
 
-	  # Show error summary if exist
-	  FAILED_PKGS="$failed_upgrades"
-	  SKIPPED_PKGS=""
+    # Show error summary if exist
+    FAILED_PKGS="$failed_upgrades"
+    SKIPPED_PKGS=""
 
-	  summary_show "$FAILED_PKGS" "$SKIPPED_PKGS" "upgrade"
-	  summary_title "$error" "$done_pkg" "$count" "$total" "upgraded"
+    summary_show "$FAILED_PKGS" "$SKIPPED_PKGS" "upgrade"
+    summary_title "$error" "$done_pkg" "$count" "$total" "upgraded"
 
-	  return "$error"
+    return "$error"
 }
 
 world_add() {
-	  grep -qx "$1" "$WORLD_FILE" && return
+    grep -qx "$1" "$WORLD_FILE" && return
 
-	  emerald_isinstalled "$1" || {
-		    msg_portnotinstalled "$1"
-		    return 1
-	  }
+    emerald_isinstalled "$1" || {
+        msg_portnotinstalled "$1"
+        return 1
+    }
 
-	  printf "%s\n" "$1" >> "$WORLD_FILE"
+    printf "%s\n" "$1" >> "$WORLD_FILE"
 
-	  sort "$WORLD_FILE" -o "$WORLD_FILE" # sort world
-	  sed '/^$/d' -i "$WORLD_FILE" # delete empty lines
+    sort "$WORLD_FILE" -o "$WORLD_FILE" # sort world
+    sed '/^$/d' -i "$WORLD_FILE" # delete empty lines
 }
 
 world_del() {
-	  grep -qx "$1" "$WORLD_FILE" || return
+    grep -qx "$1" "$WORLD_FILE" || return
 
-	  sed "/^$1$/d" -i "$WORLD_FILE"
-	  sed '/^$/d' -i "$WORLD_FILE" # delete empty lines
+    sed "/^$1$/d" -i "$WORLD_FILE"
+    sed '/^$/d' -i "$WORLD_FILE" # delete empty lines
 }
 
 emerald_world() {
-	  if [ "$1" ]; then
-		    needroot
-		    touch "$WORLD_FILE"
+    if [ "$1" ]; then
+        needroot
+        touch "$WORLD_FILE"
 
-		    while [ "$1" ]; do
-			      if [ ! "$(grep -x "$1" "$WORLD_FILE")" ] ; then
-				        printf "world: '%s' added to world\n" "$1"
-				        world_add "$1"
-			      else
-				        printf "world: '%s' deleted from world\n" "$1"
-				        world_del "$1"
-			      fi
+        while [ "$1" ]; do
+            if [ ! "$(grep -x "$1" "$WORLD_FILE")" ] ; then
+                printf "world: '%s' added to world\n" "$1"
+                world_add "$1"
+            else
+                printf "world: '%s' deleted from world\n" "$1"
+                world_del "$1"
+            fi
 
-			      shift
-		    done
-	  else
-		    [ -s "$WORLD_FILE" ] && {
-			      cat "$WORLD_FILE"
-		    } || {
-			      printf "%s\n" "world is empty"
-		    }
-	  fi
+            shift
+        done
+    else
+        [ -s "$WORLD_FILE" ] && {
+            cat "$WORLD_FILE"
+        } || {
+            printf "%s\n" "world is empty"
+        }
+    fi
 
-	  return 0
+    return 0
 }
 
 # check for 'pkgadd', required for package database path
 command -v pkgadd >/dev/null 2>&1 || {
-	  printf "%s\n" "'pkgadd' not found in \$PATH!"
-	  exit 1
+    printf "%s\n" "'pkgadd' not found in \$PATH!"
+    exit 1
 }
 
 mode=$1
 
 print_runhelp_msg() {
-	  printf "%s\n" "Run '$(basename "$0") help' to see available options."
-	  exit 2
+    printf "%s\n" "Run '$(basename "$0") help' to see available options."
+    exit 2
 }
 
 [ "$mode" ] || print_runhelp_msg
 shift
 
 for opt in "$@"; do
-	  case $opt in
-		    --append-repo=*) APPENDREPO="$APPENDREPO ${opt#*=}" ;;
-		    --prepend-repo=*) PREPENDREPO="$PREPENDREPO ${opt#*=}" ;;
-		    --override-repo=*) OVERRIDEREPO="$OVERRIDEREPO ${opt#*=}" ;;
-		    --repo=*) PORT_REPO="$PORT_REPO ${opt#*=}" ;;
-		    --repo-file=*) REPO_FILE="${opt#*=}" ;;
-		    --alias-file=*) ALIAS_FILE="${opt#*=}" ;;
-		    --config-file=*) CONFIG_FILE="${opt#*=}" ;;
-		    --*) MAINOPTS="$MAINOPTS $opt" ;;
+    case $opt in
+        --append-repo=*) APPENDREPO="$APPENDREPO ${opt#*=}" ;;
+        --prepend-repo=*) PREPENDREPO="$PREPENDREPO ${opt#*=}" ;;
+        --override-repo=*) OVERRIDEREPO="$OVERRIDEREPO ${opt#*=}" ;;
+        --repo=*) PORT_REPO="$PORT_REPO ${opt#*=}" ;;
+        --repo-file=*) REPO_FILE="${opt#*=}" ;;
+        --alias-file=*) ALIAS_FILE="${opt#*=}" ;;
+        --config-file=*) CONFIG_FILE="${opt#*=}" ;;
+        --*) MAINOPTS="$MAINOPTS $opt" ;;
 
-		    -*)
-		        char=${#opt};
-		        count=1
+        -*)
+            char=${#opt};
+            count=1
 
-			      while [ "$count" != "$char" ]; do
-				        count=$((count+1))
-				        opt_char="$(printf '%s' "$opt" | cut -c "$count")"
+            while [ "$count" != "$char" ]; do
+                count=$((count+1))
+                opt_char="$(printf '%s' "$opt" | cut -c "$count")"
 
-				        MAINOPTS="$MAINOPTS -$opt_char"
-	          done
-	      ;;
+                MAINOPTS="$MAINOPTS -$opt_char"
+            done
+        ;;
 
-	      *) MAINOPTS="$MAINOPTS $opt" ;;
-	  esac
+        *) MAINOPTS="$MAINOPTS $opt" ;;
+    esac
 
-	  shift
+    shift
 done
 
 if [ -f "$REPO_FILE" ]; then
-	  for repodir in $(grep -Ev '^(#|$)' "$REPO_FILE" | awk '{print $1}'); do
-		    PORT_REPO="$PORT_REPO $repodir"
-	  done
+    for repodir in $(grep -Ev '^(#|$)' "$REPO_FILE" | awk '{print $1}'); do
+        PORT_REPO="$PORT_REPO $repodir"
+    done
 fi
 
 if [ "$OVERRIDEREPO" ]; then
-	  PORT_REPO="$OVERRIDEREPO"
+    PORT_REPO="$OVERRIDEREPO"
 else
-	  PORT_REPO="$PREPENDREPO $PORT_REPO $APPENDREPO"
+    PORT_REPO="$PREPENDREPO $PORT_REPO $APPENDREPO"
 fi
 
 for f in $REPO_FILE $ALIAS_FILE $MASK_FILE $CONFIG_FILE; do
-	  if [ ! -f "$f" ]; then
-		    msgerr "file not found: $f"
-		    exit 3
-	  fi
+    if [ ! -f "$f" ]; then
+        msgerr "file not found: $f"
+        exit 3
+    fi
 done
 
 if [ "$(command -v "emerald_$mode")" ]; then
-	  "emerald_$mode" $MAINOPTS
+    "emerald_$mode" $MAINOPTS
 else
-	  print_runhelp_msg
+    print_runhelp_msg
 fi
 
 exit $?
