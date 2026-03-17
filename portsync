@@ -6,8 +6,8 @@
 
 # Print errors and exit
 die() {
-	  printf "ERROR: %b\n" "$*" >&2
-	  exit 1
+    printf "ERROR: %b\n" "$*" >&2
+    exit 1
 }
 
 # Check root permissions

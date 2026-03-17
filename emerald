@@ -146,7 +146,6 @@ getportpath() {
     return 1
 }
 
-
 get_iversion() {
     awk 'NR==1 {print $1"-"$2}' "$PKGDB_DIR/$1" 2>/dev/null
 }
@@ -531,7 +530,7 @@ EOF
         [ -n "$to_remove_src" ] && printf '%s' "$to_remove_src" | tr '|' '\n' | xargs -P "$(nproc)" -I{} rm -f "$SOURCE_DIR/{}"
 
         msg "Old caches removed!"
-	  fi
+    fi
 }
 
 emerald_cat() {
@@ -1600,7 +1599,7 @@ emerald_search() {
 
     for repo in $PORT_REPO; do
         # Find all matching BUILDFILE files by name or description
-	      for port in $(grep -RlE "^(name|description)=.*$1" "$repo"/*/"$BUILD_SCRIPT" 2>/dev/null | awk -F'/' '{print $(NF-1)}' | sort); do
+        for port in $(grep -RlE "^(name|description)=.*$1" "$repo"/*/"$BUILD_SCRIPT" 2>/dev/null | awk -F'/' '{print $(NF-1)}' | sort); do
             IFS='|' read -r name version release desc <<EOF
 $(awk '/^name=/ {
     sub(/^name=/, "");

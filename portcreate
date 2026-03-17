@@ -191,7 +191,7 @@ case "$BUILDER" in
     meson) TEMPLATE=$(get_meson_template) ;;
     cmake) TEMPLATE=$(get_cmake_template) ;;
     go | golang) TEMPLATE=$(get_go_template) ;;
-	  python | python3) TEMPLATE=$(get_python_template) ;;
+    python | python3) TEMPLATE=$(get_python_template) ;;
 
     *)
         printf "ERROR: Unknown builder '%s'!\n" "$BUILDER" >&2
@@ -199,7 +199,7 @@ case "$BUILDER" in
 
         rm -rf "$PORTNAME"
         exit 1
-		;;
+    ;;
 esac
 
 # Replace PORTNAME placeholder and write to file
