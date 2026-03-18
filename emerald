@@ -14,7 +14,6 @@ ALIAS_FILE="${ALIAS_FILE:-/etc/emerald.alias}"
 # default value from pkgbuild
 SOURCE_DIR="/var/cache/emerald/sources"
 PACKAGE_DIR="/var/cache/emerald/packages"
-WORK_DIR="/var/cache/emerald/work"
 CURL_OPTS=""
 COMPRESSION_MODE="xz"
 NO_STRIP="no"
@@ -27,7 +26,8 @@ NOCOLOR="no"
 THEME="vylen"
 
 # apply emerald.conf
-. "$CONFIG_FILE"
+# shellcheck source=/etc/emerald.conf
+. "${CONFIG_FILE}"
 
 # color themes
 colors_dracula() {
@@ -545,31 +545,31 @@ emerald_cat() {
 }
 
 emerald_config() {
-    printf '%-12b%s%b %s\n' "$COLOR5" "MAINOPTS:" "$CRESET" "$MAINOPTS"
-    printf '%-12b%s%b %s\n' "$COLOR5" "REPO_FILE:" "$CRESET" "$REPO_FILE"
-    printf '%-12b%s%b %s\n' "$COLOR5" "MASK_FILE:" "$CRESET" "$MASK_FILE"
-    printf '%-12b%s%b %s\n' "$COLOR5" "CONFIG_FILE:" "$CRESET" "$CONFIG_FILE"
-    printf '%-12b%s%b %b%s%b\n' "$COLOR5" "CFLAGS:" "$CRESET" "$COLOR2" "$CFLAGS" "$CRESET"
-    printf '%-12b%s%b %b%s%b\n' "$COLOR5" "CXXFLAGS:" "$CRESET" "$COLOR2" "$CXXFLAGS" "$CRESET"
-    printf '%-12b%s%b %b%s%b\n' "$COLOR5" "FCFLAGS:" "$CRESET" "$COLOR2" "$FCFLAGS"" $CRESET"
-    printf '%-12b%s%b %b%s%b\n' "$COLOR5" "FFLAGS:" "$CRESET" "$COLOR2" "$FFLAGS" "$CRESET"
-    printf '%-12b%s%b %b%s%b\n' "$COLOR5" "MAKEFLAGS:" "$CRESET" "$COLOR2" "$MAKEFLAGS" "$CRESET"
-    printf '%-12b%s%b %b%s%b\n' "$COLOR5" "LDFLAGS:" "$CRESET" "$COLOR2" "$LDFLAGS" "$CRESET"
-    printf '%-12b%s%b %b%s%b\n' "$COLOR5" "RUSTFLAGS:" "$CRESET" "$COLOR2" "$RUSTFLAGS" "$CRESET"
-    printf '%-12b%s%b %b%s%b\n' "$COLOR5" "CURL_OPTS:" "$CRESET" "$COLOR4" "$CURL_OPTS" "$CRESET"
-    printf '%-12b%s%b %b%s%b\n' "$COLOR5" "COMPRESSION_MODE:" "$CRESET" "$COLOR4" "$COMPRESSION_MODE" "$CRESET"
-    printf '%-12b%s%b %b%s%b\n' "$COLOR5" "NO_STRIP:" "$CRESET" "$COLOR4" "$NO_STRIP" "$CRESET"
-    printf '%-12b%s%b %b%s%b\n' "$COLOR5" "IGNORE_CHECKSUM:" "$CRESET" "$COLOR4" "$IGNORE_CHECKSUM" "$CRESET"
-    printf '%-12b%s%b %b%s%b\n' "$COLOR5" "KEEP_LIBTOOL:" "$CRESET" "$COLOR4" "$KEEP_LIBTOOL" "$CRESET"
-    printf '%-12b%s%b %b%s%b\n' "$COLOR5" "KEEP_LOCALE:" "$CRESET" "$COLOR4" "$KEEP_LOCALE" "$CRESET"
-    printf '%-12b%s%b %b%s%b\n' "$COLOR5" "KEEP_DOC:" "$CRESET" "$COLOR4" "$KEEP_DOC" "$CRESET"
-    printf '%-12b%s%b %b%s%b\n' "$COLOR5" "KEEP_GOING:" "$CRESET" "$COLOR4" "$KEEP_GOING" "$CRESET"
-    printf '%-12b%s%b %s\n' "$COLOR5" "SOURCE_DIR:" "$CRESET" "$SOURCE_DIR"
-    printf '%-12b%s%b %s\n' "$COLOR5" "PACKAGE_DIR:" "$CRESET" "$PACKAGE_DIR"
-    printf '%-12b%s%b\n' "$COLOR5" "PORT_REPO:" "$CRESET"
+    printf '%b%s%b %s\n' "$COLOR5" "MAINOPTS:" "$CRESET" "$MAINOPTS"
+    printf '%b%s%b %s\n' "$COLOR5" "REPO_FILE:" "$CRESET" "$REPO_FILE"
+    printf '%b%s%b %s\n' "$COLOR5" "MASK_FILE:" "$CRESET" "$MASK_FILE"
+    printf '%b%s%b %s\n' "$COLOR5" "CONFIG_FILE:" "$CRESET" "$CONFIG_FILE"
+    printf '%b%s%b %b%s%b\n' "$COLOR5" "CFLAGS:" "$CRESET" "$COLOR2" "$CFLAGS" "$CRESET"
+    printf '%b%s%b %b%s%b\n' "$COLOR5" "CXXFLAGS:" "$CRESET" "$COLOR2" "$CXXFLAGS" "$CRESET"
+    printf '%b%s%b %b%s%b\n' "$COLOR5" "FCFLAGS:" "$CRESET" "$COLOR2" "$FCFLAGS" "$CRESET"
+    printf '%b%s%b %b%s%b\n' "$COLOR5" "FFLAGS:" "$CRESET" "$COLOR2" "$FFLAGS" "$CRESET"
+    printf '%b%s%b %b%s%b\n' "$COLOR5" "MAKEFLAGS:" "$CRESET" "$COLOR2" "$MAKEFLAGS" "$CRESET"
+    printf '%b%s%b %b%s%b\n' "$COLOR5" "LDFLAGS:" "$CRESET" "$COLOR2" "$LDFLAGS" "$CRESET"
+    printf '%b%s%b %b%s%b\n' "$COLOR5" "RUSTFLAGS:" "$CRESET" "$COLOR2" "$RUSTFLAGS" "$CRESET"
+    printf '%b%s%b %b%s%b\n' "$COLOR5" "CURL_OPTS:" "$CRESET" "$COLOR4" "$CURL_OPTS" "$CRESET"
+    printf '%b%s%b %b%s%b\n' "$COLOR5" "COMPRESSION_MODE:" "$CRESET" "$COLOR4" "$COMPRESSION_MODE" "$CRESET"
+    printf '%b%s%b %b%s%b\n' "$COLOR5" "NO_STRIP:" "$CRESET" "$COLOR4" "$NO_STRIP" "$CRESET"
+    printf '%b%s%b %b%s%b\n' "$COLOR5" "IGNORE_CHECKSUM:" "$CRESET" "$COLOR4" "$IGNORE_CHECKSUM" "$CRESET"
+    printf '%b%s%b %b%s%b\n' "$COLOR5" "KEEP_LIBTOOL:" "$CRESET" "$COLOR4" "$KEEP_LIBTOOL" "$CRESET"
+    printf '%b%s%b %b%s%b\n' "$COLOR5" "KEEP_LOCALE:" "$CRESET" "$COLOR4" "$KEEP_LOCALE" "$CRESET"
+    printf '%b%s%b %b%s%b\n' "$COLOR5" "KEEP_DOC:" "$CRESET" "$COLOR4" "$KEEP_DOC" "$CRESET"
+    printf '%b%s%b %b%s%b\n' "$COLOR5" "KEEP_GOING:" "$CRESET" "$COLOR4" "$KEEP_GOING" "$CRESET"
+    printf '%b%s%b %s\n' "$COLOR5" "SOURCE_DIR:" "$CRESET" "$SOURCE_DIR"
+    printf '%b%s%b %s\n' "$COLOR5" "PACKAGE_DIR:" "$CRESET" "$PACKAGE_DIR"
+    printf '%b%s%b\n' "$COLOR5" "PORT_REPO:" "$CRESET"
 
     for i in $PORT_REPO; do
-        printf '  %-10s %s\n' "" "$i"
+        printf '    %s\n' "${i}"
     done
 
     return 0
@@ -932,17 +932,17 @@ EOF
     required_by="$(emerald_dependent "$1" | awk '{print $2}' | tr '\n' ' ')"
     [ -z "$required_by" ] && required_by="None"
 
-    printf "%-12b%s%b %s\n" "$COLOR5" "Description:" "$CRESET" "$desc"
-    printf "%-12b%s%b %s\n" "$COLOR5" "Maintainer:" "$CRESET" "$maint"
-    printf "%-12b%s%b %s\n" "$COLOR5" "Homepage:" "$CRESET" "$homep"
-    printf "%-12b%s%b %s\n" "$COLOR5" "Path:" "$CRESET" "$ppath"
-    printf "%-12b%s%b %b%s%b\n" "$COLOR5" "Name:" "$CRESET" "$COLOR2" "$1" "$CRESET"
-    printf "%-12b%s%b %b%s%b\n" "$COLOR5" "Version:" "$CRESET" "$COLOR4" "$version" "$CRESET"
-    printf "%-12b%s%b %b%s%b\n" "$COLOR5" "Release:" "$CRESET" "$COLOR4" "$release" "$CRESET"
-    [ "$commit" ] && printf "%-12b%s%b %s\n" "$COLOR5" "Commit:" "$CRESET" "$commit"
-    printf "%-12b%s%b %b%s%b\n" "$COLOR5" "Installed:" "$CRESET" "$COLOR2" "$iver" "$CRESET"
-    printf "%-12b%s%b %s\n" "$COLOR5" "Depends:" "$CRESET" "$deps"
-    printf "%-12b%s%b %s\n" "$COLOR5" "Required by:" "$CRESET" "$required_by"
+    printf "%b%s%b %s\n" "$COLOR5" "Description:" "$CRESET" "$desc"
+    printf "%b%s%b %s\n" "$COLOR5" "Maintainer:" "$CRESET" "$maint"
+    printf "%b%s%b %s\n" "$COLOR5" "Homepage:" "$CRESET" "$homep"
+    printf "%b%s%b %s\n" "$COLOR5" "Path:" "$CRESET" "$ppath"
+    printf "%b%s%b %b%s%b\n" "$COLOR5" "Name:" "$CRESET" "$COLOR2" "$1" "$CRESET"
+    printf "%b%s%b %b%s%b\n" "$COLOR5" "Version:" "$CRESET" "$COLOR4" "$version" "$CRESET"
+    printf "%b%s%b %b%s%b\n" "$COLOR5" "Release:" "$CRESET" "$COLOR4" "$release" "$CRESET"
+    [ "$commit" ] && printf "%b%s%b %s\n" "$COLOR5" "Commit:" "$CRESET" "$commit"
+    printf "%b%s%b %b%s%b\n" "$COLOR5" "Installed:" "$CRESET" "$COLOR2" "$iver" "$CRESET"
+    printf "%b%s%b %s\n" "$COLOR5" "Depends:" "$CRESET" "$deps"
+    printf "%b%s%b %s\n" "$COLOR5" "Required by:" "$CRESET" "$required_by"
 }
 
 hook() {
