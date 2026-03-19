@@ -893,12 +893,16 @@ emerald_info() {
     IFS='|' read -r version release commit desc maint homep <<EOF
 $(awk '/^version=/ {
     sub(/version=/, "");
+    gsub(/"/, "");
+
     v = $0;
 } /^release=/ {
     sub(/release=/, "");
     r = $0;
 } /^commit=/ {
     sub(/commit=/, "");
+    gsub(/"/, "");
+
     c = $0;
 } /^description=/ {
     sub(/description=/, "");
@@ -1603,9 +1607,13 @@ emerald_search() {
             IFS='|' read -r name version release desc <<EOF
 $(awk '/^name=/ {
     sub(/^name=/, "");
+    gsub(/"/, "");
+
     n = $0;
 } /^version=/ {
     sub(/^version=/, "");
+    gsub(/"/, "");
+
     v = $0;
 } /^release=/ {
     sub(/^release=/, "");
