@@ -26,6 +26,9 @@ EOF
 
 get_autotools_template() {
     cat <<'EOF'
+#!/usr/bin/env sh
+
+# shellcheck disable=SC2034
 description=""
 maintainer="Vylen Linux Team"
 homepage=""
@@ -38,6 +41,7 @@ backup=""
 source=""
 
 build() {
+    # shellcheck disable=SC2164
     cd "${name}-${version}"
     ./configure --prefix=/usr
 
@@ -49,6 +53,9 @@ EOF
 
 get_meson_template() {
     cat <<'EOF'
+#!/usr/bin/env sh
+
+# shellcheck disable=SC2034
 description=""
 maintainer="Vylen Linux Team"
 homepage=""
@@ -73,6 +80,9 @@ EOF
 
 get_cmake_template() {
     cat <<'EOF'
+#!/usr/bin/env sh
+
+# shellcheck disable=SC2034
 description=""
 maintainer="Vylen Linux Team"
 homepage=""
@@ -90,8 +100,8 @@ build() {
         -DCMAKE_INSTALL_LIBDIR=lib \
         -DCMAKE_INSTALL_LIBEXECDIR=lib \
         -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_C_FLAGS_RELEASE="$CFLAGS" \
-        -DCMAKE_CXX_FLAGS_RELEASE="$CXXFLAGS" \
+        -DCMAKE_C_FLAGS_RELEASE="${CFLAGS}" \
+        -DCMAKE_CXX_FLAGS_RELEASE="${CXXFLAGS}" \
         -Wno-dev
 
     cmake --build build
@@ -102,6 +112,9 @@ EOF
 
 get_go_template() {
     cat <<'EOF'
+#!/usr/bin/env sh
+
+# shellcheck disable=SC2034
 description=""
 maintainer="Vylen Linux Team"
 homepage=""
@@ -114,6 +127,7 @@ backup=""
 source=""
 
 build() {
+    # shellcheck disable=SC2164
     cd "${name}-${version}"
 
     export CGO_LDFLAGS="${LDFLAGS}"
@@ -125,13 +139,16 @@ build() {
     export PATH="${PATH}:${GOPATH}/bin"
 
     go build -o "bin/${name}" *.go
-    install -Dm755 "bin/${name}" "${PKG}/usr/bin/${name}"
+    install -Dm755 "bin/${name}" -t "${PKG}/usr/bin/"
 }
 EOF
 }
 
 get_python_template() {
     cat <<'EOF'
+#!/usr/bin/env sh
+
+# shellcheck disable=SC2034
 description=""
 maintainer="Vylen Linux Team"
 homepage=""
@@ -144,10 +161,39 @@ backup=""
 source=""
 
 build() {
+    # shellcheck disable=SC2164
+    cd "${name}-${version}"
+    python3 setup.py build
+
+    python3 setup.py install \
+        --prefix=/usr \
+        --root="${PKG}"
+}
+EOF
+}
+
+get_rust_template() {
+    cat <<'EOF'
+#!/usr/bin/env sh
+
+# shellcheck disable=SC2034
+description=""
+maintainer="Vylen Linux Team"
+homepage=""
+
+name=PORTNAME
+version=
+release=1
+noextract=""
+backup=""
+source=""
+
+build() {
+    # shellcheck disable=SC2164
     cd "${name}-${version}"
 
-    python3 setup.py build
-    python3 setup.py install --prefix=/usr --root="${PKG}"
+    cargo build --release --locked
+    install -Dm755 "target/release/${name}" -t "${PKG}/usr/bin/"
 }
 EOF
 }
@@ -157,8 +203,8 @@ BUILDER="autotools"
 
 # Parse options
 while getopts "b:h" opt; do
-    case $opt in
-        b) BUILDER="$OPTARG" ;;
+    case "${opt}" in
+        b) BUILDER="${OPTARG}" ;;
         *) usage ;;
     esac
 done
@@ -166,44 +212,45 @@ done
 shift $((OPTIND - 1))
 
 # Check if portname is provided
-if [ -z "$1" ]; then
+if [ -z "${1}" ]; then
     printf "ERROR: Port name is required!\n" >&2
     usage
 fi
 
-PORTNAME="$1"
+PORTNAME="${1}"
 
 # Check if directory already exists
-if [ -d "$PORTNAME" ]; then
-    printf "ERROR: Directory '%s' already exists!\n" "$PORTNAME" >&2
+if [ -d "${PORTNAME}" ]; then
+    printf "ERROR: Directory '%s' already exists!\n" "${PORTNAME}" >&2
     exit 1
 fi
 
 # Create directory
-mkdir "$PORTNAME" || {
-    printf "ERROR: Failed to create directory '%s'!\n" "$PORTNAME" >&2
+mkdir "${PORTNAME}" || {
+    printf "ERROR: Failed to create directory '%s'!\n" "${PORTNAME}" >&2
     exit 1
 }
 
 # Generate appropriate template
-case "$BUILDER" in
+case "${BUILDER}" in
     autotools | make) TEMPLATE=$(get_autotools_template) ;;
     meson) TEMPLATE=$(get_meson_template) ;;
     cmake) TEMPLATE=$(get_cmake_template) ;;
     go | golang) TEMPLATE=$(get_go_template) ;;
     python | python3) TEMPLATE=$(get_python_template) ;;
+    rust | rs) TEMPLATE=$(get_rust_template) ;;
 
     *)
-        printf "ERROR: Unknown builder '%s'!\n" "$BUILDER" >&2
-        printf "Available builders: autotools, meson, cmake, go, python\n" >&2
+        printf "ERROR: Unknown builder '%s'!\n" "${BUILDER}" >&2
+        printf "Available builders: autotools, meson, cmake, go, python, rust\n" >&2
 
-        rm -rf "$PORTNAME"
+        rm -rf "${PORTNAME}"
         exit 1
     ;;
 esac
 
 # Replace PORTNAME placeholder and write to file
-printf "%s\n" "$TEMPLATE" | sed "s/PORTNAME/$PORTNAME/" > "$PORTNAME/BUILDFILE"
-printf "Template port created for '%s' using '%s' build system.\n" "$PORTNAME" "$BUILDER"
+printf "%s\n" "${TEMPLATE}" | sed "s/PORTNAME/${PORTNAME}/" > "${PORTNAME}/BUILDFILE"
+printf "Template port created for '%s' using '%s' build system.\n" "${PORTNAME}" "${BUILDER}"
 
 exit 0
