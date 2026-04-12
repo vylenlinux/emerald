@@ -934,7 +934,18 @@ EOF
 
     # Check dependent (required by)
     required_by="$(emerald_dependent "$1" | awk '{print $2}' | tr '\n' ' ')"
-    [ -z "$required_by" ] && required_by="None"
+    out=""
+
+    [ -z "${required_by}" ] && out="None" || {
+        set -- $required_by
+
+        while [ $# -gt 0 ]; do
+            pkg="${1}"
+            shift
+
+            emerald_isinstalled "${pkg}" && out=$(printf "%s%b%s%b " "${out}" "${COLOR2}" "${pkg}" "${CRESET}") || out=$(printf "%s%b%s%b " "${out}" "${COLOR1}" "${pkg}" "${CRESET}")
+        done
+    }
 
     printf "%b%s%b %s\n" "$COLOR5" "Description:" "$CRESET" "$desc"
     printf "%b%s%b %s\n" "$COLOR5" "Maintainer:" "$CRESET" "$maint"
@@ -946,7 +957,7 @@ EOF
     [ "$commit" ] && printf "%b%s%b %s\n" "$COLOR5" "Commit:" "$CRESET" "$commit"
     printf "%b%s%b %b%s%b\n" "$COLOR5" "Installed:" "$CRESET" "$COLOR2" "$iver" "$CRESET"
     printf "%b%s%b %s\n" "$COLOR5" "Depends:" "$CRESET" "$deps"
-    printf "%b%s%b %s\n" "$COLOR5" "Required by:" "$CRESET" "$required_by"
+    printf "%b%s%b %s\n" "$COLOR5" "Required by:" "$CRESET" "$out"
 }
 
 hook() {
