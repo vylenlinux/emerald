@@ -933,12 +933,7 @@ EOF
     deps_out=""
 
     [ -z "$deps" ] && deps_out="None" || {
-        set -- $deps
-
-        while [ $# -gt 0 ]; do
-            pkg="${1}"
-            shift
-
+        for pkg in $deps; do
             emerald_isinstalled "${pkg}" && deps_out=$(printf "%s%b%s%b " "${deps_out}" "${COLOR2}" "${pkg}" "${CRESET}") || deps_out=$(printf "%s%b%s%b " "${deps_out}" "${COLOR1}" "${pkg}" "${CRESET}")
         done
     }
@@ -948,12 +943,7 @@ EOF
     required_by_out=""
 
     [ -z "${required_by}" ] && required_by_out="None" || {
-        set -- $required_by
-
-        while [ $# -gt 0 ]; do
-            pkg="${1}"
-            shift
-
+        for pkg in $required_by; do
             emerald_isinstalled "${pkg}" && required_by_out=$(printf "%s%b%s%b " "${required_by_out}" "${COLOR2}" "${pkg}" "${CRESET}") || required_by_out=$(printf "%s%b%s%b " "${required_by_out}" "${COLOR1}" "${pkg}" "${CRESET}")
         done
     }
