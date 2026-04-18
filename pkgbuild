@@ -13,6 +13,39 @@ msgerr() {
     printf "ERROR: %s\n" "$1" >&2
 }
 
+openrc_add() {
+    ls
+    for _svc in "$@"; do
+        _svc_dir="$SRC/services/$_svc"
+
+        [ -d "$_svc_dir" ] || {
+            msgerr "Service directory not found: $_svc_dir"
+            return 1
+        }
+
+        # Install init.d (required)
+        if [ -f "$_svc_dir/init.d/$_svc" ]; then
+            install -Dm755 "$_svc_dir/init.d/$_svc" "$PKG/etc/init.d/$_svc"
+            msg "Installed: /etc/init.d/$_svc"
+        elif [ -f "$_svc_dir/$_svc.initd" ]; then
+            install -Dm755 "$_svc_dir/$_svc.initd" "$PKG/etc/init.d/$_svc"
+            msg "Installed: /etc/init.d/$_svc"
+        else
+            msgerr "No init.d found for $_svc"
+            return 1
+        fi
+
+        # Install conf.d (optional)
+        if [ -f "$_svc_dir/conf.d/$_svc" ]; then
+            install -Dm644 "$_svc_dir/conf.d/$_svc" "$PKG/etc/conf.d/$_svc"
+            msg "Installed: /etc/conf.d/$_svc"
+        elif [ -f "$_svc_dir/$_svc.confd" ]; then
+            install -Dm644 "$_svc_dir/$_svc.confd" "$PKG/etc/conf.d/$_svc"
+            msg "Installed: /etc/conf.d/$_svc"
+        fi
+    done
+}
+
 parse_git_url() {
     _url="$1"
     _url="${_url#git+}"
@@ -409,21 +442,25 @@ pkg_unpack() {
     rm -fr "$WORK_DIR/$name"
     mkdir -p "$SRC" "$PKG"
 
+    if [ -d "$PWD/services" ]; then
+        msg "Preparing services directory"
+
+        cp -r "$PWD/services" "$SRC" || {
+            msgerr "Failed to copy services directory"
+            abort 1
+        }
+    fi
+
     for i in $(get_filepath); do
         if [ ! -f "$i" ] && [ ! -d "$i" ]; then
             msgerr "Source missing: $i"
             abort 1
         fi
 
-        if [ -d "$i" ] && [ ! -d "$i/.git" ]; then
-            msgerr "Invalid source (not a git repo): $i"
-            abort 1
-        fi
-
-        if [ -d "$i/.git" ]; then
+        if [ -d "$i" ] && [ -d "$i/.git" ]; then
             msg "Preparing git source: $i"
 
-            cp -r "$i" "$SRC/" || {
+            cp -r "$i" "$SRC" || {
                 msgerr "Preparing failed: $i"
                 abort 1
             }
