@@ -7,7 +7,7 @@ usage() {
     cat <<'EOF'
 Usage: portcreate [-b builder] <portname>
 
-Create a port template directory with BUILDFILE file.
+Create a port template directory with build.eme file.
 
 Options:
   -b <builder>  Specify build system (default: autotools)
@@ -250,7 +250,7 @@ case "${BUILDER}" in
 esac
 
 # Replace PORTNAME placeholder and write to file
-printf "%s\n" "${TEMPLATE}" | sed "s/PORTNAME/${PORTNAME}/" > "${PORTNAME}/BUILDFILE"
+printf "%s\n" "${TEMPLATE}" | sed "s/PORTNAME/${PORTNAME}/" > "${PORTNAME}/build.eme"
 printf "Template port created for '%s' using '%s' build system.\n" "${PORTNAME}" "${BUILDER}"
 
 exit 0

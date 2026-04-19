@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # vars
-BUILD_SCRIPT="BUILDFILE"
+BUILD_SCRIPT="build.eme"
 PKGDB_DIR="/var/lib/emerald/db"
 WORLD_FILE="$(dirname "$PKGDB_DIR")/world" 
 REPO_FILE="${REPO_FILE:-/etc/emerald.repo}"
@@ -847,7 +847,7 @@ Options:
                                     -p, --pkg   clean packages cache only
                                     -s, --src   clean sources cache only	
 
-    cat          <port>             print BUILDFILE
+    cat          <port>             print build.eme
     config                          print emerald config
     dependent    <port>             print reverse dependencies
     depends      <port>             print dependencies
@@ -1614,7 +1614,7 @@ emerald_search() {
     needarg "$@"
 
     for repo in $PORT_REPO; do
-        # Find all matching BUILDFILE files by name or description
+        # Find all matching build.eme files by name or description
         for port in $(grep -RlE "^(name|description)=.*$1" "$repo"/*/"$BUILD_SCRIPT" 2>/dev/null | awk -F'/' '{print $(NF-1)}' | sort); do
             IFS='|' read -r name version release desc <<EOF
 $(awk '/^name=/ {
