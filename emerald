@@ -401,7 +401,7 @@ show_list() {
     dir="$2"
 
     [ -z "$list" ] && return 0
-        
+
     # Print list, one file per line
     oldIFS=$IFS
     IFS='|'
@@ -1514,7 +1514,7 @@ emerald_redeps() {
             shift
         done
     fi
-	
+
     ppath=$(getportpath $pkg) || {
         msg_portnotfound $pkg
         return 1
