@@ -355,8 +355,10 @@ while read -r line; do
 
     case "$(file -bi "$line")" in
         *application/x-sharedlib* | *application/x-executable* | *application/x-pie-executable*)
-            if ldd "$line" 2>/dev/null | grep -q "not found"; then
-                LIB_NAME=$(ldd "$line" 2>/dev/null | grep "not found" | sort -u | awk '{print $1}')
+            ldd_out=$(ldd "$line" 2>/dev/null)
+
+            if printf '%s\n' "$ldd_out" | grep -q "not found"; then
+                LIB_NAME=$(printf '%s\n' "$ldd_out" | grep "not found" | sort -u | awk '{print $1}')
 
                 # Filter excluded libraries
                 for l in $LIB_NAME; do
