@@ -1522,17 +1522,17 @@ emerald_redeps() {
     }
 
     for i in $pkg; do
-        [ "$(get_depends "$i")" ] || continue
+        deps_i=$(get_depends "$i")
+        [ "$deps_i" ] || continue
 
-        for d in $(get_depends "$i"); do
-            for dd in $(get_depends "$i"); do
+        for d in $deps_i; do
+            for dd in $deps_i; do
                 [ "$dd" = "$d" ] && continue
 
                 [ "$(emerald deplist "$d" | awk '{print $2}' | grep -x "$dd")" ] && {
                     printf "[%s] %s (already pulled from %s)\n" "$i" "$dd" "$d"
 
                     [ "$fix" = "yes" ] && {
-                        # Remove from depends file
                         sed -i "/^$dd$/d" "$ppath/depends"
                         msg " $dd removed from $i depends"
                     }
