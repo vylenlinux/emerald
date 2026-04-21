@@ -185,7 +185,8 @@ vercomp() {
 
 deps_alias() {
     for d in $deps; do
-        [ "$(grep -w "^$d" "$ALIAS_FILE")" ] && printf "%s\n" "$(grep -w "^$d" "$ALIAS_FILE" | awk '{print $2}')" || printf "%s\n" "$d"
+        dpls=$(grep -E "^$d([[:space:]]|$)" "$ALIAS_FILE")
+        [ -n "$dpls" ] && printf "%s\n" "$dpls" | awk '{print $2}' || printf "%s\n" "$d"
     done
 }
 
