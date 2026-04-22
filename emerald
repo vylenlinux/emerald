@@ -1063,7 +1063,9 @@ emerald_install() {
         error=0
 
         for ii in $PKGNAME; do
-            if [ ! "$(getportpath "$ii")" ]; then
+            ppath=$(getportpath "$ii")
+
+            if [ ! "$ppath" ]; then
                 msg_portnotfound "$ii"
 
                 if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
@@ -1082,7 +1084,7 @@ emerald_install() {
                     return 1
                 fi
             else
-                cd "$(getportpath "$ii")" || return 1
+                cd "$ppath" || return 1
                     settermtitle "Reinstalling $ii..."
 
                     if pkgbuild $OPTS -r; then
@@ -1121,7 +1123,9 @@ emerald_install() {
         error=0
 
         for ii in $PKGNAME; do
-            if [ ! "$(getportpath "$ii")" ]; then
+            ppath=$(getportpath "$ii")
+
+            if [ ! "$ppath" ]; then
                 msg_portnotfound "$ii"
 
                 if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
@@ -1136,7 +1140,7 @@ emerald_install() {
 
                 continue
             else
-                cd "$(getportpath "$ii")" || return 1
+                cd "$ppath" || return 1
                     settermtitle "Installing $ii..."
 
                     if pkgbuild -i $OPTS; then
