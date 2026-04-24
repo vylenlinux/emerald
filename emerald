@@ -3,6 +3,7 @@
 # vars
 BUILD_SCRIPT="build.eme"
 PKGDB_DIR="/var/lib/emerald/db"
+CBUILD_DIR="/var/lib/emerald/cbuild"
 WORLD_FILE="$(dirname "$PKGDB_DIR")/world" 
 REPO_FILE="${REPO_FILE:-/etc/emerald.repo}"
 MASK_FILE="${MASK_FILE:-/etc/emerald.mask}"
@@ -191,10 +192,17 @@ deps_alias() {
 }
 
 get_depends() {
-    ppath=$(getportpath "$1") || return 0
+    if [ -f "$CBUILD_DIR/${1}.dep" ]; then
+        deps_file="$CBUILD_DIR/$1.dep"
+    else
+        ppath=$(getportpath "$1") || return 0
+        deps_file="$ppath/depends"
+    fi
 
-    [ -f "$ppath/depends" ] && deps=$(grep -Ev '^$' "$ppath/depends") || return 0
-    [ "$ALIAS_PORT" = "yes" ] && deps_alias "$deps" || printf "%s\n" "$deps"
+    [ -f "$deps_file" ] || return 0
+    deps=$(grep -Ev '^$' "$deps_file")
+
+    [ "$ALIAS_PORT" = "yes" ] && deps_alias "$deps" || printf "%s" "$deps"
 }
 
 confirm() {

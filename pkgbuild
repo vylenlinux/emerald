@@ -813,6 +813,51 @@ checkdir() {
     done
 }
 
+# cbuild - custom build option
+cbuild_restore() {
+    _rs_dest="$1"
+    _rs_cfg="$CBUILD_DIR/${2:-$name}.cfg"
+
+    [ -n "$_rs_dest" ] || {
+        msgerr "cbuild_restore: destination path required"
+        return 1
+    }
+
+    [ -f "$_rs_cfg" ] || return 1
+
+    cp "$_rs_cfg" "$_rs_dest" || {
+        msgerr "cbuild_restore: failed to copy to '$_rs_dest'"
+        return 1
+    }
+
+    return 0
+}
+
+cbuild_save() {
+    _sv_src="$1"
+    _sv_cfg="$CBUILD_DIR/${2:-$name}.cfg"
+
+    [ -n "$_sv_src" ] || {
+        msgerr "cbuild_save: source path required"
+        return 1
+    }
+
+    [ -f "$_sv_src" ] || {
+        msgerr "cbuild_save: '$_sv_src' not found"
+        return 1
+    }
+
+    cp "$_sv_src" "$_sv_cfg" || {
+        msgerr "cbuild_save: failed to write '$_sv_cfg'"
+        return 1
+    }
+}
+
+cbuild_options() {
+    _op_cfg="$CBUILD_DIR/${1:-$name}.opt"
+    [ -f "$_op_cfg" ] && . "$_op_cfg"
+}
+
 pkg_cleanup() {
     if [ ! "$KEEP_WORK" ] && [ "$name" ]; then
         rm -fr "$WORK_DIR/$name"
@@ -946,6 +991,9 @@ main() {
     [ "$CUSTOM_PACKAGE_DIR" ] && PACKAGE_DIR="$CUSTOM_PACKAGE_DIR"
     [ "$CUSTOM_WORK_DIR" ]    && WORK_DIR="$CUSTOM_WORK_DIR"
 
+    # Ensure cbuild directory exists; non-fatal if it cannot be created
+    [ -d "$CBUILD_DIR" ] || mkdir -p "$CBUILD_DIR" 2>/dev/null
+
     checkdir "$SOURCE_DIR" "$PACKAGE_DIR" "$WORK_DIR"
 
     # show usage
@@ -1063,6 +1111,7 @@ PKGBUILD_BSCRIPT="build.eme"
 SOURCE_DIR="/var/cache/emerald/sources"
 PACKAGE_DIR="/var/cache/emerald/packages"
 WORK_DIR="/var/cache/emerald/work"
+CBUILD_DIR="/var/lib/emerald/cbuild"
 COMPRESSION_MODE="xz"
 NO_STRIP="no"
 IGNORE_CHECKSUM="no"
