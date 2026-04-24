@@ -930,7 +930,7 @@ EOF
     [ -z "$iver" ] && iver="Not installed"
 
     # Read depends file
-    [ -f "$ppath/depends" ] && deps=$(grep -Ev '^$' "$ppath/depends" | tr '\n' ' ')
+    deps=$(get_depends "$1" | tr '\n' ' ')
     deps_out=""
 
     [ -z "$deps" ] && deps_out="None" || {
