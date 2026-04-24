@@ -1,5 +1,5 @@
 #
-# /etc/revdep.conf: exclude dirs/files/libs from revdep
+# @SYSCONFDIR@/revdep.conf: exclude dirs/files/libs from revdep
 #
 # add your dirs/files/libs to exclude in revdep scan
 #
@@ -9,5 +9,5 @@
 # - libs  : library name (any libs or bins depends on this library will be ignored)
 #
 # dirs/files/libs is separated by new line
-# separated config can placed in /etc/revdep.d/ directory and with .conf suffix
+# separated config can placed in @SYSCONFDIR@/revdep.d/ directory and with .conf suffix
 #

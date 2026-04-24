@@ -1,5 +1,5 @@
 #
-# /etc/emerald.repo: emerald repo file
+# @SYSCONFDIR@/emerald.repo: emerald repo file
 #
 # format:
 #    <repo directory> <repo url> <repo branch, "main" by default>

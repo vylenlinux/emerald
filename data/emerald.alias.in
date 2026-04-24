@@ -1,5 +1,5 @@
 #
-# /etc/emerald.alias: emerald alias file
+# @SYSCONFDIR@/emerald.alias: emerald alias file
 #
 # format:
 #    <real package> <aliased package>

@@ -1,5 +1,12 @@
 project('emerald', 'c', version: '20260419')
 
+PREFIX = get_option('prefix')
+SYSCONFDIR = join_paths(PREFIX, get_option('sysconfdir'))
+BINDIR = join_paths(PREFIX, get_option('bindir'))
+
+conf_data = configuration_data()
+conf_data.set('SYSCONFDIR', SYSCONFDIR)
+
 subdir('data')
 
 install_data([
@@ -14,4 +21,4 @@ install_data([
     'revdep',
     'updateconf',
     'xchroot'
-], install_dir: get_option('bindir'), install_mode: '-rwxr-xr-x')
+], install_dir: BINDIR, install_mode: 'rwxr-xr-x')
