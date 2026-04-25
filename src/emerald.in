@@ -1545,8 +1545,13 @@ emerald_redeps() {
                     printf "[%s] %s (already pulled from %s)\n" "$i" "$dd" "$d"
 
                     [ "$fix" = "yes" ] && {
-                        sed -i "/^$dd$/d" "$ppath/depends"
-                        msg " $dd removed from $i depends"
+                        [ -f "$CBUILD_DIR/$i.dep" ] && {
+                            sed -i "/^$dd$/d" "$CBUILD_DIR/$i.dep"
+                            msg " $dd removed from $i cbuild deps"
+                        } || {
+                            sed -i "/^$dd$/d" "$ppath/depends"
+                            msg " $dd removed from $i depends"
+                        }
                     }
                 }
             done
