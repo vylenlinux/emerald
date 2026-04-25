@@ -154,7 +154,7 @@ worktree="/usr/ports"
 mkd "$worktree" || die "Failed to create worktree directory"
 
 # Check that configuration file exists
-repo_file="/etc/emerald.repo"
+repo_file="@SYSCONFDIR@/emerald.repo"
 [ -e "$repo_file" ] || die "Missing repo file: $repo_file"
 
 # Reset repositories if requested

@@ -1105,7 +1105,7 @@ main() {
 trap "interrupted" 1 2 3 15
 export LC_ALL=C
 
-PKGBUILD_CONF="/etc/emerald.conf"
+PKGBUILD_CONF="@SYSCONFDIR@/emerald.conf"
 PKGBUILD_BSCRIPT="build.eme"
 
 SOURCE_DIR="/var/cache/emerald/sources"

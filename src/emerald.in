@@ -5,10 +5,10 @@ BUILD_SCRIPT="build.eme"
 PKGDB_DIR="/var/lib/emerald/db"
 CBUILD_DIR="/var/lib/emerald/cbuild"
 WORLD_FILE="$(dirname "$PKGDB_DIR")/world" 
-REPO_FILE="${REPO_FILE:-/etc/emerald.repo}"
-MASK_FILE="${MASK_FILE:-/etc/emerald.mask}"
-CONFIG_FILE="${CONFIG_FILE:-/etc/emerald.conf}"
-ALIAS_FILE="${ALIAS_FILE:-/etc/emerald.alias}"
+REPO_FILE="${REPO_FILE:-@SYSCONFDIR@/emerald.repo}"
+MASK_FILE="${MASK_FILE:-@SYSCONFDIR@/emerald.mask}"
+CONFIG_FILE="${CONFIG_FILE:-@SYSCONFDIR@/emerald.conf}"
+ALIAS_FILE="${ALIAS_FILE:-@SYSCONFDIR@/emerald.alias}"
 # check alias port
 [ "$(grep -Ev '^#' "$ALIAS_FILE")" ] && ALIAS_PORT="yes" || ALIAS_PORT="no"
 
@@ -27,7 +27,7 @@ NOCOLOR="no"
 THEME="vylen"
 
 # apply emerald.conf
-# shellcheck source=/etc/emerald.conf
+# shellcheck source=@SYSCONFDIR@/emerald.conf
 . "${CONFIG_FILE}"
 
 # color themes

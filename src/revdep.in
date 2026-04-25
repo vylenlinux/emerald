@@ -150,8 +150,8 @@ rebuild() {
 
 rev_exclude() {
     # excluded dirs
-    EXCLUDE_DIRS="$(grep -v '^#' /etc/revdep.conf 2>/dev/null | grep '/$' | sort -u | sed 's/\/*$//g')"
-    EXCLUDE_DIRS="$EXCLUDE_DIRS $(grep -v '^#' /etc/revdep.d/*.conf 2>/dev/null | cut -d : -f2 | grep '/$' | sort -u | sed 's/\/*$//g')"
+    EXCLUDE_DIRS="$(grep -v '^#' @SYSCONFDIR@/revdep.conf 2>/dev/null | grep '/$' | sort -u | sed 's/\/*$//g')"
+    EXCLUDE_DIRS="$EXCLUDE_DIRS $(grep -v '^#' @SYSCONFDIR@/revdep.d/*.conf 2>/dev/null | cut -d : -f2 | grep '/$' | sort -u | sed 's/\/*$//g')"
 
     for dd in $EXCLUDE_DIRS; do
         if [ -d "$dd" ]; then
@@ -167,8 +167,8 @@ rev_exclude() {
     done
 
     # excluded files
-    EXCLUDE_FILES="$(grep -v '^#' /etc/revdep.conf 2>/dev/null | grep -v '/$' | grep '^/')"
-    EXCLUDE_FILES="$EXCLUDE_FILES $(grep -v '^#' /etc/revdep.d/*.conf 2>/dev/null | cut -d : -f2 | grep -v '/$' | grep '^/')"
+    EXCLUDE_FILES="$(grep -v '^#' @SYSCONFDIR@/revdep.conf 2>/dev/null | grep -v '/$' | grep '^/')"
+    EXCLUDE_FILES="$EXCLUDE_FILES $(grep -v '^#' @SYSCONFDIR@/revdep.d/*.conf 2>/dev/null | cut -d : -f2 | grep -v '/$' | grep '^/')"
 
     for ff in $EXCLUDE_FILES; do
         if [ -f "$ff" ]; then
@@ -184,8 +184,8 @@ rev_exclude() {
     done
 
     # excluded libraries
-    EXCLUDE_LIBS="$(grep -v '^#' /etc/revdep.conf 2>/dev/null | grep -v '^/' | sort -u | grep '.*.so.*')"
-    EXCLUDE_LIBS="$EXCLUDE_LIBS $(grep -v '^#' /etc/revdep.d/*.conf 2>/dev/null | cut -d : -f2 | grep -v '^/' | sort -u | grep '.*.so.*')"
+    EXCLUDE_LIBS="$(grep -v '^#' @SYSCONFDIR@/revdep.conf 2>/dev/null | grep -v '^/' | sort -u | grep '.*.so.*')"
+    EXCLUDE_LIBS="$EXCLUDE_LIBS $(grep -v '^#' @SYSCONFDIR@/revdep.d/*.conf 2>/dev/null | cut -d : -f2 | grep -v '^/' | sort -u | grep '.*.so.*')"
 
     EXCLUDED_LIBS=$(printf '%s\n' $EXCLUDE_LIBS | sort -u)
 }
