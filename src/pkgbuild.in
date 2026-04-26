@@ -855,7 +855,11 @@ cbuild_save() {
 
 cbuild_options() {
     _op_cfg="$CBUILD_DIR/${1:-$name}.opt"
-    [ -f "$_op_cfg" ] && . "$_op_cfg"
+
+    if [ -f "$_op_cfg" ]; then
+        # shellcheck source=$_op_cfg
+        . "$_op_cfg"
+    fi
 }
 
 pkg_cleanup() {
