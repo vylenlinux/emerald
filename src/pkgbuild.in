@@ -1117,7 +1117,7 @@ main() {
             pkg_build >/dev/null
             pkg_package >/dev/null
             pkg_cleanup >/dev/null
-		else
+        else
             msg "Building: $name-$version-$release"
 
             pkg_fetch
