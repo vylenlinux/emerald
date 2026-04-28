@@ -13,9 +13,9 @@ msgerr() {
     printf "ERROR: %s\n" "$1" >&2
 }
 
-openrc_add() {
+do_service() {
     for _svc in "$@"; do
-        _svc_dir="$SRC/services/$_svc"
+        _svc_dir="$SRC/files/services/$_svc"
 
         [ -d "$_svc_dir" ] || {
             msgerr "Service directory not found: $_svc_dir"
@@ -43,6 +43,37 @@ openrc_add() {
             msg "Installed: /etc/conf.d/$_svc"
         fi
     done
+}
+
+do_pam() {
+    for _file in "${@}" do
+        _pamd_dir="${SRC}/files/pam.d"
+
+        [ -d "${_pamd_dir}" ] || {
+            msgerr "pam.d directory not found: ${_pamd_dir}"
+            return 1
+        }
+
+        if [ -f "${_pamd_dir}/${_file}" ]; then
+            install -Dm644 "${_pamd_dir}/${_file}" -t "${PKG}/etc/pam.d/"
+            msg "Installed: /etc/pam.d/${_file}"
+        else
+            msgerr "No pam file found for ${_file}"
+            return 1
+        fi
+    done
+}
+
+do_revdep() {
+    _file_path="${SRC}/files/${name}.revdep"
+
+    [ -f "${_file_path}" ] || {
+        msgerr "Revdep file not found: ${_file_path}"
+        return 1
+    }
+
+    install -Dm644 "${_file_path}" "${PKG}/etc/revdep.d/${name}.conf"
+    msg "Installed: /etc/revdep.d/${name}.conf"
 }
 
 parse_git_url() {
@@ -441,11 +472,11 @@ pkg_unpack() {
     rm -fr "$WORK_DIR/$name"
     mkdir -p "$SRC" "$PKG"
 
-    if [ -d "$PWD/services" ]; then
-        msg "Preparing services directory"
+    if [ -d "$PWD/files" ]; then
+        msg "Preparing files directory"
 
-        cp -r "$PWD/services" "$SRC" || {
-            msgerr "Failed to copy services directory"
+        cp -r "$PWD/files" "$SRC" || {
+            msgerr "Failed to copy files directory"
             abort 1
         }
     fi
