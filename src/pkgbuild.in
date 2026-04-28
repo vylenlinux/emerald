@@ -1108,9 +1108,9 @@ main() {
             abort 0
         fi
     else
-        if [ "$QUIET" ]; then
-            msg "Building: $name-$version-$release"
+        msg "Building: $name-$version-$release"
 
+        if [ "$QUIET" ]; then
             pkg_fetch 2>/dev/null
             pkg_checksum >/dev/null
             pkg_unpack >/dev/null
@@ -1118,8 +1118,6 @@ main() {
             pkg_package >/dev/null
             pkg_cleanup >/dev/null
         else
-            msg "Building: $name-$version-$release"
-
             pkg_fetch
             pkg_checksum
             pkg_unpack
