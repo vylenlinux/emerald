@@ -46,7 +46,7 @@ do_service() {
 }
 
 do_pam() {
-    for _file in "${@}" do
+    for _file in "${@}"; do
         _pamd_dir="${SRC}/files/pam.d"
 
         [ -d "${_pamd_dir}" ] || {
