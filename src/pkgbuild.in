@@ -45,56 +45,6 @@ do_service() {
     done
 }
 
-do_pam() {
-    for _file in "${@}"; do
-        _pamd_dir="${SRC}/files/pam.d"
-
-        [ -d "${_pamd_dir}" ] || {
-            msgerr "pam.d directory not found: ${_pamd_dir}"
-            return 1
-        }
-
-        if [ -f "${_pamd_dir}/${_file}" ]; then
-            install -Dm644 "${_pamd_dir}/${_file}" -t "${PKG}/etc/pam.d/"
-            msg "Installed: /etc/pam.d/${_file}"
-        else
-            msgerr "No pam file found for ${_file}"
-            return 1
-        fi
-    done
-}
-
-do_revdep() {
-    _file_path="${SRC}/files/${name}.revdep"
-
-    [ -f "${_file_path}" ] || {
-        msgerr "Revdep file not found: ${_file_path}"
-        return 1
-    }
-
-    install -Dm644 "${_file_path}" "${PKG}/etc/revdep.d/${name}.conf"
-    msg "Installed: /etc/revdep.d/${name}.conf"
-}
-
-do_application() {
-    for _file in "${@}"; do
-        _application_dir="${SRC}/files/applications"
-
-        [ -d "${_application_dir}" ] || {
-            msgerr "Applications dir not found: ${_application_dir}"
-            return 1
-        }
-
-        if [ -f "${_application_dir}/${_file}.desktop" ]; then
-            install -Dm644 "${_application_dir}/${_file}.desktop" -t "${PKG}/usr/share/applications/"
-            msg "Installed: /usr/share/applications/${_file}.desktop"
-        else
-            msgerr "No desktop file found for ${_file}"
-            return 1
-        fi
-    done
-}
-
 parse_git_url() {
     _url="$1"
     _url="${_url#git+}"
