@@ -12,6 +12,16 @@ PKGDB_DIR="/var/lib/emerald/db"
 TCRB=1
 BASERB=1
 
+# Print informational message to stdout
+msg() {
+    printf "==> %s\n" "$1"
+}
+
+# Print error message to stderr
+msgerr() {
+    printf "ERROR: %s\n" "$1" >&2
+}
+
 # Display usage information and exit
 help() {
     cat <<'EOF'
@@ -34,16 +44,6 @@ EOF
     help
 
     exit 1
-}
-
-# Print informational message to stdout
-msg() {
-    printf "==> %s\n" "$1"
-}
-
-# Print error message to stderr
-msgerr() {
-    printf "ERROR: %s\n" "$1" >&2
 }
 
 # Parse command line options, build toolchain and base by default
