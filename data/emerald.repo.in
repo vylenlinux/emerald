@@ -7,8 +7,4 @@
 
 @PORTS_DIR@/main         https://gitlab.com/vylen/ports/main
 @PORTS_DIR@/community    https://gitlab.com/vylen/ports/community
-#@PORTS_DIR@/kde-lxqt    https://gitlab.com/vylen/ports/kde-lxqt
-#@PORTS_DIR@/mate        https://gitlab.com/vylen/ports/mate
-#@PORTS_DIR@/xfce        https://gitlab.com/vylen/ports/xfce
 #@PORTS_DIR@/multilib    https://gitlab.com/vylen/ports/multilib
-#@PORTS_DIR@/nonfree     https://gitlab.com/vylen/ports/nonfree
