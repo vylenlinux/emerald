@@ -643,7 +643,7 @@ pkg_package() {
         rm -f usr/share/info/dir usr/info/dir
         rm -f usr/lib/charset.alias # on musl system
 
-        rm -rf usr/lib/systemd
+        rm -rf usr/lib/systemd usr/lib/sysusers.d usr/lib/tmpfiles.d
         rm -rf usr/share/licenses
         rm -rf usr/lib/python3.*/site-packages/*.dist-info/licenses
 
