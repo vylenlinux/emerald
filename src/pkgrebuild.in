@@ -8,7 +8,7 @@
 # POSIX-compliant implementation for maximum portability.
 
 # Vars
-PKGDB_DIR="/var/lib/emerald/db"
+PKGDB_DIR="@LIB_DIR@/db"
 TCRB=1
 BASERB=1
 

@@ -7,6 +7,9 @@ LOCALSTATEDIR = join_paths(PREFIX, get_option('localstatedir'))
 
 conf_data = configuration_data()
 conf_data.set('SYSCONFDIR', SYSCONFDIR)
+conf_data.set('PORTS_DIR', get_option('ports_dir'))
+conf_data.set('CACHE_DIR', get_option('cache_dir'))
+conf_data.set('LIB_DIR', get_option('lib_dir'))
 
 subdir('data')
 subdir('src')

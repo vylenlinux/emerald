@@ -147,10 +147,10 @@ parse_opts "$@"
 [ "$HELP" -eq 1 ] && usage
 
 # Define working directories
-baredir="/var/cache/emerald/repos"
+baredir="@CACHE_DIR@/repos"
 mkd "$baredir" || die "Failed to create cache directory"
 
-worktree="/usr/ports"
+worktree="@PORTS_DIR@"
 mkd "$worktree" || die "Failed to create worktree directory"
 
 # Check that configuration file exists

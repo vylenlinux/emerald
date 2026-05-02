@@ -127,7 +127,7 @@ isinstalled() {
 # Process options
 parse_opts $(extract_opts "$@")
 
-EMERALD_DIR="var/lib/emerald"
+EMERALD_DIR="@LIB_DIR@"
 PKGDB_DIR="$EMERALD_DIR/db"
 LOCK_FILE="$EMERALD_DIR/epkg.lock"
 

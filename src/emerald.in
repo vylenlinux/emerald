@@ -2,8 +2,8 @@
 
 # vars
 BUILD_SCRIPT="build.eme"
-PKGDB_DIR="/var/lib/emerald/db"
-CBUILD_DIR="/var/lib/emerald/cbuild"
+PKGDB_DIR="@LIB_DIR@/db"
+CBUILD_DIR="@LIB_DIR@/cbuild"
 WORLD_FILE="$(dirname "$PKGDB_DIR")/world" 
 REPO_FILE="${REPO_FILE:-@SYSCONFDIR@/emerald.repo}"
 MASK_FILE="${MASK_FILE:-@SYSCONFDIR@/emerald.mask}"
@@ -13,8 +13,8 @@ ALIAS_FILE="${ALIAS_FILE:-@SYSCONFDIR@/emerald.alias}"
 [ "$(grep -Ev '^#' "$ALIAS_FILE")" ] && ALIAS_PORT="yes" || ALIAS_PORT="no"
 
 # default value from pkgbuild
-SOURCE_DIR="/var/cache/emerald/sources"
-PACKAGE_DIR="/var/cache/emerald/packages"
+SOURCE_DIR="@CACHE_DIR@/sources"
+PACKAGE_DIR="@CACHE_DIR@/packages"
 CURL_OPTS=""
 COMPRESSION_MODE="xz"
 NO_STRIP="no"

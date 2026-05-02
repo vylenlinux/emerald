@@ -52,7 +52,7 @@ yes=""
 pkg=""
 keep=""
 remove=""
-PKGDB_DIR="/var/lib/emerald/db"
+PKGDB_DIR="@LIB_DIR@/db"
 
 # Parse command line options
 parseopt "$@"
