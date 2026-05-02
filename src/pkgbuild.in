@@ -643,6 +643,9 @@ pkg_package() {
         rm -f usr/share/info/dir usr/info/dir
         rm -f usr/lib/charset.alias # on musl system
 
+        rm -rf usr/lib/systemd
+        rm -rf usr/share/licenses
+
         find . \( -name perllocal.pod -o -name .packlist \) -delete
 
         [ -d usr/share/fonts ] && {
