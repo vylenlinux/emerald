@@ -20,21 +20,21 @@ install_emptydir(
 )
 
 install_emptydir(
-    LOCALSTATEDIR / 'cache/emerald/packages',
+    join_paths(get_option('cache_dir'), 'packages'),
     install_mode: 'rwxrwxrwx'
 )
 
 install_emptydir(
-    LOCALSTATEDIR / 'cache/emerald/sources',
+    join_paths(get_option('cache_dir'), 'sources'),
     install_mode: 'rwxrwxrwx'
 )
 
 install_emptydir(
-    LOCALSTATEDIR / 'cache/emerald/work',
+    join_paths(get_option('cache_dir'), 'work'),
     install_mode: 'rwxrwxrwx'
 )
 
 install_emptydir(
-    LOCALSTATEDIR / 'lib/emerald/cbuild',
+    join_paths(get_option('lib_dir'), 'cbuild'),
     install_mode: 'rwxr-xr-x'
 )
