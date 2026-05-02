@@ -645,6 +645,7 @@ pkg_package() {
 
         rm -rf usr/lib/systemd
         rm -rf usr/share/licenses
+        rm -rf usr/lib/python3.*/site-packages/*.dist-info/licenses
 
         find . \( -name perllocal.pod -o -name .packlist \) -delete
 
