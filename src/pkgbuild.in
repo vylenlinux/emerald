@@ -665,6 +665,10 @@ pkg_package() {
             rm -fr usr/share/doc usr/share/gtk-doc usr/doc usr/gtk-doc
         fi
 
+        if [ "$KEEP_MAN" = 0 ] || [ "$KEEP_MAN" = "no" ]; then
+            rm -fr usr/man usr/share/man
+        fi
+
         if [ "$NO_STRIP" = 0 ] || [ "$NO_STRIP" = "no" ]; then
             strip_files
         fi
@@ -1124,5 +1128,6 @@ IGNORE_CHECKSUM="no"
 KEEP_LIBTOOL="no"
 KEEP_LOCALE="no"
 KEEP_DOC="no"
+KEEP_MAN="no"
 
 main "$@"
