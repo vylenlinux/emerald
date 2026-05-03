@@ -38,3 +38,8 @@ install_emptydir(
     join_paths(get_option('lib_dir'), 'cbuild'),
     install_mode: 'rwxr-xr-x'
 )
+
+install_emptydir(
+    get_option('ports_dir'),
+    install_mode: 'rwxr-xr-x'
+)
