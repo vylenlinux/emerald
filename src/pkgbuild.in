@@ -65,6 +65,18 @@ do_pam() {
     done
 }
 
+do_revdep() {
+    _revdep_file="$SRC/files/$name.revdep"
+
+    [ -f "$_revdep_file" ] || {
+        msgerr "Revdep file not found: $_revdep_file"
+        return 1
+    }
+
+    install -Dm644 "$_revdep_file" "$PKG/etc/revdep.d/$name.conf"
+    msg "Installed: /etc/revdep.d/$name.conf"
+}
+
 parse_git_url() {
     _url="$1"
     _url="${_url#git+}"
