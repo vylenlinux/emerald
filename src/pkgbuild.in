@@ -45,6 +45,26 @@ do_service() {
     done
 }
 
+do_pam() {
+    for _pam in "$@"; do
+        _pam_dir="$SRC/files/pam.d"
+
+        [ -d "$_pam_dir" ] || {
+            msgerr "PAM directory not found: $_pam_dir"
+            return 1
+        }
+
+        # Install pam.d config (required)
+        if [ -f "$_pam_dir/$_pam" ]; then
+            install -Dm644 "$_pam_dir/$_pam" "$PKG/etc/pam.d/$_pam"
+            msg "Installed: /etc/pam.d/$_pam"
+        else
+            msgerr "No PAM config found for $_pam"
+            return 1
+        fi
+    done
+}
+
 parse_git_url() {
     _url="$1"
     _url="${_url#git+}"
