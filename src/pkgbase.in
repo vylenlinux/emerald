@@ -52,7 +52,7 @@ yes=""
 pkg=""
 keep=""
 remove=""
-PKGDB_DIR="@LIB_DIR@/db"
+PKGDB_DIR="@STATE_DIR@/db"
 
 # Parse command line options
 parseopt "$@"

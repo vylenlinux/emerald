@@ -9,7 +9,7 @@ conf_data = configuration_data()
 conf_data.set('SYSCONFDIR', SYSCONFDIR)
 conf_data.set('PORTS_DIR', get_option('ports_dir'))
 conf_data.set('CACHE_DIR', get_option('cache_dir'))
-conf_data.set('LIB_DIR', get_option('lib_dir'))
+conf_data.set('STATE_DIR', get_option('state_dir'))
 
 subdir('data')
 subdir('src')
@@ -35,7 +35,7 @@ install_emptydir(
 )
 
 install_emptydir(
-    join_paths(get_option('lib_dir'), 'cbuild'),
+    join_paths(get_option('state_dir'), 'cbuild'),
     install_mode: 'rwxr-xr-x'
 )
 

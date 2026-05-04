@@ -2,9 +2,9 @@
 
 # vars
 BUILD_SCRIPT="build.eme"
-PKGDB_DIR="@LIB_DIR@/db"
-CBUILD_DIR="@LIB_DIR@/cbuild"
-WORLD_FILE="$(dirname "$PKGDB_DIR")/world" 
+PKGDB_DIR="@STATE_DIR@/db"
+CBUILD_DIR="@STATE_DIR@/cbuild"
+WORLD_FILE="@STATE_DIR@/world"
 REPO_FILE="${REPO_FILE:-@SYSCONFDIR@/emerald.repo}"
 MASK_FILE="${MASK_FILE:-@SYSCONFDIR@/emerald.mask}"
 CONFIG_FILE="${CONFIG_FILE:-@SYSCONFDIR@/emerald.conf}"

@@ -1,3 +1,3 @@
 option('ports_dir', type: 'string', value: '/usr/ports')
 option('cache_dir', type: 'string', value: '/var/cache/emerald')
-option('lib_dir',   type: 'string', value: '/var/lib/emerald')
+option('state_dir', type: 'string', value: '/var/lib/emerald')

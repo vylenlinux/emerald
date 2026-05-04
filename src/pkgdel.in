@@ -108,7 +108,7 @@ parse_opts $(extract_opts "$@")
 PKGDB_DIR="$(pkgadd --print-dbdir)"
 PKGDB_DIR="${PKGDB_DIR##/}"              # remove leading /
 
-LOCK_FILE="@LIB_DIR@/epkg.lock"
+LOCK_FILE="@STATE_DIR@/epkg.lock"
 
 # show help page
 [ -n "$SHOWHELP" ] || [ -z "$RMNAME" ] && {
