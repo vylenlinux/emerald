@@ -878,7 +878,10 @@ Options:
     path         <port>             print path in repo
     provide      <file>             print ports provided file
     purge        [ports]            remove installed ports and its orphan dependencies
+
     search       <pattern>          find ports in repo
+                                    -n, --name   search in port names only
+
     trigger      [ports]            run system trigger
     world        [ports]            print/add/remove world list
 
@@ -1633,9 +1636,34 @@ emerald_remove() {
 emerald_search() {
     needarg "$@"
 
+    NAME_ONLY=0
+    PATTERN=""
+
+    while [ "$1" ]; do
+        case $1 in
+            -n | --name) NAME_ONLY=1 ;;
+
+            -*)
+                msgerr "Invalid search option: $1";
+                return 1
+            ;;
+
+            *) PATTERN="$1" ;;
+        esac
+
+        shift
+    done
+
+    [ "$PATTERN" ] || {
+        printf "%s\n" "Please specify a search pattern.";
+        return 1
+    }
+
+    [ "$NAME_ONLY" = 1 ] && SEARCH_MODE="^name=.*$PATTERN" || SEARCH_MODE="^(name|description)=.*$PATTERN"
+
     for repo in $PORT_REPO; do
         # Find all matching build.eme files by name or description
-        for port in $(grep -RlE "^(name|description)=.*$1" "$repo"/*/"$BUILD_SCRIPT" 2>/dev/null | awk -F'/' '{print $(NF-1)}' | sort); do
+        for port in $(grep -RlE "$SEARCH_MODE" "$repo"/*/"$BUILD_SCRIPT" 2>/dev/null | awk -F'/' '{print $(NF-1)}' | sort); do
             IFS='|' read -r name version release desc <<EOF
 $(awk '/^name=/ {
     sub(/^name=/, "");
