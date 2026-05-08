@@ -1896,6 +1896,8 @@ trigger_iconcache() {
         msg "Updating icon theme caches..."
 
         for dir in /usr/share/icons/* ; do
+            [ -d "$dir" ] || continue # skip non-directory entries in /usr/share/icons
+
             if [ -e "$dir/index.theme" ]; then
                 gtk-update-icon-cache -q "$dir" 2>/dev/null
             else
