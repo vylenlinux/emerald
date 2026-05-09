@@ -1676,42 +1676,51 @@ emerald_search() {
         return 1
     }
 
-    [ "$NAME_ONLY" = 1 ] && SEARCH_MODE="^name=.*$PATTERN" || SEARCH_MODE="^(name|description)=.*$PATTERN"
+    _sr_found=0
 
     for repo in $PORT_REPO; do
-        # Find all matching build.eme files by name or description
-        for port in $(grep -RlE "$SEARCH_MODE" "$repo"/*/"$BUILD_SCRIPT" 2>/dev/null | awk -F'/' '{print $(NF-1)}' | sort); do
-            IFS='|' read -r name version release desc <<EOF
-$(awk '/^name=/ {
-    sub(/^name=/, "");
-    gsub(/"/, "");
+        [ -d "$repo" ] || continue
 
-    n = $0;
-} /^version=/ {
-    sub(/^version=/, "");
-    gsub(/"/, "");
+        _sr_out=$(awk -v pat="$PATTERN" -v nonly="$NAME_ONLY" 'FNR == 1 {
+            if (NR > 1 && matched) printf "%s|%s|%s|%s\n", name, ver, rel, desc;
+            name = ver = rel = desc = "";
+            matched = 0;
+        } /^name=/ {
+            sub(/^name=/, "");
+            gsub(/"/, "");
 
-    v = $0;
-} /^release=/ {
-    sub(/^release=/, "");
-    r = $0;
-} /^description=/ {
-    sub(/^description=/, "");
-    gsub(/"/, "");
+            name = $0;
+            if (name ~ pat) matched = 1;
+        } /^version=/ {
+            sub(/^version=/, "");
+            gsub(/"/, "");
 
-    d = $0;
-} END {
-    printf "%s|%s|%s|%s", n, v, r, d;
-}' "$repo/$port/$BUILD_SCRIPT")
-EOF
+            ver = $0;
+        } /^release=/ {
+            sub(/^release=/, "");
+            gsub(/"/, "");
 
-            # Check if package is installed and format output
+            rel = $0;
+        } /^description=/ {
+            sub(/^description=/, "");
+            gsub(/"/, "");
+
+            desc = $0;
+            if (!nonly && desc ~ pat) matched = 1;
+        } END {
+            if (matched) printf "%s|%s|%s|%s\n", name, ver, rel, desc;
+        }' "$repo"/*/"$BUILD_SCRIPT" 2>/dev/null | sort)
+
+        [ -n "$_sr_out" ] || continue
+        _sr_found=1
+
+        printf '%s\n' "$_sr_out" | while IFS='|' read -r name version release desc; do
             emerald_isinstalled "$name" && ins="[${COLOR2}i${CRESET}]" || ins="[ ]"
             printf "%b %b(%s)%b %b%s%b %b%s-%s%b %s\n" "$ins" "$COLOR5" "${repo##*/}" "$CRESET" "$COLOR2" "$name" "$CRESET" "$COLOR4" "$version" "$release" "$CRESET" "$desc"
         done
     done
 
-    [ ! "$port" ] && msg "No matching package found."
+    [ "$_sr_found" -eq 0 ] && msg "No matching package found."
     return 0
 }
 
