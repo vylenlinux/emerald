@@ -10,7 +10,7 @@ MASK_FILE="${MASK_FILE:-@SYSCONFDIR@/emerald.mask}"
 CONFIG_FILE="${CONFIG_FILE:-@SYSCONFDIR@/emerald.conf}"
 ALIAS_FILE="${ALIAS_FILE:-@SYSCONFDIR@/emerald.alias}"
 # check alias port
-[ "$(grep -Ev '^#' "$ALIAS_FILE")" ] && ALIAS_PORT="yes" || ALIAS_PORT="no"
+grep -qEv '^(#|[[:space:]]*$)' "$ALIAS_FILE" 2>/dev/null && ALIAS_PORT="yes" || ALIAS_PORT="no"
 
 # default value from pkgbuild
 SOURCE_DIR="@CACHE_DIR@/sources"
