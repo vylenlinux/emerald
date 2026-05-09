@@ -1403,6 +1403,9 @@ emerald_orphan() {
 }
 
 check_outdated() {
+    # Load once
+    _MASKED_LIST=$(grep -Ev '^(#|[[:space:]]*$)' "$MASK_FILE" 2>/dev/null)
+
     for pkg in $(allinstalled); do
         NEWINSTALLED=0
         MASKED=0
@@ -1423,7 +1426,11 @@ check_outdated() {
             [ $? = 1 ] && NEWINSTALLED=1
         fi
 
-        [ "$(grep -Ev '^(#|$| )' "$MASK_FILE" | grep -x "$pkg")" ] && MASKED=1
+        # Check mask
+        case " $_MASKED_LIST " in *" $pkg "*)
+            MASKED=1 ;;
+        esac
+
         printf "%s#%s#%s#%s#%s\n" "$pkg" "$ivr" "$pvr" "$NEWINSTALLED" "$MASKED"
     done
 }
