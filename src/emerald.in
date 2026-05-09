@@ -149,7 +149,10 @@ getportpath() {
 }
 
 get_iversion() {
-    awk 'NR==1 {print $1"-"$2}' "$PKGDB_DIR/$1" 2>/dev/null
+    [ -f "$PKGDB_DIR/$1" ] || return 1
+
+    read -r _iv _ir _ < "$PKGDB_DIR/$1"
+    printf '%s-%s\n' "$_iv" "$_ir"
 }
 
 get_version() {
