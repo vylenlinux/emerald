@@ -1282,11 +1282,10 @@ emerald_install() {
 }
 
 emerald_installed() {
-    for all in $(allinstalled); do
-        printf "%s %s\n" "$all" "$(get_iversion "$all")"
+    find "$PKGDB_DIR" -maxdepth 1 -type f | while IFS= read -r _f; do
+        read -r _v _r _ < "$_f"
+        printf '%s %s-%s\n' "${_f##*/}" "$_v" "$_r"
     done
-
-    return 0
 }
 
 emerald_integrity() {
