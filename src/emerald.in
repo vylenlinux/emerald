@@ -140,7 +140,7 @@ msg_depsstatus() {
 getportpath() {
     for repo in $PORT_REPO; do
         if [ -f "$repo/$1/$BUILD_SCRIPT" ]; then
-            dirname "$repo/$1/$BUILD_SCRIPT"
+            printf '%s/%s\n' "$repo" "$1"
             return 0
         fi
     done
