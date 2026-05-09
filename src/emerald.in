@@ -1422,14 +1422,17 @@ check_outdated() {
 
         [ "$pvr" = "$ivr" ] && continue
 
+        pversion=${pvr%-*}
+        prelease=${pvr#*-}
+
         iversion=${ivr%-*}
         irelease=${ivr#*-}
 
-        if [ "$version" != "$iversion" ]; then
-            vercomp "$version" "$iversion"
+        if [ "$pversion" != "$iversion" ]; then
+            vercomp "$pversion" "$iversion"
             [ $? = 1 ] && NEWINSTALLED=1
-        elif [ "$release" != "$irelease" ]; then
-            vercomp "$release" "$irelease"
+        elif [ "$prelease" != "$irelease" ]; then
+            vercomp "$prelease" "$irelease"
             [ $? = 1 ] && NEWINSTALLED=1
         fi
 
