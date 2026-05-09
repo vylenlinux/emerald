@@ -1387,21 +1387,19 @@ EOF
 }
 
 emerald_orphan() {
-    tmpdeplistworld="/tmp/.deplistworld.$"
-    tmpallinstalled="/tmp/.allinstalled.$"
+    for i in $(cat "$WORLD_FILE" 2>/dev/null); do
+        case " $* "   in *" $i "*)
+            continue ;;
+        esac
 
-    for i in $(cat "$WORLD_FILE"); do
-        printf "%s\n" "$@" | tr ' ' '\n' | grep -qx "$i" && continue
-        printf "%s\n" "$DEP" | tr ' ' '\n' | grep -qx "$i" && continue
+        case " $DEP " in *" $i "*)
+            continue ;;
+        esac
 
         deplist "$i"
     done
 
-    printf "%s\n" "$DEP" | tr ' ' '\n' > "$tmpdeplistworld"
-    allinstalled > "$tmpallinstalled"
-
-    grep -xvF -f "$tmpdeplistworld" "$tmpallinstalled"
-    rm "$tmpallinstalled" "$tmpdeplistworld"
+    allinstalled | awk -v dep=" $DEP " '{if (index(dep, " " $0 " ") == 0) print}'
 }
 
 check_outdated() {
