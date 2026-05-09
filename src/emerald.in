@@ -1988,17 +1988,14 @@ trigger_mimedb() {
 emerald_trigger() {
     needroot "Run trigger"
 
-    # If using -o (download only), don't run trigger
     if [ ! "$DOWNLOAD_ONLY" ]; then
         [ "$@" ] || set -- $(allinstalled)
 
+        # Read all DB files once in memory
+        PKGFILES=$(for _p in "$@"; do cat "$PKGDB_DIR/$_p" 2>/dev/null; done)
+
         for t in mimedb desktopdb fontcache fccache udevdb iconcache gtk3immodules gtk2immodules glibschema giomodules gdkpixbufcache; do
-            # shellcheck disable=SC2068
-            for p in $@; do
-                # Only 1 disk read per port
-                PKGFILES=$(cat "$PKGDB_DIR/$p")
-                trigger_$t "$p" && break
-            done
+            trigger_$t
         done
     fi
 }
