@@ -189,10 +189,17 @@ vercomp() {
 }
 
 deps_alias() {
-    for d in $deps; do
-        dpls=$(grep -E "^$d([[:space:]]|$)" "$ALIAS_FILE")
-        [ -n "$dpls" ] && printf "%s\n" "$dpls" | awk '{print $2}' || printf "%s\n" "$d"
-    done
+    printf '%s\n' $deps | awk -v alias_file="$ALIAS_FILE" 'BEGIN {
+        while ((getline line < alias_file) > 0) {
+            if (line ~ /^[[:space:]]*$/ || line ~ /^#/) continue
+            split(line, a)
+            alias[a[1]] = a[2]
+        }
+
+        close(alias_file)
+    } {
+        print ($0 in alias) ? alias[$0] : $0
+    }'
 }
 
 get_depends() {
