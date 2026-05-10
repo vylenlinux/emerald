@@ -545,7 +545,7 @@ pkg_build() {
 
     cd "$SRC" >/dev/null || abort 1
         if [ "$QUIET" ]; then
-            (set -e; build) 2> /dev/null
+            (set -e; build) 2>/dev/null
         else
             (set -e -x; build 2>&1)
         fi
@@ -730,12 +730,15 @@ pkg_package() {
             abort 1
         }
 
-        tar -tvf "$PACKAGE_DIR/$PKGNAME" | sort -k 6
+        # Capture listing once; reuse for display and pkgfiles (avoids re-reading the archive)
+        _tarlist=$(tar -tvf "$PACKAGE_DIR/$PKGNAME")
+        printf '%s\n' "$_tarlist" | sort -k 6
+
         msg "Packaging success: $PKGNAME ($(ls -lh "$PACKAGE_DIR/$PKGNAME" | awk '{print $5}'))"
     cd - >/dev/null || return 1
 
     if [ ! -f .pkgfiles ] || [ "$(head -n1 .pkgfiles)" != "$name-$version-$release" ]; then
-        pkg_genpkgfiles
+        pkg_genpkgfiles "$_tarlist"
     fi
 }
 
@@ -746,9 +749,18 @@ pkg_genpkgfiles() {
     }
 
     printf '%s\n' "$name-$version-$release" > .pkgfiles
-    tar -tvf "$PACKAGE_DIR/$PKGNAME" | awk '{$3=$4=$5=""; print $0}' | sort -k 3 >> .pkgfiles
 
-    msg "Pkgfiles updated."
+    # If a pre-captured listing is passed as $1, use it; otherwise read the archive
+    if [ -n "$1" ]; then
+        printf '%s\n' "$1"
+    else
+        tar -tvf "$PACKAGE_DIR/$PKGNAME"
+    fi | awk '{
+        $3 = $4 = $5 = "";
+        print $0;
+    }' | sort -k 3 >> .pkgfiles
+
+    msg ".pkgfiles updated."
 }
 
 pkg_clean() {
