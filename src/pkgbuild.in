@@ -545,7 +545,7 @@ pkg_build() {
 
     cd "$SRC" >/dev/null || abort 1
         if [ "$QUIET" ]; then
-            (set -e -x; build) 2> /dev/null
+            (set -e; build) 2> /dev/null
         else
             (set -e -x; build 2>&1)
         fi
