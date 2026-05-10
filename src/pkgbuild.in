@@ -183,7 +183,7 @@ pkg_genchecksums() {
     [ "$err" = 1 ] && abort 1
 
     generatechecksum > .checksums
-    msg "Checksums updated."
+    msg ".checksums updated"
 }
 
 generatechecksum() {
@@ -760,7 +760,7 @@ pkg_genpkgfiles() {
         print $0;
     }' | sort -k 3 >> .pkgfiles
 
-    msg ".pkgfiles updated."
+    msg ".pkgfiles updated"
 }
 
 pkg_clean() {
