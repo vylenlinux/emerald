@@ -195,7 +195,7 @@ awk 'NR>1 {
                 printf "removing '%s'\n" "$ROOT_DIR/$line"
             fi
 
-            rm -f ${VERBOSE_REMOVE:+-v} "$ROOT_DIR/$line"
+            rm -f "$ROOT_DIR/$line"
         ;;
     esac
 done
