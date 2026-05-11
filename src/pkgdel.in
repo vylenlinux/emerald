@@ -176,13 +176,26 @@ awk 'NR>1 {
 }' "$ROOT_DIR/$PKGDB_DIR/$name" | while IFS= read -r line; do
     case $line in
         */)
-            # Directory: remove only if it does not appear in any other package
-            grep -F -x -q -e "$line" "$tmpdb" || rmdir ${VERBOSE_REMOVE:+-v} "$ROOT_DIR/$line"
+            if grep -Fxqe "$line" "$tmpdb"; then
+                : # Do nothing if directory is used by another package
+            else
+                # Manual verbose printing, as 'rmdir -v' is not POSIX
+                if [ "$VERBOSE_INSTALL" ]; then
+                    printf "removing directory '%s'\n" "$ROOT_DIR/$line"
+                fi
+
+                rmdir "$ROOT_DIR/$line" 2>/dev/null
+            fi
         ;;
 
         *)
             # File: always remove
-            rm ${VERBOSE_REMOVE:+-v} "$ROOT_DIR/$line"
+            # Manual verbose printing, as 'rm -v' is not POSIX
+            if [ "$VERBOSE_INSTALL" ]; then
+                printf "removing '%s'\n" "$ROOT_DIR/$line"
+            fi
+
+            rm -f ${VERBOSE_REMOVE:+-v} "$ROOT_DIR/$line"
         ;;
     esac
 done
