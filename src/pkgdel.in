@@ -180,7 +180,7 @@ awk 'NR>1 {
                 : # Do nothing if directory is used by another package
             else
                 # Manual verbose printing, as 'rmdir -v' is not POSIX
-                if [ "$VERBOSE_INSTALL" ]; then
+                if [ "$VERBOSE_REMOVE" ]; then
                     printf "removing directory '%s'\n" "$ROOT_DIR/$line"
                 fi
 
@@ -191,7 +191,7 @@ awk 'NR>1 {
         *)
             # File: always remove
             # Manual verbose printing, as 'rm -v' is not POSIX
-            if [ "$VERBOSE_INSTALL" ]; then
+            if [ "$VERBOSE_REMOVE" ]; then
                 printf "removing '%s'\n" "$ROOT_DIR/$line"
             fi
 
