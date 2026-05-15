@@ -36,7 +36,7 @@ install_emptydir(
 
 install_emptydir(
     join_paths(get_option('state_dir'), 'cbuild'),
-    install_mode: 'rwxr-xr-x'
+    install_mode: 'rwxrwxrwx'
 )
 
 install_emptydir(
