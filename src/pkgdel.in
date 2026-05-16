@@ -167,38 +167,37 @@ find "$ROOT_DIR/$PKGDB_DIR" -type f ! -name "$name" -exec cat {} + 2>/dev/null >
 # Iterate over the package's file list in reverse order.
 # Reverse order is required because directories must be removed 
 # after their contents have been deleted.
-awk 'NR>1 {
-    # Skip first line, store lines in array
-    lines[n++] = $0
-} END {
-    # Print lines in reverse order
-    while (n--) print lines[n]
-}' "$ROOT_DIR/$PKGDB_DIR/$name" | while IFS= read -r line; do
-    case $line in
-        */)
-            if grep -Fxqe "$line" "$tmpdb"; then
-                : # Do nothing if directory is used by another package
-            else
-                # Manual verbose printing, as 'rmdir -v' is not POSIX
-                if [ "$VERBOSE_REMOVE" ]; then
-                    printf "removing directory '%s'\n" "$ROOT_DIR/$line"
-                fi
+_rm_files=$(mktemp)
+_rm_dirs=$(mktemp)
 
-                rmdir "$ROOT_DIR/$line" 2>/dev/null
-            fi
-        ;;
+# Single awk pass: classify package entries into files and directories
+awk -v rm_files="$_rm_files" -v rm_dirs="$_rm_dirs" 'NR == 1 {
+    next;
+} {
+    if (substr($0, length($0), 1) == "/") {
+        print > rm_dirs;
+    } else {
+        print > rm_files;
+    }
+}' "$ROOT_DIR/$PKGDB_DIR/$name"
 
-        *)
-            # File: always remove
-            # Manual verbose printing, as 'rm -v' is not POSIX
-            if [ "$VERBOSE_REMOVE" ]; then
-                printf "removing '%s'\n" "$ROOT_DIR/$line"
-            fi
+# Bulk-remove files in a single xargs call instead of one rm per file
+if [ -s "$_rm_files" ]; then
+    [ "$VERBOSE_REMOVE" ] && sed "s|^|removing '${ROOT_DIR}/|;s|\$|'|" "$_rm_files"
+    sed "s|^|${ROOT_DIR}/|" "$_rm_files" | xargs -r rm -f
+fi
 
-            rm -f "$ROOT_DIR/$line"
-        ;;
-    esac
-done
+# Remove directories deepest-first; skip those still owned by another package
+if [ -s "$_rm_dirs" ]; then
+    sort -r "$_rm_dirs" | while IFS= read -r d; do
+        if ! grep -Fxq "$d" "$tmpdb"; then
+            [ "$VERBOSE_REMOVE" ] && printf "removing directory '%s'\n" "${ROOT_DIR}/${d}"
+            rmdir "${ROOT_DIR}/${d}" 2>/dev/null
+        fi
+    done
+fi
+
+rm -f "$_rm_files" "$_rm_dirs"
 
 # remove the temporary database file.
 rm -f "$tmpdb"
