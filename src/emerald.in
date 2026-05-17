@@ -1133,7 +1133,7 @@ emerald_install() {
 
         # Show error summary if exist
         FAILED_PKGS="$failed_installs"
-        SKIPPED_PKGS=""
+        SKIPPED_PKGS="$skipped_installs"
 
         summary_show "$FAILED_PKGS" "$SKIPPED_PKGS" "reinstall"
         settermtitle "Package(s) reinstalled."
