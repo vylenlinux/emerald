@@ -757,7 +757,7 @@ EOF
 emerald_dup() {	
     dup=$(find $PORT_REPO -type d -printf '%P\n'| sort | uniq -d)
 
-    if [ "$dup" ] ; then
+    if [ "$dup" ]; then
         for dport in $dup; do
             for drepo in $PORT_REPO; do
                 [ -d "$drepo/$dport" ] && dup_status "$dport" "$drepo"
@@ -1959,7 +1959,7 @@ trigger_iconcache() {
     printf '%s\n' "$PKGFILES" | grep -q "^usr/share/icons/" && {
         msg "Updating icon theme caches..."
 
-        for dir in /usr/share/icons/* ; do
+        for dir in /usr/share/icons/*; do
             [ -d "$dir" ] || continue # skip non-directory entries in /usr/share/icons
 
             if [ -e "$dir/index.theme" ]; then
@@ -2233,7 +2233,7 @@ emerald_world() {
         touch "$WORLD_FILE"
 
         while [ "$1" ]; do
-            if [ ! "$(grep -x "$1" "$WORLD_FILE")" ] ; then
+            if ! grep -qx "$1" "$WORLD_FILE"; then
                 printf "world: '%s' added to world\n" "$1"
                 world_add "$1"
             else
