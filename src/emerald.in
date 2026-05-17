@@ -599,7 +599,7 @@ emerald_config() {
 emerald_dependent() {
     needarg "$@"
 
-    if [ "$(getportpath "$1")" ]; then
+    if getportpath "$1" >/dev/null 2>&1; then
         for repo in $PORT_REPO; do
             grep -l "^$1$" "$repo"/*/depends 2>/dev/null | awk -F'/' '{print $(NF-1)}'
         done | sort -u | while read -r dpd; do
@@ -1086,9 +1086,7 @@ emerald_install() {
         error=0
 
         for ii in $PKGNAME; do
-            ppath=$(getportpath "$ii")
-
-            if [ ! "$ppath" ]; then
+            if ! ppath=$(getportpath "$ii"); then
                 msg_portnotfound "$ii"
 
                 if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
@@ -1146,9 +1144,7 @@ emerald_install() {
         error=0
 
         for ii in $PKGNAME; do
-            ppath=$(getportpath "$ii")
-
-            if [ ! "$ppath" ]; then
+            if ! ppath=$(getportpath "$ii"); then
                 msg_portnotfound "$ii"
 
                 if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
@@ -1199,7 +1195,7 @@ emerald_install() {
     fi
 
     for i in $PKGNAME; do
-        if [ ! "$(getportpath "$i")" ]; then
+        if ! getportpath "$i" >/dev/null 2>&1; then
             msg_portnotfound "$i"
         elif emerald_isinstalled "$i"; then
             msg_portalreadyinstalled "$i"
@@ -2062,7 +2058,7 @@ emerald_upgrade() {
             else
                 continue
             fi
-        elif [ ! "$(getportpath "$pkg")" ]; then
+        elif ! getportpath "$pkg" >/dev/null 2>&1; then
             printf "%s\n" "Package '$pkg' not exist."
 
             if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
