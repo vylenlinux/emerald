@@ -186,10 +186,7 @@ name=${noextname%-*}
 
 # Get package information if installed
 if isinstalled "$name"; then
-    read -r iversion irelease <<EOF
-$(awk 'NR==1 {print $1, $2}' "$ROOT_DIR/$PKGDB_DIR/$name")
-EOF
-
+    read -r iversion irelease < "$ROOT_DIR/$PKGDB_DIR/$name" # read first line
     ALREADYINSTALLED=yes
 fi
 
