@@ -1243,9 +1243,9 @@ emerald_install() {
                     hook "pre" "install"
 
                     if pkgbuild -i $OPTS; then
-                        if [ "$(printf "%s\n" "$IPKG" | tr ' ' '\n' | grep -x "$int")" ]; then
-                            world_add "$int"
-                        fi
+                        case " $IPKG " in
+                            *" $int "*) world_add "$int" ;;
+                        esac
 
                         hook "post" "install"
                         done_pkg="$done_pkg $int"
@@ -1509,7 +1509,9 @@ emerald_purge() {
             deplist "$purge"
 
             for ii in $DEP; do
-                printf "%s\n" "$orphan" | tr ' ' '\n' | grep -qx "$ii" && pkg="$pkg $ii"
+                case " $orphan " in
+                    *" $ii "*) pkg="$pkg $ii" ;;
+                esac
             done
 
             [ "$pkg" ] || printf "%s\n" "Cant purge '$purge', it required by other package(s)..."
@@ -1761,7 +1763,11 @@ emerald_sysup() {
     EXPKG=${EXOPT#*=}
 
     for i in $ii; do
-        printf "%s\n" "$EXPKG" | tr ',' '\n' | grep -x "$i" >/dev/null || PKG="$PKG $i"
+        # Wrap list and item with commas so first/last entries are always surrounded by delimiters.
+        case ",$EXPKG," in
+            *",$i,"*) ;;
+            *) PKG="$PKG $i" ;;
+        esac
     done
 
     [ "$PKG" ] || {
@@ -1769,13 +1775,15 @@ emerald_sysup() {
         return 0
     }
 
-    [ "$(printf "%s\n" "$PKG" | grep -w emerald)" ] && {
-        printf "\n"
-        msgwarn "Please upgrade 'emerald' first."
+    case " $PKG " in
+        *" emerald "*)
+            printf "\n"
+            msgwarn "Please upgrade 'emerald' first."
 
-        msg "Run 'emerald upgrade emerald' as root."
-        return 1
-    }
+            msg "Run 'emerald upgrade emerald' as root."
+            return 1
+        ;;
+    esac
 
     UPGPKG=0
     NEWPKG=0
@@ -1788,17 +1796,23 @@ emerald_sysup() {
         printf "\n"
 
         for d in $DEP; do
-            if [ "$(printf "%s\n" "$PKG" | tr ' ' '\n' | grep -x "$d")" = "$d" ]; then
-                installmsg="$installmsg upgrade#$d#$(get_version "$d")#$(get_iversion "$d")"
-                WILLINSTALL="$WILLINSTALL $d"
+            case " $PKG " in
+                *" $d "*)
+                    installmsg="$installmsg upgrade#$d#$(get_version "$d")#$(get_iversion "$d")"
 
-                UPGPKG=$(( UPGPKG + 1 ))
-            elif ! emerald_isinstalled "$d" && [ "$(getportpath "$d")" ]; then
-                installmsg="$installmsg install#$d#$(get_version "$d")#$(get_iversion "$d")"
-                WILLINSTALL="$WILLINSTALL $d"
+                    WILLINSTALL="$WILLINSTALL $d"
+                    UPGPKG=$(( UPGPKG + 1 ))
+                ;;
 
-                NEWPKG=$(( NEWPKG + 1 ))
-            fi
+                *)
+                    if ! emerald_isinstalled "$d" && getportpath "$d" >/dev/null 2>&1; then
+                        installmsg="$installmsg install#$d#$(get_version "$d")#$(get_iversion "$d")"
+
+                        WILLINSTALL="$WILLINSTALL $d"
+                        NEWPKG=$(( NEWPKG + 1 ))
+                    fi
+                ;;
+            esac
         done
     else
         printf "\n"
@@ -2089,17 +2103,23 @@ emerald_upgrade() {
         printf "\n"
 
         for d in $DEP; do
-            if [ "$(printf "%s\n" "$upkg" | tr ' ' '\n' | grep -x "$d")" = "$d" ]; then
-                installmsg="$installmsg upgrade#$d#$(get_version "$d")#$(get_iversion "$d")"
+            case " $upkg " in
+                *" $d "*)
+                    installmsg="$installmsg upgrade#$d#$(get_version "$d")#$(get_iversion "$d")"
 
-                WILLINSTALL="$WILLINSTALL $d"
-                UPGPKG=$(( UPGPKG + 1 ))
-            elif ! emerald_isinstalled "$d" && [ "$(getportpath "$d")" ]; then
-                installmsg="$installmsg install#$d#$(get_version "$d")#$(get_iversion "$d")"
+                    WILLINSTALL="$WILLINSTALL $d"
+                    UPGPKG=$(( UPGPKG + 1 ))
+                ;;
 
-                WILLINSTALL="$WILLINSTALL $d"
-                NEWPKG=$(( NEWPKG + 1 ))
-            fi
+                *)
+                    if ! emerald_isinstalled "$d" && getportpath "$d" >/dev/null 2>&1; then
+                        installmsg="$installmsg install#$d#$(get_version "$d")#$(get_iversion "$d")"
+
+                        WILLINSTALL="$WILLINSTALL $d"
+                        NEWPKG=$(( NEWPKG + 1 ))
+                    fi
+                ;;
+            esac
         done
     else
         printf "\n"
