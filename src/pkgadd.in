@@ -228,9 +228,9 @@ printf "%s: %s-%s-%s...\n" "$opr" "$name" "$version" "$release"
 # Check for file conflict
 if [ ! "$IGNORE_CONFLICT" ]; then
     grep -v '/$' "$TMP_PKGADD" | awk '{print $6}' | while read -r line; do
-        if [ "$line" = "${line%.*}.epkgnew" ]; then
-            line=${line%.*}
-        fi
+        case "$line" in
+            *.epkgnew) line="${line%.epkgnew}" ;;
+        esac
 
         if [ -e "$ROOT_DIR/$line" ] || [ -L "$ROOT_DIR/$line" ]; then
             if [ "$UPGRADE_PKG" ] || [ "$REINSTALL_PKG" ]; then
@@ -260,21 +260,22 @@ fi
 rm -f "$TMP_PKGINSTALL"
 
 # Extract package into ROOT_DIR
-# Replaced 'cp --reflink=auto' (GNU extension) with 'cp -f' (POSIX compatible)
 tar -xvhpf "$PKGNAME" -C "$ROOT_DIR"/ | while read -r line; do
-    if [ "$line" = "${line%.*}.epkgnew" ]; then
-        line=${line%.*}
+    case "$line" in
+        *.epkgnew)
+            line="${line%.epkgnew}"
 
-        if [ "$UPGRADE_PKG" ] || [ "$REINSTALL_PKG" ]; then
-            if [ ! -e "$ROOT_DIR/$line" ] || [ "$NO_BACKUP" = yes ]; then
+            if [ "$UPGRADE_PKG" ] || [ "$REINSTALL_PKG" ]; then
+                if [ ! -e "$ROOT_DIR/$line" ] || [ "$NO_BACKUP" = yes ]; then
+                    cp -f "$ROOT_DIR/$line".epkgnew "$ROOT_DIR/$line"
+                    rm -f "$ROOT_DIR/"*.epkgnew
+                fi
+            else
                 cp -f "$ROOT_DIR/$line".epkgnew "$ROOT_DIR/$line"
                 rm -f "$ROOT_DIR/"*.epkgnew
             fi
-        else
-            cp -f "$ROOT_DIR/$line".epkgnew "$ROOT_DIR/$line"
-            rm -f "$ROOT_DIR/"*.epkgnew
-        fi
-    fi
+        ;;
+    esac
 
     [ "$VERBOSE_INSTALL" ] && printf "extracted '%s'\n" "$line"
     printf '%s\n' "$line" >> "$TMP_PKGINSTALL"
