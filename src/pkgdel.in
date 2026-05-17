@@ -143,9 +143,7 @@ if ! isinstalled "$RMNAME"; then
 fi
 
 name=$RMNAME
-read -r version release <<EOF
-$(awk 'NR==1 {print $1, $2}' "$ROOT_DIR/$PKGDB_DIR/$name")
-EOF
+read -r version release < "$ROOT_DIR/$PKGDB_DIR/$name" # read first line
 
 if [ -z "$version" ] && [ -z "$release" ]; then
     msgerr "Package '$RMNAME' is not installed but exists in database."
