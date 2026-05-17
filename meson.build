@@ -14,9 +14,15 @@ conf_data.set('STATE_DIR', get_option('state_dir'))
 subdir('data')
 subdir('src')
 
-install_emptydir(SYSCONFDIR / 'revdep.d', install_mode: 'rwxr-xr-x')
-install_emptydir(join_paths(get_option('cache_dir'), 'packages'), install_mode: 'rwxrwxrwx')
-install_emptydir(join_paths(get_option('cache_dir'), 'sources'), install_mode: 'rwxrwxrwx')
-install_emptydir(join_paths(get_option('cache_dir'), 'work'), install_mode: 'rwxrwxrwx')
-install_emptydir(join_paths(get_option('state_dir'), 'cbuild'), install_mode: 'rwxrwxrwx')
-install_emptydir(get_option('ports_dir'), install_mode: 'rwxr-xr-x')
+empty_dirs = [
+    [join_paths(SYSCONFDIR, 'revdep.d'), 'rwxr-xr-x'],
+    [join_paths(get_option('cache_dir'), 'packages'), 'rwxrwxrwx'],
+    [join_paths(get_option('cache_dir'), 'sources'), 'rwxrwxrwx'],
+    [join_paths(get_option('cache_dir'), 'work'), 'rwxrwxrwx'],
+    [join_paths(get_option('state_dir'), 'cbuild'), 'rwxrwxrwx'],
+    [get_option('ports_dir'), 'rwxr-xr-x']
+]
+
+foreach empty_dir: empty_dirs
+    install_emptydir(empty_dir[0], install_mode: empty_dir[1])
+endforeach
