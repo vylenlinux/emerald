@@ -284,7 +284,11 @@ done
 # Remove old files from old package that do not exist in new package
 if [ "$UPGRADE_PKG" ] || [ "$REINSTALL_PKG" ]; then
     # awk replacement for tail + tac (no POSIX)
-    awk 'NR>1 { lines[n++] = $0 } END { while (n--) print lines[n] }' "$ROOT_DIR/$PKGDB_DIR/$name" | while read -r line; do
+    awk 'NR>1 {
+        lines[n++] = $0;
+    } END {
+        while (n--) print lines[n];
+    }' "$ROOT_DIR/$PKGDB_DIR/$name" | while read -r line; do
         case $line in
             */[) ;;
 
