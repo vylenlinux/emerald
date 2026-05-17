@@ -1783,7 +1783,7 @@ emerald_sysup() {
 
     UPGPKG=0
     NEWPKG=0
-    installmsg="ACTION#PORTNAME#VERSION#OLDVERSION"
+    installmsg="ACTION#PORTNAME#VERSION#INSTALLED"
 
     if [ "$NODEP" != 1 ]; then
         printf "%s\n" "Resolving dependencies..."
@@ -2085,7 +2085,7 @@ emerald_upgrade() {
 
     UPGPKG=0
     NEWPKG=0
-    installmsg="ACTION#PORTNAME#VERSION#OLDVERSION"
+    installmsg="ACTION#PORTNAME#VERSION#INSTALLED"
 
     if [ "$NODEP" != 1 ]; then
         printf "%s\n" "Resolving dependencies..."
