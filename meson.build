@@ -14,32 +14,9 @@ conf_data.set('STATE_DIR', get_option('state_dir'))
 subdir('data')
 subdir('src')
 
-install_emptydir(
-    SYSCONFDIR / 'revdep.d',
-    install_mode: 'rwxr-xr-x'
-)
-
-install_emptydir(
-    join_paths(get_option('cache_dir'), 'packages'),
-    install_mode: 'rwxrwxrwx'
-)
-
-install_emptydir(
-    join_paths(get_option('cache_dir'), 'sources'),
-    install_mode: 'rwxrwxrwx'
-)
-
-install_emptydir(
-    join_paths(get_option('cache_dir'), 'work'),
-    install_mode: 'rwxrwxrwx'
-)
-
-install_emptydir(
-    join_paths(get_option('state_dir'), 'cbuild'),
-    install_mode: 'rwxrwxrwx'
-)
-
-install_emptydir(
-    get_option('ports_dir'),
-    install_mode: 'rwxr-xr-x'
-)
+install_emptydir(SYSCONFDIR / 'revdep.d', install_mode: 'rwxr-xr-x')
+install_emptydir(join_paths(get_option('cache_dir'), 'packages'), install_mode: 'rwxrwxrwx')
+install_emptydir(join_paths(get_option('cache_dir'), 'sources'), install_mode: 'rwxrwxrwx')
+install_emptydir(join_paths(get_option('cache_dir'), 'work'), install_mode: 'rwxrwxrwx')
+install_emptydir(join_paths(get_option('state_dir'), 'cbuild'), install_mode: 'rwxrwxrwx')
+install_emptydir(get_option('ports_dir'), install_mode: 'rwxr-xr-x')
