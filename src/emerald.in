@@ -2222,9 +2222,7 @@ world_add() {
 
 world_del() {
     grep -qx "$1" "$WORLD_FILE" || return
-
-    sed "/^$1$/d" -i "$WORLD_FILE"
-    sed '/^$/d' -i "$WORLD_FILE" # delete empty lines
+    sed "/^$1$/d;/^$/d" -i "$WORLD_FILE"
 }
 
 emerald_world() {
