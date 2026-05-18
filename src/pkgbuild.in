@@ -206,7 +206,9 @@ pkg_checksum() {
             msg "Checking checksums..."
             generatechecksum > "$TMPCHECKSUM"
 
-            diff -U 0 .checksums "$TMPCHECKSUM" | sed '/---/d;/+++/d;/@@/d' | sed 's/^+/ new    : /' | sed 's/^-/ missing: /' > "$DIFCHECKSUM"
+            diff -U 0 .checksums "$TMPCHECKSUM" | sed -e '/---/d;/+++/d;/@@/d' \
+                -e 's/^+/ new    : /' \
+                -e 's/^-/ missing: /' > "$DIFCHECKSUM"
 
             [ -s "$DIFCHECKSUM" ] && {
                 cat "$DIFCHECKSUM"
