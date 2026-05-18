@@ -167,8 +167,6 @@ get_filepath() {
 }
 
 pkg_gen_checksums() {
-    err=0
-
     for i in $(get_filepath); do
         if [ -d "$i/.git" ]; then
             continue
@@ -176,11 +174,9 @@ pkg_gen_checksums() {
 
         [ -f "$i" ] || {
             msgerr "File missing: $i"
-            err=1
+            abort 1
         }
     done
-
-    [ "$err" = 1 ] && abort 1
 
     generate_checksum > .checksums
     msg ".checksums updated"
