@@ -166,7 +166,7 @@ get_filepath() {
     done
 }
 
-pkg_genchecksums() {
+pkg_gen_checksums() {
     err=0
 
     for i in $(get_filepath); do
@@ -182,11 +182,11 @@ pkg_genchecksums() {
 
     [ "$err" = 1 ] && abort 1
 
-    generatechecksum > .checksums
+    generate_checksum > .checksums
     msg ".checksums updated"
 }
 
-generatechecksum() {
+generate_checksum() {
     for s in $(get_filepath); do
         [ -d "$s/.git" ] && continue
         [ -f "$s" ] || continue
@@ -200,11 +200,11 @@ pkg_checksum() {
     DIFCHECKSUM="$WORK_DIR/checksumsdiff.$$"
 
     if [ ! -f .checksums ]; then
-        pkg_genchecksums
+        pkg_gen_checksums
     else
         if [ "$IGNORE_CHECKSUM" != "yes" ] && [ "$IGNORE_CHECKSUM" != 1 ]; then
             msg "Checking checksums..."
-            generatechecksum > "$TMPCHECKSUM"
+            generate_checksum > "$TMPCHECKSUM"
 
             diff -U 0 .checksums "$TMPCHECKSUM" | sed -e '/---/d;/+++/d;/@@/d' \
                 -e 's/^+/ new    : /' \
@@ -561,7 +561,7 @@ pkg_build() {
     cd - >/dev/null || return 1
 }
 
-pkglint() {
+pkg_lint() {
     linterror=0
 
     # check empty PKG
@@ -670,7 +670,7 @@ compressinfomanpages() {
 
 pkg_package() {
     # lint $PKG before packaging
-    pkglint
+    pkg_lint
 
     cd "$PKG" >/dev/null || abort 1
         # remove possible conflict junks
@@ -740,11 +740,11 @@ pkg_package() {
     cd - >/dev/null || return 1
 
     if [ ! -f .pkgfiles ] || [ "$(head -n1 .pkgfiles)" != "$name-$version-$release" ]; then
-        pkg_genpkgfiles "$_tarlist"
+        pkg_gen_pkgfiles "$_tarlist"
     fi
 }
 
-pkg_genpkgfiles() {
+pkg_gen_pkgfiles() {
     [ -f "$PACKAGE_DIR/$PKGNAME" ] || {
         msgerr "Package not found: $PKGNAME"
         exit 1
@@ -854,7 +854,7 @@ check_buildscript() {
     }
 }
 
-checkdir() {
+check_dir() {
     for DIR in "$@"; do
         if [ ! -d "$DIR" ]; then
             msgerr "Directory '$DIR' does not exist."
@@ -1054,7 +1054,7 @@ main() {
     # Ensure cbuild directory exists; non-fatal if it cannot be created
     [ -d "$CBUILD_DIR" ] || mkdir -p "$CBUILD_DIR" 2>/dev/null
 
-    checkdir "$SOURCE_DIR" "$PACKAGE_DIR" "$WORK_DIR"
+    check_dir "$SOURCE_DIR" "$PACKAGE_DIR" "$WORK_DIR"
 
     # show usage
     [ "$SHOWHELP" ] && {
@@ -1082,7 +1082,7 @@ main() {
 
     # generate .pkgfiles
     [ "$GENPKGFILES" ] && {
-        pkg_genpkgfiles
+        pkg_gen_pkgfiles
         exit 0
     }
 
@@ -1100,7 +1100,7 @@ main() {
 
     # update checksum
     [ "$UPDATE_CHECKSUM" ] && {
-        pkg_genchecksums
+        pkg_gen_checksums
         exit 0
     }
 

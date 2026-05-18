@@ -90,12 +90,8 @@ ret() {
     exit "$1"
 }
 
-isinstalled() {
-    if [ -s "$ROOT_DIR/$PKGDB_DIR/$1" ]; then
-        return 0
-    else
-        return 1
-    fi
+is_installed() {
+    [ -s "$ROOT_DIR/$PKGDB_DIR/$1" ]
 }
 
 command -v pkgadd >/dev/null 2>&1 || {
@@ -137,7 +133,7 @@ touch "$ROOT_DIR/$LOCK_FILE" 2>/dev/null || {
     exit 1
 }
 
-if ! isinstalled "$RMNAME"; then
+if ! is_installed "$RMNAME"; then
     msgerr "Package '$RMNAME' not installed."
     ret 1
 fi

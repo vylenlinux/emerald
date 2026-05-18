@@ -24,7 +24,7 @@ msg() {
 }
 
 # Create directories if they don't exist
-mkd() {
+make_dir() {
     [ -d "$1" ] || mkdir -pv "$1" || die "Failed to create directory: $1"
 }
 
@@ -107,7 +107,7 @@ sync_repo() {
     msg "Fetching $2"
 
     # Check and create repository directory
-    mkd "$repodir" || die "Failed to create directory: $repodir"
+    make_dir "$repodir" || die "Failed to create directory: $repodir"
     cd "$repodir" || die "Failed to change to directory: $repodir"
 
     # Check if git directory exists
@@ -148,10 +148,10 @@ parse_opts "$@"
 
 # Define working directories
 baredir="@CACHE_DIR@/repos"
-mkd "$baredir" || die "Failed to create cache directory"
+make_dir "$baredir" || die "Failed to create cache directory"
 
 worktree="@PORTS_DIR@"
-mkd "$worktree" || die "Failed to create worktree directory"
+make_dir "$worktree" || die "Failed to create worktree directory"
 
 # Check that configuration file exists
 repo_file="@SYSCONFDIR@/emerald.repo"

@@ -13,7 +13,7 @@ interrupted() {
     exit 1
 }
 
-cleanup() {
+clean_up() {
     rm -f "$FILE_LIST"
 }
 
@@ -190,7 +190,7 @@ rev_exclude() {
     EXCLUDED_LIBS=$(printf '%s\n' $EXCLUDE_LIBS | sort -u)
 }
 
-check_pythonmodules() {
+check_python_modules() {
     command -v python3 >/dev/null 2>&1 || return
     pylibpath=$(python3 -c "import sys; print(':'.join(x for x in sys.path if x))" | tr ':' '\n' | sort | head -n1)
 
@@ -202,7 +202,7 @@ check_pythonmodules() {
     done
 }
 
-check_perlmodules() {
+check_perl_modules() {
     command -v perl >/dev/null 2>&1 || return
 
     perlpath=$(perl -MConfig -e 'print $Config{sitearch}')
@@ -216,7 +216,7 @@ check_perlmodules() {
     done
 }
 
-check_rubygem() {
+check_ruby_gem() {
     command -v gem >/dev/null 2>&1 || return
     gempath=$(gem env gemdir)
 
@@ -414,9 +414,9 @@ if [ -z "$PKG" ]; then
     printf '\n'
     printf 'Checking for broken packages...\n'
 
-    check_pythonmodules
-    check_perlmodules
-    check_rubygem
+    check_python_modules
+    check_perl_modules
+    check_ruby_gem
 fi
 
 # Consolidate broken packages

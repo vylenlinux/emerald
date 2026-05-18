@@ -5,7 +5,7 @@
 # POSIX-compliant 
 #
 
-parseopt() {
+parse_opts() {
     while [ "$1" ]; do
         case "$1" in
             -n) dryrun=1 ;;
@@ -55,7 +55,7 @@ remove=""
 PKGDB_DIR="@STATE_DIR@/db"
 
 # Parse command line options
-parseopt "$@"
+parse_opts "$@"
 
 # Find base package 
 printf "Searching for base package...\n"

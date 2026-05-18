@@ -12,7 +12,9 @@ export LC_ALL=C
 get_realpath() {
     # If the argument is a directory, just use cd -P and pwd -P
     [ -d "$1" ] && {
-        CDPATH= cd -P -- "$1" && pwd -P;
+        CDPATH=
+        cd -P -- "$1" && pwd -P;
+
         return
     }
 
@@ -21,7 +23,10 @@ get_realpath() {
     base=$(basename -- "$1")
 
     # Use a subshell to avoid changing the current directory permanently
-    (CDPATH= cd -P -- "$dir" && printf '%s/%s\n' "$(pwd -P)" "$base")
+    (
+        CDPATH=
+        cd -P -- "$dir" && printf '%s/%s\n' "$(pwd -P)" "$base"
+    )
 }
 
 interrupted() {
@@ -116,12 +121,8 @@ ret() {
     exit "$1"
 }
 
-isinstalled() {
-    if [ -s "$ROOT_DIR/$PKGDB_DIR/$1" ]; then
-        return 0
-    else
-        return 1
-    fi
+is_installed() {
+    [ -s "$ROOT_DIR/$PKGDB_DIR/$1" ]
 }
 
 # Process options
@@ -185,7 +186,7 @@ version=${noextname##*-}
 name=${noextname%-*}
 
 # Get package information if installed
-if isinstalled "$name"; then
+if is_installed "$name"; then
     read -r iversion irelease < "$ROOT_DIR/$PKGDB_DIR/$name" # read first line
     ALREADYINSTALLED=yes
 fi

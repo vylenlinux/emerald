@@ -71,7 +71,7 @@ fi
 # Unmount all filesystems in reverse order
 # This function is called automatically on script exit via trap
 # Note: Uses reverse order to avoid "device busy" errors
-umountall() {
+umount_all() {
     # Iterate through mount points in reverse mount order
     for t in etc/resolv.conf tmp sys/firmware/efi/efivars sys run proc dev/shm dev/pts dev; do
         # Check if mountpoint exists and is mounted before attempting unmount
@@ -124,7 +124,7 @@ fi
 #   2  = INT   - interrupt (Ctrl+C)
 #   3  = QUIT  - quit signal (Ctrl+\)
 #   15 = TERM  - termination signal (kill default)
-trap umountall 0 1 2 3 15
+trap umount_all 0 1 2 3 15
 msginfo "Mounting filesystems for chroot environment..."
 
 # Mount all required filesystems using a loop with break pattern
@@ -218,7 +218,7 @@ chroot "$TARGET" /usr/bin/env -i HOME=/root TERM="$TERM" PS1='\u:\w\$ ' PATH=/bi
 # Must be done before any other command to preserve $?
 retval=$?
 
-# Trap will automatically call umountall on EXIT
+# Trap will automatically call umount_all on EXIT
 # No need to call it manually here
 msginfo "Exited chroot with status: $retval"
 
