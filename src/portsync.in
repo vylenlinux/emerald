@@ -14,8 +14,8 @@ die() {
 [ "$(id -u)" = 0 ] || die "This operation needs root access!"
 
 # Vars
-PRN=0
-RST=0
+PRUNE=0
+RESET=0
 HELP=0
 
 # Print informational messages
@@ -52,8 +52,8 @@ EOF
 parse_opts() {
     while [ "$1" ]; do
         case $1 in
-            -p | --prune) PRN=1 ;;
-            -r | --reset) RST=1 ;;
+            -p | --prune) PRUNE=1 ;;
+            -r | --reset) RESET=1 ;;
             -h | --help) HELP=1 ;;
             *) die "Invalid options: $1" ;;
         esac
@@ -132,13 +132,11 @@ sync_repo() {
     bare_git pull --quiet "$repourl" "$repobranch" || die "Failed to pull updates from $repourl (branch: $repobranch).\nRepository may be out of sync. Try running: 'portsync -r'"
 
     # Optional prune
-    [ "$PRN" -eq 1 ] && prune_local
+    [ "$PRUNE" -eq 1 ] && prune_local
     msg "${portdir} ports synced in $repodir"
 
     return 0
 }
-
-# ====== MAIN SCRIPT ======
 
 # Parse command line options
 parse_opts "$@"
@@ -158,7 +156,7 @@ repo_file="@SYSCONFDIR@/emerald.repo"
 [ -e "$repo_file" ] || die "Missing repo file: $repo_file"
 
 # Reset repositories if requested
-[ "$RST" -eq 1 ] && reset_repos
+[ "$RESET" -eq 1 ] && reset_repos
 
 # Process each repository from configuration file
 printf "%s\n" "Syncing PORTS..."
