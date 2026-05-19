@@ -779,8 +779,6 @@ emerald_foreign() {
             iversion=$(get_iversion "$pkg")
             printf "%s %s\n" "$pkg" "$iversion"
         fi
-
-        unset pkg iversion
     done
 
     return 0
