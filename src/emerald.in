@@ -774,13 +774,18 @@ emerald_files() {
 }
 
 emerald_foreign() {
+    foreign_found=0
+
     for pkg in $(all_installed); do
         if ! get_port_path "$pkg" >/dev/null; then
             iversion=$(get_iversion "$pkg")
             printf "%s %s\n" "$pkg" "$iversion"
+
+            foreign_found=1
         fi
     done
 
+    [ "$foreign_found" -eq 0 ] && msg "No foreign packages found."
     return 0
 }
 
