@@ -827,7 +827,7 @@ check_buildscript() {
         ;;
     esac
 
-    [ "$(command -v build)" ] || {
+    command -v build >/dev/null 2>&1 || {
         msgerr "'build' function not exist!";
         exit 1
     }
