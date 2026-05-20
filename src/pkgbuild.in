@@ -198,24 +198,28 @@ pkg_checksum() {
     if [ ! -f .checksums ]; then
         pkg_gen_checksums
     else
-        if [ "$IGNORE_CHECKSUM" != "yes" ] && [ "$IGNORE_CHECKSUM" != 1 ]; then
-            msg "Checking checksums..."
-            generate_checksum > "$TMPCHECKSUM"
+        case "$IGNORE_CHECKSUM" in
+            1 | yes) ;;
 
-            diff -U 0 .checksums "$TMPCHECKSUM" | sed -e '/---/d;/+++/d;/@@/d' \
-                -e 's/^+/ new    : /' \
-                -e 's/^-/ missing: /' > "$DIFCHECKSUM"
+            *)
+                msg "Checking checksums..."
+                generate_checksum > "$TMPCHECKSUM"
 
-            [ -s "$DIFCHECKSUM" ] && {
-                cat "$DIFCHECKSUM"
-                msg "Checksum failed."
+                diff -U 0 .checksums "$TMPCHECKSUM" | sed -e '/---/d;/+++/d;/@@/d' \
+                    -e 's/^+/ new    : /' \
+                    -e 's/^-/ missing: /' > "$DIFCHECKSUM"
 
-                mismatch=1
-            }
+                [ -s "$DIFCHECKSUM" ] && {
+                    cat "$DIFCHECKSUM"
+                    msg "Checksum failed."
 
-            rm -f "$TMPCHECKSUM" "$DIFCHECKSUM"
-            [ "$mismatch" = 1 ] && abort 1
-        fi
+                    mismatch=1
+                }
+
+                rm -f "$TMPCHECKSUM" "$DIFCHECKSUM"
+                [ "$mismatch" = 1 ] && abort 1
+            ;;
+        esac
     fi
 }
 
