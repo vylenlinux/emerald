@@ -90,10 +90,6 @@ ret() {
     exit "$1"
 }
 
-is_installed() {
-    [ -s "$ROOT_DIR/$PKGDB_DIR/$1" ]
-}
-
 command -v pkgadd >/dev/null 2>&1 || {
     msgerr "'pkgadd' not found in \$PATH!"
     exit 1
@@ -133,7 +129,7 @@ touch "$ROOT_DIR/$LOCK_FILE" 2>/dev/null || {
     exit 1
 }
 
-if ! is_installed "$RMNAME"; then
+if ! [ -s "$ROOT_DIR/$PKGDB_DIR/$RMNAME" ]; then
     msgerr "Package '$RMNAME' not installed."
     ret 1
 fi
