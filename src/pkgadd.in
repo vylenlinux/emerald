@@ -121,10 +121,6 @@ ret() {
     exit "$1"
 }
 
-is_installed() {
-    [ -s "$ROOT_DIR/$PKGDB_DIR/$1" ]
-}
-
 # Process options
 parse_opts $(extract_opts "$@")
 
@@ -186,7 +182,7 @@ version=${noextname##*-}
 name=${noextname%-*}
 
 # Get package information if installed
-if is_installed "$name"; then
+if [ -s "$ROOT_DIR/$PKGDB_DIR/$name" ]; then
     read -r iversion irelease < "$ROOT_DIR/$PKGDB_DIR/$name" # read first line
     ALREADYINSTALLED=yes
 fi
