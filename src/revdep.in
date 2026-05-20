@@ -114,19 +114,12 @@ parse_opt() {
     done
 }
 
-rebuild() {	
+rebuild() {
+    # Preserve topological order from emerald deplist, keeping only broken packages.
     for allpkg in $(emerald deplist "$ALLPKG" | awk '{print $2}'); do
-        for pkg in $ALLPKG; do
-            if [ "$pkg" = "$allpkg" ]; then
-                if [ -z "$order" ]; then
-                    order="$allpkg"
-                else
-                    order="$order $allpkg"
-                fi
-
-                break
-            fi
-        done
+        case " $ALLPKG " in
+            *" $allpkg "*) order="${order:+$order} $allpkg" ;;
+        esac
     done
 
     if [ -n "$order" ]; then
@@ -184,10 +177,15 @@ rev_exclude() {
     done
 
     # excluded libraries
-    EXCLUDE_LIBS="$(grep -v '^#' @SYSCONFDIR@/revdep.conf 2>/dev/null | grep -v '^/' | sort -u | grep '.*.so.*')"
-    EXCLUDE_LIBS="$EXCLUDE_LIBS $(grep -v '^#' @SYSCONFDIR@/revdep.d/*.conf 2>/dev/null | cut -d : -f2 | grep -v '^/' | sort -u | grep '.*.so.*')"
+    EXCLUDE_LIBS="$(grep -v '^#' @SYSCONFDIR@/revdep.conf 2>/dev/null | grep -v '^/' | grep '.*.so.*')"
+    EXCLUDE_LIBS="$EXCLUDE_LIBS $(grep -v '^#' @SYSCONFDIR@/revdep.d/*.conf 2>/dev/null | cut -d : -f2 | grep -v '^/' | grep '.*.so.*')"
 
-    EXCLUDED_LIBS=$(printf '%s\n' $EXCLUDE_LIBS | sort -u)
+    for _lib in $EXCLUDE_LIBS; do
+        case " $EXCLUDED_LIBS " in
+            *" $_lib "*) ;;
+            *) EXCLUDED_LIBS="${EXCLUDED_LIBS:+$EXCLUDED_LIBS} $_lib" ;;
+        esac
+    done
 }
 
 check_python_modules() {
@@ -361,46 +359,50 @@ while read -r line; do
         *application/x-sharedlib* | *application/x-executable* | *application/x-pie-executable*)
             ldd_out=$(ldd "$line" 2>/dev/null)
 
-            if printf '%s\n' "$ldd_out" | grep -q "not found"; then
-                LIB_NAME=$(printf '%s\n' "$ldd_out" | grep "not found" | sort -u | awk '{print $1}')
+            case "$ldd_out" in
+                *"not found"*)
+                    LIB_NAME=$(printf '%s\n' "$ldd_out" | awk '/not found/ && !seen[$1]++{print $1}')
 
-                # Filter excluded libraries
-                for l in $LIB_NAME; do
-                    if ! printf '%s\n' $EXCLUDED_LIBS | grep -qw "$l"; then
-                        NEW_LIB_NAME="$NEW_LIB_NAME $l"
-                    fi
-                done
+                    # filter excluded libraries
+                    for l in $LIB_NAME; do
+                        case " $EXCLUDED_LIBS " in
+                            *" $l "*) ;;
+                            *) NEW_LIB_NAME="$NEW_LIB_NAME $l" ;;
+                        esac
+                    done
 
-                [ "$NEW_LIB_NAME" ] || continue
-                LIB_NAME=$NEW_LIB_NAME
+                    [ "$NEW_LIB_NAME" ] || continue
+                    LIB_NAME=$NEW_LIB_NAME
 
-                # Find owning package
-                PKG_NAME=${line#?}
-                PKG_NAME=$(grep -Rx "$PKG_NAME" "$PKGDB_DIR"/* | awk -F : '{print $1}')
+                    PKG_NAME=${line#?}
+                    PKG_NAME=$(grep -Fxl "$PKG_NAME" "$PKGDB_DIR"/*)
 
-                [ "$PKG_NAME" ] || continue
-                PKG_NAME=${PKG_NAME##*/}
+                    [ "$PKG_NAME" ] || continue
+                    PKG_NAME=${PKG_NAME##*/}
 
-                # Check if package is excluded
-                printf '%s\n' $expkg | grep -qx "$PKG_NAME" && continue
+                    case " $expkg " in
+                        *" $PKG_NAME "*) continue ;;
+                    esac
 
-                # Get required libraries
-                REQ_LIB=$(objdump -p "$line" 2>/dev/null | grep NEEDED | awk '{print $2}' | tr '\n' ' ')
+                    # Get required libraries
+                    REQ_LIB=$(objdump -p "$line" 2>/dev/null | awk '/NEEDED/{printf "%s ", $2}')
 
-                for i in $LIB_NAME; do
-                    [ "$PRINTALL" = 1 ] && printf ' %s -> %s (requires %s)\n' "$PKG_NAME" "$line" "$i"
+                    for i in $LIB_NAME; do
+                        [ "$PRINTALL" = 1 ] && printf ' %s -> %s (requires %s)\n' "$PKG_NAME" "$line" "$i"
 
-                    if printf '%s\n' $REQ_LIB | grep -qx "$i"; then
-                        [ "$PRINTALL" = 1 ] || printf ' %s -> %s (requires %s)\n' "$PKG_NAME" "$line" "$i"
+                        case " $REQ_LIB" in
+                            *" $i "*)
+                                [ "$PRINTALL" = 1 ] || printf ' %s -> %s (requires %s)\n' "$PKG_NAME" "$line" "$i"
 
-                        if printf '%s\n' "$ALLPKG" | grep -qx "$PKG_NAME"; then
-                            continue
-                        else
-                            ALLPKG="$ALLPKG $PKG_NAME"
-                        fi
-                    fi
-                done
-            fi
+                                case " $ALLPKG " in
+                                    *" $PKG_NAME "*) ;;
+                                    *) ALLPKG="$ALLPKG $PKG_NAME" ;;
+                                esac
+                            ;;
+                        esac
+                    done
+                ;;
+            esac
         ;;
     esac
 
@@ -422,11 +424,10 @@ fi
 # Consolidate broken packages
 if [ "$brokenpkg" ]; then
     for i in $brokenpkg; do
-        if printf '%s\n' "$ALLPKG" | grep -qx "$i"; then
-            continue
-        else
-            ALLPKG="$ALLPKG $i"
-        fi
+        case " $ALLPKG " in
+            *" $i "*) ;;
+            *) ALLPKG="$ALLPKG $i" ;;
+        esac
     done
 fi
 
