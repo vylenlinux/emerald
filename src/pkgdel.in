@@ -34,58 +34,7 @@ Options:
 EOF
 }
 
-extract_opts() {
-    while [ $# -gt 0 ]; do
-        arg=$1
-
-        case "$arg" in
-            --*) opts="$opts $arg" ;;
-
-            -?*)
-                rest=${arg#-}
-
-                while [ -n "$rest" ]; do
-                    chr="${rest%"${rest#?}"}"
-                    opts="$opts -$chr"
-
-                    rest=${rest#?}
-                done
-            ;;
-
-            *) opts="$opts $arg" ;;
-        esac
-
-        shift
-    done
-
-    printf '%s\n' "${opts# }"
-}
-
-parse_opts() {
-    if [ -z "$1" ]; then
-        SHOWHELP=yes
-    else
-        while [ -n "$1" ]; do
-            case $1 in
-                -h | --help) SHOWHELP="yes" ;;
-                -v | --verbose) VERBOSE_REMOVE="yes" ;;
-                --root=*) ROOT_DIR="${1#*=}" ;;
-
-                -*)
-                    msg "Invalid option: ($1)";
-                    exit 1
-                ;;
-
-                *) RMNAME=$1 ;;
-            esac
-
-            shift
-        done
-    fi
-}
-
 ret() {
-    # remove lock file on exit
     rm -f "$ROOT_DIR/$LOCK_FILE"
     exit "$1"
 }
@@ -95,20 +44,44 @@ command -v pkgadd >/dev/null 2>&1 || {
     exit 1
 }
 
-parse_opts $(extract_opts "$@")
+# Parse options directly; combined flags like -vh are not supported
+# (keeping it simple avoids a subshell and an extra pass over arguments)
+if [ -z "$1" ]; then
+    help
+    exit 0
+fi
+
+while [ -n "$1" ]; do
+    case $1 in
+        -h | --help)
+            help;
+            exit 0
+        ;;
+
+        -v | --verbose) VERBOSE_REMOVE=yes ;;
+        --root=*) ROOT_DIR="${1#*=}" ;;
+
+        -*)
+            msg "Invalid option: ($1)";
+            exit 1
+        ;;
+
+        *) RMNAME=$1 ;;
+    esac
+
+    shift
+done
+
+if [ -z "$RMNAME" ]; then
+    help
+    exit 0
+fi
 
 PKGDB_DIR="$(pkgadd --print-dbdir)"
-PKGDB_DIR="${PKGDB_DIR##/}"              # remove leading /
+PKGDB_DIR="${PKGDB_DIR##/}"
 
 LOCK_FILE="@STATE_DIR@/epkg.lock"
 
-# show help page
-[ -n "$SHOWHELP" ] || [ -z "$RMNAME" ] && {
-    help
-    exit 0
-}
-
-# check for root access
 [ "$(id -u)" = "0" ] || {
     printf "Removing package need root access!\n"
     help
@@ -116,7 +89,6 @@ LOCK_FILE="@STATE_DIR@/epkg.lock"
     exit 1
 }
 
-# check for lock file
 [ -f "$ROOT_DIR/$LOCK_FILE" ] && {
     msgerr "Cannot install/remove package simultaneously."
     msgerr "remove '$ROOT_DIR/$LOCK_FILE' if no install/remove package process running."
@@ -129,23 +101,22 @@ touch "$ROOT_DIR/$LOCK_FILE" 2>/dev/null || {
     exit 1
 }
 
-if ! [ -s "$ROOT_DIR/$PKGDB_DIR/$RMNAME" ]; then
+[ -s "$ROOT_DIR/$PKGDB_DIR/$RMNAME" ] || {
     msgerr "Package '$RMNAME' not installed."
     ret 1
-fi
+}
 
 name=$RMNAME
-read -r version release < "$ROOT_DIR/$PKGDB_DIR/$name" # read first line
+read -r version release < "$ROOT_DIR/$PKGDB_DIR/$name"
 
 if [ -z "$version" ] && [ -z "$release" ]; then
     msgerr "Package '$RMNAME' is not installed but exists in database."
     ret 1
 fi
 
-# Create a temporary file to store the merged package database,
-# excluding the one corresponding to the package we are deleting.
-# Checks without repeatedly reconstructing the entire DB in memory.
-tmpdb="/tmp/pkgdel.$$"
+# Build a merged DB from all packages except the one being removed.
+# Used later to detect directories still owned by other packages.
+tmpdb=$(mktemp)
 
 find "$ROOT_DIR/$PKGDB_DIR" -type f ! -name "$name" -exec cat {} + 2>/dev/null >"$tmpdb" || {
     msgerr "Failed to build temporary DB file."
@@ -154,13 +125,11 @@ find "$ROOT_DIR/$PKGDB_DIR" -type f ! -name "$name" -exec cat {} + 2>/dev/null >
     ret 1
 }
 
-# Iterate over the package's file list in reverse order.
-# Reverse order is required because directories must be removed 
-# after their contents have been deleted.
+# Split the package's file list (skipping the version/release header on line 1)
+# into plain files and directories using a single awk pass.
 _rm_files=$(mktemp)
 _rm_dirs=$(mktemp)
 
-# Single awk pass: classify package entries into files and directories
 awk -v rm_files="$_rm_files" -v rm_dirs="$_rm_dirs" 'NR == 1 {
     next;
 } {
@@ -171,13 +140,13 @@ awk -v rm_files="$_rm_files" -v rm_dirs="$_rm_dirs" 'NR == 1 {
     }
 }' "$ROOT_DIR/$PKGDB_DIR/$name"
 
-# Bulk-remove files in a single xargs call instead of one rm per file
+# Remove regular files in one xargs batch
 if [ -s "$_rm_files" ]; then
     [ "$VERBOSE_REMOVE" ] && sed "s|^|removing '${ROOT_DIR}/|;s|\$|'|" "$_rm_files"
     sed "s|^|${ROOT_DIR}/|" "$_rm_files" | xargs -r rm -f
 fi
 
-# Remove directories deepest-first; skip those still owned by another package
+# Remove directories deepest-first; skip any still referenced by another package
 if [ -s "$_rm_dirs" ]; then
     sort -r "$_rm_dirs" | while IFS= read -r d; do
         if ! grep -Fxq "$d" "$tmpdb"; then
@@ -187,15 +156,10 @@ if [ -s "$_rm_dirs" ]; then
     done
 fi
 
-rm -f "$_rm_files" "$_rm_dirs"
+# Remove files, dirs, tmpdb and the package entry from the database
+rm -f "$_rm_files" "$_rm_dirs" "$tmpdb" "$ROOT_DIR/$PKGDB_DIR/$name"
 
-# remove the temporary database file.
-rm -f "$tmpdb"
-
-# remove from database
-rm -f "$ROOT_DIR/$PKGDB_DIR/$name"
-
-# running ldconfig
+# Refresh the dynamic linker cache if available
 [ -x "$ROOT_DIR/sbin/ldconfig" ] && "$ROOT_DIR/sbin/ldconfig" -r "$ROOT_DIR/"
 
 ret 0
