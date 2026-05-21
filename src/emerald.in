@@ -211,7 +211,7 @@ get_depends() {
     fi
 
     [ -f "$deps_file" ] || return 0
-    deps=$(grep -Ev '^$' "$deps_file")
+    deps=$(grep -v '^$' "$deps_file")
 
     [ "$ALIAS_PORT" = "yes" ] && deps_alias "$deps" || printf "%s" "$deps"
 }
