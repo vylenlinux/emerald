@@ -2275,15 +2275,13 @@ for opt in "$@"; do
         --config-file=*) CONFIG_FILE="${opt#*=}" ;;
         --*) MAINOPTS="$MAINOPTS $opt" ;;
 
-        -*)
-            char=${#opt};
-            count=1
+        -[!-]?*)
+            _rest=${opt#-}
 
-            while [ "$count" != "$char" ]; do
-                count=$((count+1))
-                opt_char="$(printf '%s' "$opt" | cut -c "$count")"
-
-                MAINOPTS="$MAINOPTS -$opt_char"
+            while [ -n "$_rest" ]; do
+                _chr="${_rest%"${_rest#?}"}"
+                MAINOPTS="$MAINOPTS -$_chr"
+                _rest=${_rest#?}
             done
         ;;
 
