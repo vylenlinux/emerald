@@ -48,35 +48,24 @@ confirm() {
     esac
 }
 
-extract_opts() {
-    while [ $# -gt 0 ]; do
-        arg=$1
+parse_opts() {
+    while [ "$1" ]; do
+        case $1 in
+            -[!-]?*)
+                _rest=${1#-}
+                shift
 
-        case "$arg" in
-            --*) opts="$opts $arg" ;;
+                while [ -n "$_rest" ]; do
+                    _chr="${_rest%"${_rest#?}"}"
+                    set -- "-$_chr" "$@"
 
-            -?*)
-                rest=${arg#-}
-
-                while [ -n "$rest" ]; do
-                    chr="${rest%"${rest#?}"}"
-                    opts="$opts -$chr"
-
-                    rest=${rest#?}
+                    _rest=${_rest#?}
                 done
-            ;;
 
-            *) opts="$opts $arg" ;;
+                continue
+            ;;
         esac
 
-        shift
-    done
-
-    printf '%s\n' "${opts# }"
-}
-
-parse_opt() {
-    while [ "$1" ]; do
         case $1 in
             -a | --all) PRINTALL=1 ;;
             -r | --rebuild) REBUILD=1 ;;
@@ -237,7 +226,7 @@ command -v pkgadd >/dev/null 2>&1 || {
 PKGDB_DIR="$(pkgadd --print-dbdir)"
 SEARCH_DIRS="/bin /usr/bin /sbin /usr/sbin /lib /usr/lib /lib64 /usr/lib64 /usr/libexec"
 
-parse_opt $(extract_opts "$@")
+parse_opts "$@"
 
 # Check for root privileges when rebuilding
 if [ "$(id -u)" != 0 ] && [ "$REBUILD" = 1 ]; then
