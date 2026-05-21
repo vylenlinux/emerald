@@ -60,39 +60,27 @@ Options:
 EOF
 }
 
-# Function to extract long options into separate short/long options for easier parsing
-extract_opts() {
-    while [ $# -gt 0 ]; do
-        arg=$1
-
-        case "$arg" in
-            --*) opts="$opts $arg" ;;
-
-            -?*)
-                rest=${arg#-}
-
-                while [ -n "$rest" ]; do
-                    chr="${rest%"${rest#?}"}"
-                    opts="$opts -$chr"
-
-                    rest=${rest#?}
-                done
-            ;;
-
-            *) opts="$opts $arg" ;;
-        esac
-
-        shift
-    done
-
-    printf '%s\n' "${opts# }"
-}
-
 parse_opts() {
     if [ -z "$1" ]; then
         SHOWHELP=yes
     else
         while [ -n "$1" ]; do
+            case $1 in
+                -[!-]?*)
+                    _rest=${1#-}
+                    shift
+
+                    while [ -n "$_rest" ]; do
+                        _chr="${_rest%"${_rest#?}"}"
+                        set -- "-$_chr" "$@"
+
+                        _rest=${_rest#?}
+                    done
+
+                    continue
+                ;;
+            esac
+
             case $1 in
                 -u | --upgrade) UPGRADE_PKG=yes ;;
                 -r | --reinstall) REINSTALL_PKG=yes ;;
@@ -122,7 +110,7 @@ ret() {
 }
 
 # Process options
-parse_opts $(extract_opts "$@")
+parse_opts "$@"
 
 EMERALD_DIR="@STATE_DIR@"
 PKGDB_DIR="$EMERALD_DIR/db"
