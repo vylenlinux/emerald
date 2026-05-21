@@ -1383,17 +1383,19 @@ EOF
 }
 
 emerald_orphan() {
-    for i in $(cat "$WORLD_FILE" 2>/dev/null); do
-        case " $* "   in *" $i "*)
-            continue ;;
-        esac
+    if [ -f "$WORLD_FILE" ]; then
+        while IFS= read -r i; do
+            case " $* " in *" $i "*)
+                continue ;;
+            esac
 
-        case " $DEP " in *" $i "*)
-            continue ;;
-        esac
+            case " $DEP " in *" $i "*)
+                continue ;;
+            esac
 
-        deplist "$i"
-    done
+            deplist "$i"
+        done < "$WORLD_FILE"
+    fi
 
     all_installed | awk -v dep=" $DEP " '{if (index(dep, " " $0 " ") == 0) print}'
 }
