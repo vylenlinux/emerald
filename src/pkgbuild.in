@@ -678,8 +678,7 @@ pkg_package() {
         rm -f usr/lib/charset.alias # on musl system
 
         rm -rf usr/lib/systemd usr/lib/sysusers.d usr/lib/tmpfiles.d
-        rm -rf usr/share/licenses
-        rm -rf usr/lib/python3.*/site-packages/*.dist-info/licenses
+        rm -rf usr/share/licenses usr/lib/python3.*/site-packages/*.dist-info/licenses
 
         find . \( -name perllocal.pod -o -name .packlist \) -delete
 
@@ -687,24 +686,34 @@ pkg_package() {
             find usr/share/fonts \( -name fonts.dir -o -name fonts.scale \) -delete
         }
 
-        case "$KEEP_LIBTOOL" in 0 | no)
-            find . ! -type d -name "*.la" -delete ;;
+        case "$KEEP_LIBTOOL" in
+            0 | no)
+                find . ! -type d -name "*.la" -delete
+            ;;
         esac
 
-        case "$KEEP_LOCALE" in 0 | no)
-            rm -fr usr/share/locale usr/locale usr/lib/locale ;;
+        case "$KEEP_LOCALE" in
+            0 | no)
+                rm -fr usr/share/locale usr/locale usr/lib/locale
+            ;;
         esac
 
-        case "$KEEP_DOC" in 0 | no)
-            rm -fr usr/share/doc usr/share/gtk-doc usr/doc usr/gtk-doc ;;
+        case "$KEEP_DOC" in
+            0 | no)
+                rm -fr usr/share/doc usr/share/gtk-doc usr/doc usr/gtk-doc
+            ;;
         esac
 
-        case "$KEEP_MAN" in 0 | no)
-            rm -fr usr/man usr/share/man ;;
+        case "$KEEP_MAN" in
+            0 | no)
+                rm -fr usr/man usr/share/man
+            ;;
         esac
 
-        case "$NO_STRIP" in 0 | no)
-            strip_files ;;
+        case "$NO_STRIP" in
+            0 | no)
+                strip_files
+            ;;
         esac
 
         compress_info_man_pages
