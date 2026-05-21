@@ -938,6 +938,22 @@ abort() {
 
 parse_opts() {
     while [ "$1" ]; do
+        case $1 in
+            -[!-]?*)
+                _rest=${1#-}
+                shift
+
+                while [ -n "$_rest" ]; do
+                    _chr="${_rest%"${_rest#?}"}"
+                    set -- "-$_chr" "$@"
+
+                    _rest=${_rest#?}
+                done
+
+                continue
+            ;;
+        esac
+
         case "$1" in
             -q | --quiet) QUIET=yes ;;
             -i | --install) INSTALL_PKG=yes ;;
@@ -1010,35 +1026,8 @@ Options:
 EOF
 }
 
-extract_opts() {
-    while [ $# -gt 0 ]; do
-        arg="$1"
-
-        case "$arg" in
-            --*) opts="$opts $arg" ;;
-
-            -?*)
-                rest="${arg#-}"
-
-                while [ -n "$rest" ]; do
-                    chr="${rest%"${rest#?}"}"
-                    opts="$opts -$chr"
-
-                    rest="${rest#?}"
-                done
-            ;;
-
-            *) opts="$opts $arg" ;;
-        esac
-
-        shift
-    done
-
-    printf '%s\n' "${opts# }"
-}
-
 main() {
-    parse_opts $(extract_opts "$@")
+    parse_opts "$@"
 
     if [ -f "$PKGBUILD_CONF" ]; then
         . "$PKGBUILD_CONF"
