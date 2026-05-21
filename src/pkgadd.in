@@ -267,12 +267,12 @@ tar -xvhpf "$PKGNAME" -C "$ROOT_DIR"/ | while read -r line; do
 
             if [ "$UPGRADE_PKG" ] || [ "$REINSTALL_PKG" ]; then
                 if [ ! -e "$ROOT_DIR/$line" ] || [ "$NO_BACKUP" = yes ]; then
-                    cp -f "$ROOT_DIR/$line".epkgnew "$ROOT_DIR/$line"
-                    rm -f "$ROOT_DIR/"*.epkgnew
+                    cp -f "$ROOT_DIR/$line.epkgnew" "$ROOT_DIR/$line"
+                    rm -f "$ROOT_DIR/$line.epkgnew"
                 fi
             else
-                cp -f "$ROOT_DIR/$line".epkgnew "$ROOT_DIR/$line"
-                rm -f "$ROOT_DIR/"*.epkgnew
+                cp -f "$ROOT_DIR/$line.epkgnew" "$ROOT_DIR/$line"
+                rm -f "$ROOT_DIR/$line.epkgnew"
             fi
         ;;
     esac
