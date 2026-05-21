@@ -809,7 +809,7 @@ check_buildscript() {
         ;;
     esac
 
-    [ "$(basename "$(pwd)")" = "$name" ] || {
+    [ "${PWD##*/}" = "$name" ] || {
         msgerr "Port name and Directory name is different!";
         exit 1
     }
@@ -987,7 +987,7 @@ parse_opts() {
             --workdir=*) CUSTOM_WORK_DIR="${1#*=}" ;;
 
             *)
-                msg "Invalid $(basename "$0") option! ($1)";
+                msg "Invalid ${0##*/} option! ($1)";
                 exit 1
             ;;
         esac
