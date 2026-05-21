@@ -565,7 +565,7 @@ pkg_lint() {
     linterror=0
 
     # check empty PKG
-    if ! find "$PKG" -mindepth 1 -maxdepth 1 2>/dev/null | grep -q .; then
+    if ! find "$PKG" -mindepth 1 -maxdepth 1 2>/dev/null | read -r _; then
         msgerr "PKG is empty"
         abort 1
     fi
