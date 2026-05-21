@@ -211,32 +211,47 @@ opr=install
 printf "%s: %s-%s-%s...\n" "$opr" "$name" "$version" "$release"
 
 # Check for file conflict
-if [ ! "$IGNORE_CONFLICT" ]; then
-    awk '!/\/$/{print $6}' "$TMP_PKGADD" | while read -r line; do
+if [ -z "$IGNORE_CONFLICT" ]; then
+    # Determine if we need to exclude the current package (upgrade/reinstall)
+    exclude_self=0
+
+    if [ "$UPGRADE_PKG" ] || [ "$REINSTALL_PKG" ]; then
+        exclude_self=1
+    fi
+
+    # Extract list of files (excluding directories) from package manifest
+    tmp_filelist=$(mktemp)
+    awk '!/\/$/{print $6}' "$TMP_PKGADD" > "$tmp_filelist"
+
+    conflicts=0
+
+    while IFS= read -r line; do
+        # Remove .epkgnew suffix if present
         case "$line" in *.epkgnew)
-            line="${line%.epkgnew}" ;;
+            line=${line%.epkgnew} ;;
         esac
 
+        # Check if file or symlink (including broken) exists in root
         if [ -e "$ROOT_DIR/$line" ] || [ -L "$ROOT_DIR/$line" ]; then
-            if [ "$UPGRADE_PKG" ] || [ "$REINSTALL_PKG" ]; then
-                if ! grep -Fqx "$line" "$ROOT_DIR/$PKGDB_DIR/$name"; then
-                    _f=$(grep -x "^$line$" "$ROOT_DIR/$PKGDB_DIR"/* | cut -d : -f1 | awk -F / '{print $(NF)}' | head -n1 | grep -vx "$name")
-                    _f=${_f:-(none)}
-
-                    printf '%s %s\n' "$_f" "$line"
-                    touch "$TMP_CONFLICT"
+            # Skip if this file is already owned by the current package (only when exclude_self=1)
+            if [ "$exclude_self" -eq 1 ]; then
+                if grep -Fxq "$line" "$ROOT_DIR/$PKGDB_DIR/$name" 2>/dev/null; then
+                    continue  # belongs to this package, skip conflict
                 fi
-            else
-                _f=$(grep -x "^$line$" "$ROOT_DIR/$PKGDB_DIR"/* | cut -d : -f1 | awk -F / '{print $(NF)}' | head -n1)
-                _f=${_f:-(none)}
-
-                printf '%s %s\n' "$_f" "$line"
-                touch "$TMP_CONFLICT"
             fi
-        fi
-    done
 
-    if [ -e "$TMP_CONFLICT" ]; then
+            # Find which installed package owns this file
+            owner=$(grep -lFx "$line" "$ROOT_DIR/$PKGDB_DIR"/* 2>/dev/null | head -n1)
+            [ -n "$owner" ] && owner=${owner##*/} || owner="(none)"
+
+            printf '%s %s\n' "$owner" "$line"
+            conflicts=1
+        fi
+    done < "$tmp_filelist"
+
+    rm -f "$tmp_filelist"
+
+    if [ "$conflicts" -eq 1 ]; then
         msgerr "File conflict found!"
         ret 1
     fi
