@@ -1135,7 +1135,7 @@ main() {
             pkg_unpack >/dev/null
             pkg_build >/dev/null
             pkg_package >/dev/null
-            pkg_cleanup >/dev/null
+            pkg_cleanup
         else
             pkg_fetch
             pkg_checksum
