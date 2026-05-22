@@ -202,6 +202,8 @@ pkg_checksum() {
             1 | yes) ;;
 
             *)
+                mismatch=0
+
                 msg "Checking checksums..."
                 generate_checksum > "$TMPCHECKSUM"
 
