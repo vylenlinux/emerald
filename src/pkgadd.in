@@ -218,8 +218,8 @@ if [ -z "$IGNORE_CONFLICT" ]; then
 
     while IFS= read -r line; do
         # Remove .epkgnew suffix if present
-        case "$line" in *.epkgnew)
-            line=${line%.epkgnew} ;;
+        case "$line" in
+            *.epkgnew) line=${line%.epkgnew} ;;
         esac
 
         # Check if file or symlink (including broken) exists in root
