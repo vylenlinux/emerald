@@ -8,24 +8,15 @@
 trap "interrupted" 1 2 3 15
 export LC_ALL=C
 
-# Function to safely get the absolute physical path (POSIX replacement for 'realpath')
+# Resolve a file path to its absolute physical path without using external 'realpath'
 get_realpath() {
-    # If the argument is a directory, just use cd -P and pwd -P
-    [ -d "$1" ] && {
-        CDPATH=
-        cd -P -- "$1" && pwd -P;
-
-        return
-    }
-
-    # Otherwise, handle it as a file
-    dir=$(dirname -- "$1")
-    base=$(basename -- "$1")
+    _dir=${1%/*}
+    _file=${1##*/}
 
     # Use a subshell to avoid changing the current directory permanently
     (
         CDPATH=
-        cd -P -- "$dir" && printf '%s/%s\n' "$(pwd -P)" "$base"
+        cd -P -- "$_dir" && printf '%s/%s\n' "$(pwd -P)" "$_file"
     )
 }
 
