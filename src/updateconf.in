@@ -9,7 +9,7 @@
 #
 
 # Set default editor if not already set
-EDITOR=${EDITOR:-vim}
+EDITOR="${EDITOR:-vim}"
 
 # Verify editor exists
 command -v "$EDITOR" >/dev/null 2>&1 || {
@@ -76,13 +76,17 @@ for file in $epkgnew; do
 
         # Process user's choice
         case "$ACTION" in
-            U | u) printf "Replace '%s' with '%s'.\n" "$currentfile" "$file"
+            U | u)
+                printf "Replace '%s' with '%s'.\n" "$currentfile" "$file"
                 mv -f "$file" "$currentfile"
+
                 break
             ;;
 
-            D | d) printf "Remove '%s'.\n" "$file"
+            D | d)
+                printf "Remove '%s'.\n" "$file"
                 rm -f "$file"
+
                 break
             ;;
 
