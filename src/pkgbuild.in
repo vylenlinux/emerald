@@ -651,7 +651,7 @@ compress_info_man_pages() {
         TARGET="${TARGET##*/}"
         TARGET="${TARGET%%.gz}.gz"
 
-        DIR="$(dirname "$FILE")"
+        DIR="${FILE%/*}"
         rm -f "$file"
 
         if [ -e "$DIR/$TARGET" ]; then
