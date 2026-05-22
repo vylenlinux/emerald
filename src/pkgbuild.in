@@ -716,11 +716,9 @@ pkg_package() {
 
         compress_info_man_pages
 
-        if [ "$backup" ]; then
-            for FILE in $backup; do
-                mv "$FILE" "$FILE.epkgnew"
-            done
-        fi
+        for FILE in $backup; do
+            mv "$FILE" "$FILE.epkgnew"
+        done
 
         [ "$FORCE_REBUILD" ] && rm -f "$PACKAGE_DIR/$PKGNAME"
 
