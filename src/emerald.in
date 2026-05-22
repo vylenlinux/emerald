@@ -2256,7 +2256,7 @@ command -v pkgadd >/dev/null 2>&1 || {
 mode=$1
 
 print_run_help_msg() {
-    printf "%s\n" "Run '$(basename "$0") help' to see available options."
+    printf "%s\n" "Run '${0##*/} help' to see available options."
     exit 2
 }
 
