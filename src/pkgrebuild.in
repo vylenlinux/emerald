@@ -128,7 +128,7 @@ base_rebuild() {
 
 # Initialize tracking file to record which packages have been rebuilt
 # This prevents duplicate builds if script is interrupted and rerun
-LIST="/tmp/$(basename "$0")-list"
+LIST="/tmp/${0##*/}-list"
 
 touch "$LIST" || {
     msgerr "Cannot create temporary file: $LIST"
