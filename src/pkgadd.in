@@ -146,7 +146,7 @@ touch "$ROOT_DIR/$LOCK_FILE" 2>/dev/null || {
     exit 1
 }
 
-BASEPKGNAME=$(basename "$PKGNAME")
+BASEPKGNAME="${PKGNAME##*/}"
 
 # Check existence of package file
 [ -f "$PKGNAME" ] || {
