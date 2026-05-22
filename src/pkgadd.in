@@ -281,7 +281,7 @@ if [ "$UPGRADE_PKG" ] || [ "$REINSTALL_PKG" ]; then
         while (n--) print lines[n];
     }' "$ROOT_DIR/$PKGDB_DIR/$name" | while read -r line; do
         case $line in
-            */[) ;;
+            */\[) ;;
 
             */)
                 # Directory removal logic
