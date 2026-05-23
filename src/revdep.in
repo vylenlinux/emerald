@@ -13,7 +13,7 @@ interrupted() {
     exit 1
 }
 
-clean_up() {
+cleanup() {
     rm -f "$FILE_LIST"
 }
 
