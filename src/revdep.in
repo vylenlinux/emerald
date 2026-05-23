@@ -106,13 +106,14 @@ parse_opts() {
 rebuild() {
     # Preserve topological order from emerald deplist, keeping only broken packages.
     for allpkg in $(emerald deplist $ALLPKG | awk '{print $2}'); do
-        printf '%s\n' $ALLPKG | grep -qx "$allpkg" && order="${order:+$order} $allpkg"
+        case " $ALLPKG " in
+            *" $allpkg "*) order="${order:+$order} $allpkg" ;;
+        esac
     done
 
     if [ -n "$order" ]; then
         if [ "$NOCONFIRM" = "" ]; then
-            printf '\n'
-            printf 'Package will be rebuild & reinstall by this order:\n'
+            printf '\nPackage will be rebuild & reinstall by this order:\n'
             printf ' %s\n' "$order"
             printf '\n'
 
@@ -340,7 +341,7 @@ while read -r line; do
     count=$((count + 1))
     libname=${line##*/}
 
-    printf ' %d%% %s\033[0K\r' "$((100*count/total))" "$libname"
+    printf ' %d%% %s\033[0K\r' "$((100 * count / total))" "$libname"
 
     case "$(file -bi "$line")" in
         *application/x-sharedlib* | *application/x-executable* | *application/x-pie-executable*)
@@ -420,14 +421,9 @@ fi
 
 # Report and optionally rebuild
 if [ "$ALLPKG" ]; then
-    ALLPKG=$(printf '%s\n' $ALLPKG | sort -u) # Remove duplicates
-
-    printf '\n'
-    printf 'Broken package(s):\n'
-
-    for rebuild in $ALLPKG; do
-        printf ' %s\n' "$rebuild"
-    done
+    printf '\nBroken package(s):\n'
+    LISTALLPKG=$(printf '%s\n' $ALLPKG | uniq) # Remove duplicates
+    printf ' %s\n' "$LISTALLPKG"
 
     if [ "$REBUILD" = 1 ]; then
         rebuild
