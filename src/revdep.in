@@ -105,10 +105,8 @@ parse_opts() {
 
 rebuild() {
     # Preserve topological order from emerald deplist, keeping only broken packages.
-    for allpkg in $(emerald deplist "$ALLPKG" | awk '{print $2}'); do
-        case " $ALLPKG " in
-            *" $allpkg "*) order="${order:+$order} $allpkg" ;;
-        esac
+    for allpkg in $(emerald deplist $ALLPKG | awk '{print $2}'); do
+        printf '%s\n' $ALLPKG | grep -qx "$allpkg" && order="${order:+$order} $allpkg"
     done
 
     if [ -n "$order" ]; then
