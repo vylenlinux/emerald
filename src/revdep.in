@@ -105,17 +105,16 @@ parse_opts() {
 
 rebuild() {
     # Preserve topological order from emerald deplist, keeping only broken packages.
-    for allpkg in $(emerald deplist $ALLPKG | awk '{print $2}'); do
+    for allpkg in $(emerald deplist $ALLPKG | awk '!seen[$2]++ {print $2}'); do
         case " $ALLPKG " in
             *" $allpkg "*) order="${order:+$order} $allpkg" ;;
         esac
     done
 
     if [ -n "$order" ]; then
-        if [ "$NOCONFIRM" = "" ]; then
+        if [ ! "$NOCONFIRM" ]; then
             printf '\nPackage will be rebuild & reinstall by this order:\n'
-            printf ' %s\n' "$order"
-            printf '\n'
+            printf ' %s\n\n' "$order"
 
             confirm "Continue rebuild & reinstall broken packages?" "Operation cancelled."
         fi
