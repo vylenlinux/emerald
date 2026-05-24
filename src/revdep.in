@@ -279,21 +279,18 @@ for d in $TARGET_SEARCH_DIRS; do
         printf ' %s\n' "$d"
     fi
 done
-printf '\n'
 
-printf 'EXCLUDED DIRS:\n'
+printf '\nEXCLUDED DIRS:\n'
 for dd in $EXCLUDE_DIRS; do
     printf ' %s\n' "$dd"
 done
-printf '\n'
 
-printf 'EXCLUDED FILES:\n'
+printf '\nEXCLUDED FILES:\n'
 for ff in $EXCLUDE_FILES; do
     printf ' %s\n' "$ff"
 done
-printf '\n'
 
-printf 'EXCLUDED LIBS:\n'
+printf '\nEXCLUDED LIBS:\n'
 for ll in $EXCLUDED_LIBS; do
     printf ' %s\n' "$ll"
 done
@@ -401,8 +398,7 @@ printf '\033[0K'
 
 # Check for broken module packages
 if [ -z "$PKG" ]; then
-    printf '\n'
-    printf 'Checking for broken packages...\n'
+    printf '\nChecking for broken packages...\n'
 
     check_python_modules
     check_perl_modules
@@ -422,8 +418,8 @@ fi
 # Report and optionally rebuild
 if [ "$ALLPKG" ]; then
     printf '\nBroken package(s):\n'
-    LISTALLPKG=$(printf '%s\n' $ALLPKG | uniq) # Remove duplicates
-    printf ' %s\n' "$LISTALLPKG"
+    LISTALLPKG=$(printf ' %s\n' $ALLPKG | awk '!seen[$0]++') # remove duplicates, preserve order
+    printf '%s\n' "$LISTALLPKG"
 
     if [ "$REBUILD" = 1 ]; then
         rebuild
