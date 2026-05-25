@@ -588,6 +588,8 @@ pkg_lint() {
 strip_files() {
     # check skip files
     should_skip() {
+        [ -z "$nostrip" ] && return 1
+
         for pattern in $nostrip; do
             case "$1" in
                 *"$pattern"*) return 0 ;;
