@@ -192,9 +192,6 @@ generate_checksum() {
 }
 
 pkg_checksum() {
-    TMPCHECKSUM="$WORK_DIR/checksumstmp.$$"
-    DIFCHECKSUM="$WORK_DIR/checksumsdiff.$$"
-
     if [ ! -f .checksums ]; then
         pkg_gen_checksums
     else
@@ -204,6 +201,9 @@ pkg_checksum() {
             *)
                 mismatch=0
 
+                TMPCHECKSUM="$WORK_DIR/checksumstmp.$$"
+                DIFCHECKSUM="$WORK_DIR/checksumsdiff.$$"
+
                 msg "Checking checksums..."
                 generate_checksum > "$TMPCHECKSUM"
 
@@ -211,15 +211,15 @@ pkg_checksum() {
                     -e 's/^+/ new    : /' \
                     -e 's/^-/ missing: /' > "$DIFCHECKSUM"
 
-                [ -s "$DIFCHECKSUM" ] && {
+                if [ -s "$DIFCHECKSUM" ]; then
                     cat "$DIFCHECKSUM"
                     msg "Checksum failed."
 
                     mismatch=1
-                }
+                fi
 
                 rm -f "$TMPCHECKSUM" "$DIFCHECKSUM"
-                [ "$mismatch" = 1 ] && abort 1
+                [ "$mismatch" -eq 1 ] && abort 1
             ;;
         esac
     fi
