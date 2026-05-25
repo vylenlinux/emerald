@@ -528,9 +528,7 @@ pkg_unpack() {
                 msg "Preparing: $i"
                 cp --reflink=auto "$i" "$SRC"
             ;;
-        esac
-
-        [ $? = 0 ] || {
+        esac || {
             msgerr "Unpacking/Preparing failed: $i"
             abort 1
         }
