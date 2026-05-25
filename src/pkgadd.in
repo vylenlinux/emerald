@@ -154,7 +154,7 @@ BASEPKGNAME="${PKGNAME##*/}"
     ret 1
 }
 
-noextname=${BASEPKGNAME%*.epkg.tar.*}
+noextname=${BASEPKGNAME%.epkg.tar.*}
 release=${noextname##*-}
 noextname=${noextname%-*}
 version=${noextname##*-}
@@ -186,7 +186,6 @@ fi
 
 TMP_PKGADD="$ROOT_DIR/$EMERALD_DIR/.tmp_pkgadd"
 TMP_PKGINSTALL="$ROOT_DIR/$EMERALD_DIR/.tmp_pkginstall"
-TMP_CONFLICT="$ROOT_DIR/$EMERALD_DIR/.tmp_conflict"
 
 # Check integrity of package and save list file/dirs to install
 # Note: POSIX 2024 standardized 'tar'. Flags are compliant.
@@ -204,16 +203,6 @@ printf "%s: %s-%s-%s...\n" "$opr" "$name" "$version" "$release"
 # Check for file conflict
 if [ -z "$IGNORE_CONFLICT" ]; then
     # Determine if we need to exclude the current package (upgrade/reinstall)
-    exclude_self=0
-
-    if [ "$UPGRADE_PKG" ] || [ "$REINSTALL_PKG" ]; then
-        exclude_self=1
-    fi
-
-    # Extract list of files (excluding directories) from package manifest
-    tmp_filelist=$(mktemp)
-    awk '!/\/$/{print $6}' "$TMP_PKGADD" > "$tmp_filelist"
-
     conflicts=0
 
     while IFS= read -r line; do
@@ -224,8 +213,8 @@ if [ -z "$IGNORE_CONFLICT" ]; then
 
         # Check if file or symlink (including broken) exists in root
         if [ -e "$ROOT_DIR/$line" ] || [ -L "$ROOT_DIR/$line" ]; then
-            # Skip if this file is already owned by the current package (only when exclude_self=1)
-            if [ "$exclude_self" -eq 1 ]; then
+            # Skip if this file is already owned by the current package
+            if [ "$UPGRADE_PKG" ] || [ "$REINSTALL_PKG" ]; then
                 if grep -Fxq "$line" "$ROOT_DIR/$PKGDB_DIR/$name" 2>/dev/null; then
                     continue  # belongs to this package, skip conflict
                 fi
@@ -238,9 +227,9 @@ if [ -z "$IGNORE_CONFLICT" ]; then
             printf '%s %s\n' "$owner" "$line"
             conflicts=1
         fi
-    done < "$tmp_filelist"
-
-    rm -f "$tmp_filelist"
+    done <<EOF
+$(awk '!/\/$/{print $6}' "$TMP_PKGADD")
+EOF
 
     if [ "$conflicts" -eq 1 ]; then
         msgerr "File conflict found!"
