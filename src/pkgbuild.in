@@ -552,7 +552,7 @@ pkg_build() {
             (set -e -x; build 2>&1)
         fi
 
-        if [ $? != 0 ]; then
+        if [ $? -ne 0 ]; then
             msgerr "Build failed: $name-$version-$release"
             abort 1
         else
