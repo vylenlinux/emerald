@@ -76,7 +76,7 @@ parse_opts() {
                 -u | --upgrade) UPGRADE_PKG=yes ;;
                 -r | --reinstall) REINSTALL_PKG=yes ;;
                 -c | --ignore-conflict) IGNORE_CONFLICT=yes ;;
-                -v | --verbose) VERBOSE_INSTALL="yes" ;;
+                -v | --verbose) VERBOSE_INSTALL=yes ;;
                 -h | --help) SHOWHELP=yes ;;
                 --no-backup) NO_BACKUP=yes ;;
                 --print-dbdir) PRINTDBDIR=yes ;;
@@ -96,7 +96,7 @@ parse_opts() {
 
 ret() {
     # Remove lock and all tmp files on exit
-    rm -f "$ROOT_DIR/$LOCK_FILE" "$TMP_PKGADD" "$TMP_PKGINSTALL" "$TMP_CONFLICT"
+    rm -f "$ROOT_DIR/$LOCK_FILE" "$TMP_PKGADD" "$TMP_PKGINSTALL"
     exit "$1"
 }
 
@@ -228,7 +228,7 @@ if [ -z "$IGNORE_CONFLICT" ]; then
             conflicts=1
         fi
     done <<EOF
-$(awk '!/\/$/{print $6}' "$TMP_PKGADD")
+$(awk '!/\/$/{print $6}' "$TMP_PKGADD") # Check for conflicts with non-directory entries in the package
 EOF
 
     if [ "$conflicts" -eq 1 ]; then
@@ -245,12 +245,8 @@ tar -xvhpf "$PKGNAME" -C "$ROOT_DIR"/ | while read -r line; do
         *.epkgnew)
             line="${line%.epkgnew}"
 
-            if [ "$UPGRADE_PKG" ] || [ "$REINSTALL_PKG" ]; then
-                if [ ! -e "$ROOT_DIR/$line" ] || [ "$NO_BACKUP" = yes ]; then
-                    cp -f "$ROOT_DIR/$line.epkgnew" "$ROOT_DIR/$line"
-                    rm -f "$ROOT_DIR/$line.epkgnew"
-                fi
-            else
+            # Handle epkgnew file in fresh install OR upgrade/reinstall when file is absent OR --no-backup is set
+            if [ ! "$UPGRADE_PKG" ] && [ ! "$REINSTALL_PKG" ] || [ ! -e "$ROOT_DIR/$line" ] || [ "$NO_BACKUP" = yes ]; then
                 cp -f "$ROOT_DIR/$line.epkgnew" "$ROOT_DIR/$line"
                 rm -f "$ROOT_DIR/$line.epkgnew"
             fi
