@@ -275,23 +275,23 @@ printf 'SEARCH DIRS:\n'
 for d in $TARGET_SEARCH_DIRS; do
     if [ -d "$d" ]; then
         SEARCH_DIRS="$SEARCH_DIRS $d"
-        printf ' %s\n' "$d"
+        printf '  - %s\n' "$d"
     fi
 done
 
 printf '\nEXCLUDED DIRS:\n'
 for dd in $EXCLUDE_DIRS; do
-    printf ' %s\n' "$dd"
+    printf '  - %s\n' "$dd"
 done
 
 printf '\nEXCLUDED FILES:\n'
 for ff in $EXCLUDE_FILES; do
-    printf ' %s\n' "$ff"
+    printf '  - %s\n' "$ff"
 done
 
 printf '\nEXCLUDED LIBS:\n'
 for ll in $EXCLUDED_LIBS; do
-    printf ' %s\n' "$ll"
+    printf '  - %s\n' "$ll"
 done
 printf '\n'
 
