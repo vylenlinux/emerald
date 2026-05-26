@@ -107,7 +107,7 @@ rebuild() {
     # Preserve topological order from emerald deplist, keeping only broken packages.
     for allpkg in $(emerald deplist $ALLPKG | awk '!seen[$2]++ {print $2}'); do
         case " $ALLPKG " in
-            *" $allpkg "*) order="${order:+$order} $allpkg" ;;
+            *" $allpkg "*) order="${order:+$order }$allpkg" ;;
         esac
     done
 
@@ -170,7 +170,7 @@ rev_exclude() {
     for _lib in $EXCLUDE_LIBS; do
         case " $EXCLUDED_LIBS " in
             *" $_lib "*) ;;
-            *) EXCLUDED_LIBS="${EXCLUDED_LIBS:+$EXCLUDED_LIBS} $_lib" ;;
+            *) EXCLUDED_LIBS="${EXCLUDED_LIBS:+$EXCLUDED_LIBS }$_lib" ;;
         esac
     done
 }
