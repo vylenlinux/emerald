@@ -1402,7 +1402,7 @@ emerald_orphan() {
 
 check_outdated() {
     # Load once
-    _MASKED_LIST=$(grep -Ev '^(#|[[:space:]]*$)' "$MASK_FILE" 2>/dev/null | tr '\n' ' ')
+    _MASKED_LIST=$(awk '!/^[[:space:]]*$/ && !/^#/ {printf "%s ", $0}' "$MASK_FILE" 2>/dev/null)
 
     for pkg in $(all_installed); do
         NEWINSTALLED=0
