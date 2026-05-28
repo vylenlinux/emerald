@@ -2301,7 +2301,7 @@ for opt in "$@"; do
 done
 
 if [ -f "$REPO_FILE" ]; then
-    for repodir in $(grep -Ev '^(#|$)' "$REPO_FILE" | awk '{print $1}'); do
+    for repodir in $(awk '!/^[[:space:]]*$/ && !/^#/ {print $1}' "$REPO_FILE"); do
         PORT_REPO="$PORT_REPO $repodir"
     done
 fi
