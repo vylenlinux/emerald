@@ -594,7 +594,17 @@ emerald_dependent() {
 
     if get_port_path "$1" >/dev/null 2>&1; then
         for repo in $PORT_REPO; do
-            grep -l "^$1$" "$repo"/*/depends 2>/dev/null | awk -F'/' '{print $(NF-1)}'
+            awk -v pkg="$1" 'FNR == 1 {
+                f = FILENAME;
+            } $0 == pkg {
+                found = 1;
+            } found {
+                n = split(f, a, "/");
+                print a[n-1];
+
+                found = 0;
+                nextfile;
+            }' "$repo"/*/depends 2>/dev/null
         done | sort -u | while read -r dpd; do
             msg_deps_status "$dpd"
         done
