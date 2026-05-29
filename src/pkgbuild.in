@@ -597,7 +597,7 @@ strip_files() {
         return 1
     }
 
-    find . -type f 2>/dev/null | sed 's|^\./||' | while read -r binary; do
+    find . -type f -printf '%P\n' 2>/dev/null | while read -r binary; do
         should_skip "$binary" && continue
 
         case "$(file -bi "$binary")" in
