@@ -112,7 +112,6 @@ sync_repo() {
 
     # Check and create repository directory
     make_dir "$repodir" || die "Failed to create directory: $repodir"
-    cd "$repodir" || die "Failed to change to directory: $repodir"
 
     # Check if git directory exists
     [ -d "$baredir/${portdir}.git" ] || {
