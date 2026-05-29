@@ -15,7 +15,7 @@ Create a port template directory with build.eme file.
 
 Options:
   -b <builder>  Specify build system (default: autotools)
-                Available: autotools, meson, cmake, go, python
+                Available: autotools, meson, cmake, go, python, rust
   -h            Show this help message
 
 Examples:
@@ -138,11 +138,16 @@ build() {
     export CGO_CFLAGS="${CFLAGS}"
     export CGO_CPPFLAGS="${CPPFLAGS}"
     export CGO_CXXFLAGS="${CXXFLAGS}"
-    export GOFLAGS="-buildmode=pie -trimpath -mod=readonly -modcacherw -ldflags=-linkmode=external"
     export GOPATH="${SRC}/go"
     export PATH="${PATH}:${GOPATH}/bin"
 
-    go build -o "bin/${name}" *.go
+    export GOFLAGS="-buildmode=pie \
+        -trimpath \
+        -mod=readonly \
+        -modcacherw \
+        -ldflags=-linkmode=external"
+
+    go build *.go -o "bin/${name}"
     install -Dm755 "bin/${name}" -t "${PKG}/usr/bin/"
 }
 EOF
@@ -196,7 +201,10 @@ build() {
     # shellcheck disable=SC2164
     cd "${name}-${version}"
 
-    cargo build --release --locked
+    cargo build \
+        --release \
+        --locked
+
     install -Dm755 "target/release/${name}" -t "${PKG}/usr/bin/"
 }
 EOF
