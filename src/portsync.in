@@ -92,7 +92,7 @@ parse_opts() {
 
 # Clean old objects from git repository
 prune_local() {
-    msg "Pruning old objects from ${portdir}..."
+    msg "pruning old objects from ${portdir}..."
 
     # Expire all old commits and their objects
     bare_git reflog expire --expire-unreachable=now --all || {
@@ -101,7 +101,7 @@ prune_local() {
     }
 
     # Remove old objects
-    bare_git gc --quiet --aggressive --prune=all || {
+    bare_git gc --quiet --prune=all || {
         msgwarn "Failed to garbage collect for $portdir"
         return 1
     }
@@ -111,7 +111,7 @@ prune_local() {
 
 # Completely reset repositories
 reset_repos() {
-    msg "Resetting repos..."
+    printf "%s\n" "Removing REPOS..."
 
     while read -r _rr_dir _rr_url _rr_branch _; do
         case "$_rr_dir" in
@@ -122,7 +122,7 @@ reset_repos() {
 
         # Skip local repositories without a URL (manually maintained)
         [ -z "$_rr_url" ] && {
-            msg "Skipping local repo '$_rr_portdir' (no URL)"
+            msg "Skipping local repo '$_rr_dir' (no URL)"
             continue
         }
 
@@ -136,7 +136,7 @@ reset_repos() {
         rm -rf "$baredir/${_rr_portdir}.git" "$_rr_dir" || die "Failed to remove repo: $_rr_portdir"
     done < "$repo_file"
 
-    msg "Repos reset complete. Now syncing..."
+    msg "Repos reset completed!"
 }
 
 # Synchronize an individual repository
@@ -168,10 +168,10 @@ sync_repo() {
     bare_git remote add origin "$repourl" 2>/dev/null
     bare_git remote set-url origin "$repourl" 2>/dev/null
 
-    # Shallow fetch (only latest commit) - quiet
+    # Shallow fetch (only latest commit), quiet mode
     bare_git fetch --quiet --depth=1 origin "$repobranch" || die "Failed to fetch from $repourl (branch: $repobranch).\nTry running: 'portsync -r'"
 
-    # Update local branch and working tree in one step - quiet
+    # Update local branch and working tree in one step, quiet mode
     bare_git checkout --quiet -B "$repobranch" FETCH_HEAD || die "Failed to checkout branch $repobranch for $portdir.\nTry running: 'portsync -r'"
 
     # Optional pruning
