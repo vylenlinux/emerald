@@ -23,6 +23,10 @@ msg() {
     printf "==> %s\n" "$1"
 }
 
+msgwarn() {
+    printf "WARNING: %s\n" "$1" >&2
+}
+
 # Create directories if they don't exist
 make_dir() {
     [ -d "$1" ] || mkdir -pv "$1" || die "Failed to create directory: $1"
@@ -68,13 +72,13 @@ prune_local() {
 
     # Expire all old commits and their objects
     bare_git reflog expire --expire-unreachable=now --all || {
-        printf "WARNING: Failed to expire reflog for %s\n" "$portdir" >&2
+        msgwarn "Failed to expire reflog for $portdir"
         return 1
     }
 
     # Remove old objects
     bare_git gc --quiet --aggressive --prune=all || {
-        printf "WARNING: Failed to garbage collect for %s\n" "$portdir" >&2
+        msgwarn "Failed to garbage collect for $portdir"
         return 1
     }
 
@@ -116,7 +120,7 @@ sync_repo() {
         git init --quiet --bare "$baredir/${portdir}.git" || die "Failed to initialize git repository for $portdir"
 
         # Add remote origin
-        bare_git remote add origin "$repourl" 2>/dev/null || printf "WARNING: Remote origin already exists or failed to add for %s\n" "$portdir" >&2
+        bare_git remote add origin "$repourl" 2>/dev/null || msgwarn "Remote origin already exists or failed to add for $portdir"
 
         # Fetch the last commit
         bare_git fetch --depth=1 origin "$repobranch" || die "Failed to fetch from $repourl (branch: $repobranch).\nTry running: 'portsync -r'"
