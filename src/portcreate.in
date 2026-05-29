@@ -3,6 +3,10 @@
 # portcreate - Create port templates with different build systems
 # Usage: portcreate [-b builder] <portname>
 
+msgerr() {
+    printf "ERROR: %s\n" "$1" >&2
+}
+
 usage() {
     cat <<'EOF'
 Usage: portcreate [-b builder] <portname>
@@ -33,7 +37,7 @@ description=""
 maintainer="Vylen Linux Team"
 homepage=""
 
-name=PORTNAME
+name=%name%
 version=
 release=1
 noextract=""
@@ -60,7 +64,7 @@ description=""
 maintainer="Vylen Linux Team"
 homepage=""
 
-name=PORTNAME
+name=%name%
 version=
 release=1
 noextract=""
@@ -87,7 +91,7 @@ description=""
 maintainer="Vylen Linux Team"
 homepage=""
 
-name=PORTNAME
+name=%name%
 version=
 release=1
 noextract=""
@@ -119,7 +123,7 @@ description=""
 maintainer="Vylen Linux Team"
 homepage=""
 
-name=PORTNAME
+name=%name%
 version=
 release=1
 noextract=""
@@ -153,7 +157,7 @@ description=""
 maintainer="Vylen Linux Team"
 homepage=""
 
-name=PORTNAME
+name=%name%
 version=
 release=1
 noextract=""
@@ -181,7 +185,7 @@ description=""
 maintainer="Vylen Linux Team"
 homepage=""
 
-name=PORTNAME
+name=%name%
 version=
 release=1
 noextract=""
@@ -213,7 +217,7 @@ shift $((OPTIND - 1))
 
 # Check if portname is provided
 if [ -z "${1}" ]; then
-    printf "ERROR: Port name is required!\n" >&2
+    msgerr "Port name is required!"
     usage
 fi
 
@@ -221,13 +225,13 @@ PORTNAME="${1}"
 
 # Check if directory already exists
 if [ -d "${PORTNAME}" ]; then
-    printf "ERROR: Directory '%s' already exists!\n" "${PORTNAME}" >&2
+    msgerr "Directory '${PORTNAME}' already exists!"
     exit 1
 fi
 
 # Create directory
 mkdir "${PORTNAME}" || {
-    printf "ERROR: Failed to create directory '%s'!\n" "${PORTNAME}" >&2
+    msgerr "Failed to create directory '${PORTNAME}'!"
     exit 1
 }
 
@@ -241,7 +245,7 @@ case "${BUILDER}" in
     rust | rs) TEMPLATE=$(get_rust_template) ;;
 
     *)
-        printf "ERROR: Unknown builder '%s'!\n" "${BUILDER}" >&2
+        msgerr "Unknown builder '${BUILDER}'!"
         printf "Available builders: autotools, meson, cmake, go, python, rust\n" >&2
 
         rm -rf "${PORTNAME}"
@@ -250,7 +254,7 @@ case "${BUILDER}" in
 esac
 
 # Replace PORTNAME placeholder and write to file
-printf "%s\n" "${TEMPLATE}" | sed "s/PORTNAME/${PORTNAME}/" > "${PORTNAME}/build.eme"
+printf "%s\n" "${TEMPLATE}" | sed "s/%name%/${PORTNAME}/" > "${PORTNAME}/build.eme"
 printf "Template port created for '%s' using '%s' build system.\n" "${PORTNAME}" "${BUILDER}"
 
 exit 0
