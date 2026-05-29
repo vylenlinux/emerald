@@ -6,7 +6,7 @@
 
 # Print errors and exit
 die() {
-    printf "ERROR: %b\n" "$*" >&2
+    printf "ERROR: %s\n" "$*" >&2
     exit 1
 }
 
