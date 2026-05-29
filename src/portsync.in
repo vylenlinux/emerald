@@ -175,7 +175,7 @@ sync_repo() {
     bare_git checkout --quiet -B "$repobranch" FETCH_HEAD || die "Failed to checkout branch $repobranch for $portdir.\nTry running: 'portsync -r'"
 
     # Optional pruning
-    [ "$PRN" -eq 1 ] && prune_local
+    [ "$PRUNE" -eq 1 ] && prune_local
 
     msg "${portdir} ports synced in $repodir"
     return 0
