@@ -61,8 +61,8 @@ msginfo() {
 }
 
 # Check for root privileges
-if [ "$(id -u)" != "0" ]; then
-    msgerr "This script requires root privileges"
+if [ "$(id -u)" -ne 0 ]; then
+    msgerr "this script requires root privileges!"
     help
 
     exit 1
