@@ -81,8 +81,8 @@ load_colors() {
 load_colors
 
 require_root() {
-    [ "$(id -u)" = 0 ] || {
-        msgerr "this operation need root access!"
+    [ "$(id -u)" -ne 0 ] && {
+        msgerr "this operation requires root privileges!"
         exit 1
     }
 }
