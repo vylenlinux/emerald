@@ -165,8 +165,7 @@ sync_repo() {
     fi
 
     # Ensure 'origin' remote exists and points to the correct URL
-    bare_git remote add origin "$repourl" 2>/dev/null
-    bare_git remote set-url origin "$repourl" 2>/dev/null
+    bare_git remote set-url origin "$repourl" 2>/dev/null || bare_git remote add origin "$repourl" || die "Failed to configure remote for $portdir"
 
     # Shallow fetch (only latest commit), quiet mode
     bare_git fetch --quiet --depth=1 origin "$repobranch" || die "Failed to fetch from $repourl (branch: $repobranch).\nTry running: 'portsync -r'"
