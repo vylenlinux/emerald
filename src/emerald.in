@@ -2102,7 +2102,7 @@ emerald_upgrade() {
     NEWPKG=0
     installmsg="ACTION#PORTNAME#VERSION#INSTALLED"
 
-    if [ "$NODEP" != 1 ]; then
+    if [ "$NO_DEP" != 1 ]; then
         printf "%s\n" "Resolving dependencies..."
         DEP=$(emerald_deplist "$upkg" "$EXOPT" | awk '{print $2}')
         printf "\n"
