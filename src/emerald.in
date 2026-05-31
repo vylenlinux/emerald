@@ -2027,7 +2027,7 @@ emerald_trigger() {
     require_root "Run trigger"
 
     if [ ! "$DOWNLOAD_ONLY" ]; then
-        [ "$@" ] || set -- $(all_installed)
+        [ "$#" -gt 0 ] || set -- $(all_installed)
 
         # Read all DB files once in memory
         PKGFILES=$(for _p in "$@"; do cat "$PKGDB_DIR/$_p" 2>/dev/null; done)
