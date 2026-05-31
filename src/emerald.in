@@ -1479,7 +1479,7 @@ emerald_path() {
 
 emerald_provide() {
     need_arg "$@"
-    grep -R "$1" "$PKGDB_DIR" | sed "s:$PKGDB_DIR/::" | tr : "\t"
+    grep -RF "$1" "$PKGDB_DIR" | sed "s:$PKGDB_DIR/::" | tr : "\t"
 }
 
 emerald_purge() {
