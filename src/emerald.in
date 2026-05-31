@@ -2030,7 +2030,10 @@ emerald_trigger() {
         [ "$#" -gt 0 ] || set -- $(all_installed)
 
         # Read all DB files once in memory
-        PKGFILES=$(for _p in "$@"; do cat "$PKGDB_DIR/$_p" 2>/dev/null; done)
+        # shellcheck disable=SC2068
+        PKGFILES=$(for _p in $@; do
+            cat "$PKGDB_DIR/$_p" 2>/dev/null
+        done)
 
         for t in mime_db desktopdb fontcache fc_cache udevdb icon_cache gtk3_immodules gtk2_immodules glib_schema gio_modules gdk_pixbuf_cache; do
             trigger_$t
