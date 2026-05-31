@@ -2052,7 +2052,7 @@ emerald_upgrade() {
                 OPTS="$OPTS $1"
             ;;
 
-            -d) NO_DEP=1 ;;
+            -n) NO_DEP=1 ;;
             -k) KEEP_GOING_LOCAL=1 ;;
             --exclude=*) EXOPT=$1 ;;
             -*) OPTS="$OPTS $1" ;;
