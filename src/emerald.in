@@ -80,7 +80,7 @@ load_colors() {
 # apply color theme
 load_colors
 
-msg() {
+msg_info() {
     printf "%b==>%b %s\n" "$COLOR2" "$CRESET" "$1"
 }
 
@@ -513,7 +513,7 @@ EOF
 
     # Nothing to remove?
     if [ -z "$to_remove_pkg" ] && [ -z "$to_remove_src" ]; then
-        msg "Cache is already clean."
+        msg_info "Cache is already clean."
         return 0
     fi
 
@@ -523,7 +523,7 @@ EOF
         [ -n "$to_remove_pkg" ] && printf '%s' "$to_remove_pkg" | tr '|' '\n' | xargs -P "$(nproc)" -I{} rm -f "$PACKAGE_DIR/{}"
         [ -n "$to_remove_src" ] && printf '%s' "$to_remove_src" | tr '|' '\n' | xargs -P "$(nproc)" -I{} rm -f "$SOURCE_DIR/{}"
 
-        msg "Old caches removed!"
+        msg_info "Old caches removed!"
     fi
 }
 
@@ -748,7 +748,7 @@ emerald_dup() {
             done
         done
     else
-        msg "No duplicate ports found."
+        msg_info "No duplicate ports found."
     fi
 
     return 0
@@ -776,7 +776,7 @@ emerald_foreign() {
         fi
     done
 
-    [ "$foreign_found" -eq 0 ] && msg "No foreign packages found."
+    [ "$foreign_found" -eq 0 ] && msg_info "No foreign packages found."
     return 0
 }
 
@@ -994,7 +994,7 @@ hook() {
 
     # hook are optional
     if [ -f "$hook" ]; then
-        msg "hook $hook_stage-$hook_action"
+        msg_info "hook $hook_stage-$hook_action"
         sh "$hook"
     fi
 }
@@ -1005,8 +1005,8 @@ emerald_hook() {
     if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
         msg_warning "Usage: emerald hook <stage> <action> <port>"
 
-        msg "emerald hook <pre|post> <install|remove> <port>"
-        msg "Example: emerald hook post install linux"
+        msg_info "emerald hook <pre|post> <install|remove> <port>"
+        msg_info "Example: emerald hook post install linux"
 
         return 1
     fi
@@ -1204,7 +1204,7 @@ emerald_install() {
 
         for pkg in $INST; do
             pkgcount=$(( pkgcount + 1 ))
-            installmsg="$installmsg install#$pkg#$(get_version "$pkg")"
+            installmsg="$installmsg_info install#$pkg#$(get_version "$pkg")"
         done
 
         printf "%s\n" "$installmsg" | tr ' ' '\n' | tr '#' ' ' | column -t
@@ -1303,7 +1303,7 @@ emerald_integrity() {
             done
         } < "$PKGDB_DIR/$pkg"
 
-        [ "$found" -eq 0 ] && msg "'$pkg' integrity is OK!"
+        [ "$found" -eq 0 ] && msg_info "'$pkg' integrity is OK!"
     else
         printf "%s\n" "Checking ports integrity..."
         interr=$(mktemp) || return 1
@@ -1329,7 +1329,7 @@ emerald_integrity() {
             } < "$db"
         ' _ {} "$PKGDB_DIR" "$interr"
 
-        [ ! -s "$interr" ] && msg "No integrity issues found!"
+        [ ! -s "$interr" ] && msg_info "No integrity issues found!"
         rm -f "$interr"
     fi
 }
@@ -1362,14 +1362,14 @@ emerald_missingdep() {
         done
 
         if [ -n "$msd" ]; then
-            msg "$pkg:$msd"
+            msg_info "$pkg:$msd"
             found=1
         fi
     done <<EOF
 $(all_installed)
 EOF
 
-    [ "$found" -eq 0 ] && msg "No ports missing deps found!"
+    [ "$found" -eq 0 ] && msg_info "No ports missing deps found!"
     return 0
 }
 
@@ -1441,7 +1441,7 @@ emerald_outdate() {
     out=$(check_outdated)
 
     [ -z "$out" ] && {
-        msg "All packages are up to date.";
+        msg_info "All packages are up to date.";
         return 0
     }
 
@@ -1561,10 +1561,10 @@ emerald_redeps() {
                     [ "$fix" = "yes" ] && {
                         [ -f "$CBUILD_DIR/$i.dep" ] && {
                             sed -i "/^$dd$/d" "$CBUILD_DIR/$i.dep"
-                            msg " $dd removed from $i cbuild deps"
+                            msg_info " $dd removed from $i cbuild deps"
                         } || {
                             sed -i "/^$dd$/d" "$ppath/depends"
-                            msg " $dd removed from $i depends"
+                            msg_info " $dd removed from $i depends"
                         }
                     }
                 }
@@ -1610,7 +1610,7 @@ emerald_remove() {
 
     for pkg in $IPKG; do
         pkgcount=$(( pkgcount + 1 ))
-        installmsg="$installmsg remove#$pkg#$(get_iversion "$pkg")"
+        installmsg="$installmsg_info remove#$pkg#$(get_iversion "$pkg")"
     done
 
     printf "%s\n" "$installmsg" | tr ' ' '\n' | tr '#' ' ' | column -t
@@ -1712,7 +1712,7 @@ emerald_search() {
         done
     done
 
-    [ "$_sr_found" -eq 0 ] && msg "No matching package found."
+    [ "$_sr_found" -eq 0 ] && msg_info "No matching package found."
     return 0
 }
 
@@ -1774,7 +1774,7 @@ emerald_sysup() {
             printf "\n"
             msg_warning "Please upgrade 'emerald' first."
 
-            msg "Run 'emerald upgrade emerald' as root."
+            msg_info "Run 'emerald upgrade emerald' as root."
             return 1
         ;;
     esac
@@ -1792,7 +1792,7 @@ emerald_sysup() {
         for d in $DEP; do
             case " $PKG " in
                 *" $d "*)
-                    installmsg="$installmsg upgrade#$d#$(get_version "$d")#$(get_iversion "$d")"
+                    installmsg="$installmsg_info upgrade#$d#$(get_version "$d")#$(get_iversion "$d")"
 
                     WILLINSTALL="$WILLINSTALL $d"
                     UPGPKG=$(( UPGPKG + 1 ))
@@ -1800,7 +1800,7 @@ emerald_sysup() {
 
                 *)
                     if ! emerald_isinstalled "$d" && get_port_path "$d" >/dev/null 2>&1; then
-                        installmsg="$installmsg install#$d#$(get_version "$d")#$(get_iversion "$d")"
+                        installmsg="$installmsg_info install#$d#$(get_version "$d")#$(get_iversion "$d")"
 
                         WILLINSTALL="$WILLINSTALL $d"
                         NEWPKG=$(( NEWPKG + 1 ))
@@ -1897,7 +1897,7 @@ trigger_fc_cache() {
     command -v fc-cache >/dev/null || return 0
 
     printf '%s\n' "$PKGFILES" | grep -q "^usr/share/fonts/" && {
-        msg "Updating fontconfig cache..."
+        msg_info "Updating fontconfig cache..."
         fc-cache -sf
     }
 }
@@ -1906,7 +1906,7 @@ trigger_gdk_pixbuf_cache() {
     command -v gdk-pixbuf-query-loaders >/dev/null || return 0
 
     printf '%s\n' "$PKGFILES" | grep -q "^usr/lib/gdk-pixbuf-2.0/2.10.0/loaders/" && {
-        msg "Probing GDK-Pixbuf loader modules..."
+        msg_info "Probing GDK-Pixbuf loader modules..."
         gdk-pixbuf-query-loaders --update-cache
     }
 }
@@ -1915,7 +1915,7 @@ trigger_gio_modules() {
     command -v gio-querymodules >/dev/null || return 0
 
     printf '%s\n' "$PKGFILES" | grep -q "^usr/lib/gio/modules/" && {
-        msg "Updating GIO module cache..."
+        msg_info "Updating GIO module cache..."
         gio-querymodules /usr/lib/gio/modules
     }
 }
@@ -1924,7 +1924,7 @@ trigger_glib_schema() {
     command -v glib-compile-schemas >/dev/null || return 0
 
     printf '%s\n' "$PKGFILES" | grep -q "^usr/share/glib-2.0/schemas/" && {
-        msg "Compiling GSettings XML schema files..."
+        msg_info "Compiling GSettings XML schema files..."
         glib-compile-schemas /usr/share/glib-2.0/schemas
     }
 }
@@ -1933,7 +1933,7 @@ trigger_gtk2_immodules() {
     command -v gtk-query-immodules-2.0 >/dev/null || return 0
 
     printf '%s\n' "$PKGFILES" | grep -q "^usr/lib/gtk-2.0/2.10.0/immodules/" && {
-        msg "Probing GTK2 input method modules..."
+        msg_info "Probing GTK2 input method modules..."
         gtk-query-immodules-2.0 --update-cache
     }
 }
@@ -1942,7 +1942,7 @@ trigger_gtk3_immodules() {
     command -v gtk-query-immodules-3.0 >/dev/null || return 0
 
     printf '%s\n' "$PKGFILES" | grep -q "^usr/lib/gtk-3.0/3.0.0/immodules/" && {
-        msg "Probing GTK3 input method modules..."
+        msg_info "Probing GTK3 input method modules..."
         gtk-query-immodules-3.0 --update-cache
     }
 }
@@ -1951,7 +1951,7 @@ trigger_icon_cache() {
     command -v gtk-update-icon-cache >/dev/null || return 0
 
     printf '%s\n' "$PKGFILES" | grep -q "^usr/share/icons/" && {
-        msg "Updating icon theme caches..."
+        msg_info "Updating icon theme caches..."
 
         for dir in /usr/share/icons/*; do
             [ -d "$dir" ] || continue # skip non-directory entries in /usr/share/icons
@@ -1970,7 +1970,7 @@ trigger_udevdb() {
     command -v udevadm >/dev/null || return 0
 
     printf '%s\n' "$PKGFILES" | grep -q "^etc/udev/hwdb.d/" && {
-        msg "Updating hardware database..."
+        msg_info "Updating hardware database..."
         udevadm hwdb --update
     }
 }
@@ -1980,7 +1980,7 @@ trigger_fontcache() {
     command -v mkfontscale >/dev/null || return 0
 
     printf '%s\n' "$PKGFILES" | grep -q "^usr/share/fonts/" && {
-        msg "Updating X fontdir indices..."
+        msg_info "Updating X fontdir indices..."
 
         for dir in $(find /usr/share/fonts -maxdepth 1 -type d \( ! -path /usr/share/fonts \)); do
             rm -f "$dir/fonts.scale" "$dir/fonts.dir" "$dir/.uuid"
@@ -1998,7 +1998,7 @@ trigger_desktopdb() {
     command -v update-desktop-database >/dev/null || return 0
 
     printf '%s\n' "$PKGFILES" | grep -q "^usr/share/applications/" && {
-        msg "Updating desktop file MIME type cache..."
+        msg_info "Updating desktop file MIME type cache..."
         update-desktop-database --quiet
     }
 }
@@ -2007,7 +2007,7 @@ trigger_mime_db() {
     command -v update-mime-database >/dev/null || return 0
 
     printf '%s\n' "$PKGFILES" | grep -q "^usr/share/mime/" && {
-        msg "Updating the MIME type database..."
+        msg_info "Updating the MIME type database..."
         update-mime-database /usr/share/mime
     }
 }
@@ -2102,7 +2102,7 @@ emerald_upgrade() {
         for d in $DEP; do
             case " $upkg " in
                 *" $d "*)
-                    installmsg="$installmsg upgrade#$d#$(get_version "$d")#$(get_iversion "$d")"
+                    installmsg="$installmsg_info upgrade#$d#$(get_version "$d")#$(get_iversion "$d")"
 
                     WILLINSTALL="$WILLINSTALL $d"
                     UPGPKG=$(( UPGPKG + 1 ))
@@ -2110,7 +2110,7 @@ emerald_upgrade() {
 
                 *)
                     if ! emerald_isinstalled "$d" && get_port_path "$d" >/dev/null 2>&1; then
-                        installmsg="$installmsg install#$d#$(get_version "$d")#$(get_iversion "$d")"
+                        installmsg="$installmsg_info install#$d#$(get_version "$d")#$(get_iversion "$d")"
 
                         WILLINSTALL="$WILLINSTALL $d"
                         NEWPKG=$(( NEWPKG + 1 ))
@@ -2122,7 +2122,7 @@ emerald_upgrade() {
         printf "\n"
 
         for dd in $upkg; do
-            installmsg="$installmsg upgrade#$dd#$(get_version "$dd")#$(get_iversion "$dd")"
+            installmsg="$installmsg_info upgrade#$dd#$(get_version "$dd")#$(get_iversion "$dd")"
 
             WILLINSTALL="$WILLINSTALL $dd"
             UPGPKG=$(( UPGPKG + 1 ))
