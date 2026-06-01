@@ -80,57 +80,38 @@ load_colors() {
 # apply color theme
 load_colors
 
-require_root() {
-    [ "$(id -u)" -ne 0 ] && {
-        msgerr "this operation requires root privileges!"
-        exit 1
-    }
-}
-
 msg() {
-    printf "${COLOR2}==>${CRESET} %s\n" "$1"
+    printf "%b==>%b %s\n" "$COLOR2" "$CRESET" "$1"
 }
 
-msginst() {
-    printf "[${COLOR2}i${CRESET}] %s\n" "$1"
+msg_error() {
+    printf "%bERROR:%b %s\n" "$COLOR1" "$CRESET" "$1" >&2
 }
 
-msgmiss() {
-    printf "[${COLOR3}m${CRESET}] %s\n" "$1"
+msg_warning() {
+    printf "%bWARNING:%b %s\n" "$COLOR3" "$CRESET" "$1" >&2
 }
 
-msgnoinst() {
-    printf "[-] %s\n" "$1"
+msg_port_not_found() {
+    printf "Port '%s' not found.\n" "$1"
 }
 
-msgerr() {
-    printf "${COLOR1}ERROR:${CRESET} %s\n" "$1" >&2
+msg_port_not_installed() {
+    printf "Port '%s' not installed.\n" "$1"
 }
 
-msgwarn() {
-    printf "${COLOR3}WARNING:${CRESET} %s\n" "$1" >&2
-}
-
-msg_portnotfound() {
-    printf "%s\n" "Port '$1' not found."
-}
-
-msg_portnotinstalled() {
-    printf "%s\n" "Port '$1' not installed."
-}
-
-msg_portalreadyinstalled() {
-    printf "%s\n" "Port '$1' already installed."
+msg_port_already_installed() {
+    printf "Port '%s' already installed.\n" "$1"
 }
 
 msg_deps_status() {
     for i in "$@"; do
         if emerald_isinstalled "$i"; then
-            msginst "$i"
+            printf "[%bi%b] %s\n" "$COLOR2" "$CRESET" "$i"
         elif get_port_path "$i" >/dev/null; then
-            msgnoinst "$i"
+            printf "[-] %s\n" "$i"
         else
-            msgmiss "$i"
+            printf "[%bm%b] %s\n" "$COLOR3" "$CRESET" "$i"
         fi
     done
 
@@ -146,6 +127,13 @@ get_port_path() {
     done
 
     return 1
+}
+
+require_root() {
+    [ "$(id -u)" -ne 0 ] && {
+        msg_error "this operation requires root privileges!"
+        exit 1
+    }
 }
 
 get_iversion() {
@@ -183,14 +171,15 @@ all_installed() {
 deps_alias() {
     printf '%s\n' $deps | awk -v alias_file="$ALIAS_FILE" 'BEGIN {
         while ((getline line < alias_file) > 0) {
-            if (line ~ /^[[:space:]]*$/ || line ~ /^#/) continue
-            split(line, a)
-            alias[a[1]] = a[2]
+            if (line ~ /^[[:space:]]*$/ || line ~ /^#/) continue;
+
+            split(line, a);
+            alias[a[1]] = a[2];
         }
 
-        close(alias_file)
+        close(alias_file);
     } {
-        print ($0 in alias) ? alias[$0] : $0
+        print ($0 in alias) ? alias[$0] : $0;
     }'
 }
 
@@ -248,7 +237,7 @@ summary_show() {
 
     # Report failed packages
     if [ -n "$failed" ]; then
-        msgerr "The following packages failed to $action:"
+        msg_error "The following packages failed to $action:"
 
         for p in $failed; do
             printf "  - %s\n" "$p"
@@ -257,7 +246,7 @@ summary_show() {
 
     # Report skipped packages (if any)
     if [ -n "$skipped" ]; then
-        msgwarn "The following packages were skipped:"
+        msg_warning "The following packages were skipped:"
 
         for p in $skipped; do
             printf "  - %s\n" "$p"
@@ -287,7 +276,7 @@ emerald_build() {
 
     while [ "$1" ]; do
         case $1 in
-            -i | -u | -r | -g | -p ) ;;
+            -i | -u | -r | -g | -p) ;;
             --log) LOG=1 ;;
             -k) KEEP_GOING_LOCAL=1 ;;
             -*) OPTS="$OPTS $1" ;;
@@ -304,7 +293,7 @@ emerald_build() {
 
     for pkg in $PKGNAME; do
         ppath=$(get_port_path "$pkg") || {
-            msg_portnotfound "$pkg"
+            msg_port_not_found "$pkg"
 
             # If keep going is enabled, log and continue
             if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
@@ -326,7 +315,7 @@ emerald_build() {
                     set_term_title "Building $pkg failed."
 
                     if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
-                        msgwarn "Build failed for '$pkg', continuing with next package..."
+                        msg_warning "Build failed for '$pkg', continuing with next package..."
                         failed_builds="$failed_builds $pkg"
                     else
                         return 1
@@ -339,7 +328,7 @@ emerald_build() {
                     set_term_title "Building $pkg failed."
 
                     if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
-                        msgwarn "Build failed for '$pkg', continuing with next package..."
+                        msg_warning "Build failed for '$pkg', continuing with next package..."
                         failed_builds="$failed_builds $pkg"
                     else
                         return 1
@@ -454,7 +443,7 @@ EOF
         ;;
 
         *)
-            msgerr "Invalid argument: $1"
+            msg_error "Invalid argument: $1"
             return 1
         ;;
     esac
@@ -487,7 +476,7 @@ EOF
         portpath=$(get_port_path "$portname")
 
         if [ -z "$portpath" ]; then
-            msgerr "$portname archived, remove it."
+            msg_error "$portname archived, remove it."
             continue
         fi
 
@@ -505,7 +494,7 @@ EOF
 
             if [ -f "$checksums_file" ]; then
                 # Read checksum and filename directly (space-separated)
-                while read -r checksum filename; do
+                while read -r _ filename; do
                     # Skip empty lines and ensure filename exists
                     [ -n "$filename" ] && keepsrc="${keepsrc}${keepsrc:+|}$filename"
                 done < "$checksums_file"
@@ -542,7 +531,7 @@ emerald_cat() {
     need_arg "$@"
 
     PPATH=$(get_port_path "$1") || {
-        msg_portnotfound "$1"
+        msg_port_not_found "$1"
         return 1
     }
 
@@ -567,15 +556,15 @@ emerald_config() {
     printf '%b%s%b %b%s%b\n' "$COLOR5" "IGNORE_CHECKSUM:" "$CRESET" "$COLOR4" "$IGNORE_CHECKSUM" "$CRESET"
     printf '%b%s%b %b%s%b\n' "$COLOR5" "KEEP_LIBTOOL:" "$CRESET" "$COLOR4" "$KEEP_LIBTOOL" "$CRESET"
     printf '%b%s%b %b%s%b\n' "$COLOR5" "KEEP_LOCALE:" "$CRESET" "$COLOR4" "$KEEP_LOCALE" "$CRESET"
-    printf "%b%s%b %b%s%b\n" "$COLORS" "KEEP_MAN:" "$CRESET" "$COLOR4" "$KEEP_MAN" "$CRESET"
+    printf "%b%s%b %b%s%b\n" "$COLOR5" "KEEP_MAN:" "$CRESET" "$COLOR4" "$KEEP_MAN" "$CRESET"
     printf '%b%s%b %b%s%b\n' "$COLOR5" "KEEP_DOC:" "$CRESET" "$COLOR4" "$KEEP_DOC" "$CRESET"
     printf '%b%s%b %b%s%b\n' "$COLOR5" "KEEP_GOING:" "$CRESET" "$COLOR4" "$KEEP_GOING" "$CRESET"
     printf '%b%s%b %s\n' "$COLOR5" "SOURCE_DIR:" "$CRESET" "$SOURCE_DIR"
-    printf '%b%s%b %s\n' "$COLOR5" "PACKAGE_DIR:" "$CRESET" "$PACKAGE_DIR"
+    printf '%b%s%b %s\n\n' "$COLOR5" "PACKAGE_DIR:" "$CRESET" "$PACKAGE_DIR"
     printf '%b%s%b\n' "$COLOR5" "PORT_REPO:" "$CRESET"
 
     for i in $PORT_REPO; do
-        printf '    %s\n' "${i}"
+        printf '  - %s\n' "${i}"
     done
 
     return 0
@@ -601,7 +590,7 @@ emerald_dependent() {
             msg_deps_status "$dpd"
         done
     else
-        msg_portnotfound "$1"
+        msg_port_not_found "$1"
         return 1
     fi
 }
@@ -612,7 +601,7 @@ emerald_depends() {
     if get_port_path "$1" >/dev/null; then
         depends=$(get_depends "$1")
     else
-        msg_portnotfound "$1"
+        msg_port_not_found "$1"
         return 1
     fi
 
@@ -703,7 +692,7 @@ emerald_deplist() {
         if get_port_path "$p" >/dev/null 2>&1; then
             PPKG="$PPKG $p "
         elif [ "$quick" != 1 ]; then
-            msg_portnotfound "$p"
+            msg_port_not_found "$p"
         fi
     done
 
@@ -745,7 +734,7 @@ $(awk '/^version=/ {
 }' "$2/$1/$BUILD_SCRIPT")
 EOF
 
-    emerald_isinstalled "$1" && ins="[${COLOR2}i${CRESET}]" || ins="[ ]"
+    emerald_isinstalled "$1" && ins=$(printf "[%bi%b]" "$COLOR2" "$CRESET") || ins="[ ]"
     printf "%b %b(%s)%b %s %b%s-%s%b\n" "$ins" "$COLOR5" "${2##*/}" "$CRESET" "$1" "$COLOR4" "$dversion" "$drelease" "$CRESET"
 }
 
@@ -771,7 +760,7 @@ emerald_files() {
     if emerald_isinstalled "$1"; then
         cat "$PKGDB_DIR/$1"
     else
-        msg_portnotinstalled "$1"
+        msg_port_not_installed "$1"
     fi
 }
 
@@ -908,7 +897,7 @@ emerald_info() {
     need_arg "$@"
 
     ppath=$(get_port_path "$1") || {
-        msg_portnotfound "$1"
+        msg_port_not_found "$1"
         return 1
     }
 
@@ -1014,7 +1003,7 @@ emerald_hook() {
     require_root
 
     if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
-        msgwarn "Usage: emerald hook <stage> <action> <port>"
+        msg_warning "Usage: emerald hook <stage> <action> <port>"
 
         msg "emerald hook <pre|post> <install|remove> <port>"
         msg "Example: emerald hook post install linux"
@@ -1030,7 +1019,7 @@ emerald_hook() {
         pre | post) ;;
 
         *)
-            msgerr "stage must be 'pre' or 'post'"
+            msg_error "stage must be 'pre' or 'post'"
             return 1
         ;;
     esac
@@ -1039,7 +1028,7 @@ emerald_hook() {
         install | remove) ;;
 
         *)
-            msgerr "action must be 'install' or 'remove'"
+            msg_error "action must be 'install' or 'remove'"
             return 1
         ;;
     esac
@@ -1085,7 +1074,7 @@ emerald_install() {
 
         for ii in $PKGNAME; do
             if ! ppath=$(get_port_path "$ii"); then
-                msg_portnotfound "$ii"
+                msg_port_not_found "$ii"
 
                 if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
                     failed_installs="$failed_installs $ii"
@@ -1094,7 +1083,7 @@ emerald_install() {
                     return 1
                 fi
             elif ! emerald_isinstalled "$ii"; then
-                msg_portnotinstalled "$ii"
+                msg_port_not_installed "$ii"
 
                 if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
                     failed_installs="$failed_installs $ii"
@@ -1110,7 +1099,7 @@ emerald_install() {
                         done_pkg="$done_pkg $ii"
                     else
                         if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
-                            msgwarn "Reinstall failed for '$ii', continuing with next package..."
+                            msg_warning "Reinstall failed for '$ii', continuing with next package..."
 
                             failed_installs="$failed_installs $ii"
                             error=1
@@ -1143,7 +1132,7 @@ emerald_install() {
 
         for ii in $PKGNAME; do
             if ! ppath=$(get_port_path "$ii"); then
-                msg_portnotfound "$ii"
+                msg_port_not_found "$ii"
 
                 if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
                     failed_installs="$failed_installs $ii"
@@ -1152,7 +1141,7 @@ emerald_install() {
                     return 1
                 fi
             elif emerald_isinstalled "$ii"; then
-                msg_portalreadyinstalled "$ii"
+                msg_port_already_installed "$ii"
                 skipped_installs="$skipped_installs $ii"
 
                 continue
@@ -1165,7 +1154,7 @@ emerald_install() {
                         world_add "$ii"
                     else
                         if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
-                            msgwarn "Install failed for '$ii', continuing with next package..."
+                            msg_warning "Install failed for '$ii', continuing with next package..."
 
                             failed_installs="$failed_installs $ii"
                             error=1
@@ -1194,9 +1183,9 @@ emerald_install() {
 
     for i in $PKGNAME; do
         if ! get_port_path "$i" >/dev/null 2>&1; then
-            msg_portnotfound "$i"
+            msg_port_not_found "$i"
         elif emerald_isinstalled "$i"; then
-            msg_portalreadyinstalled "$i"
+            msg_port_already_installed "$i"
         else
             IPKG="$IPKG $i"
         fi
@@ -1249,7 +1238,7 @@ emerald_install() {
                         done_pkg="$done_pkg $int"
                     else
                         if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
-                            msgwarn "Install failed for '$int', continuing with next package..."
+                            msg_warning "Install failed for '$int', continuing with next package..."
 
                             failed_installs="$failed_installs $int"
                             error=1
@@ -1262,7 +1251,7 @@ emerald_install() {
                     fi
                 cd - >/dev/null || return 1
             else
-                msgwarn "Skipping missing package: $int"
+                msg_warning "Skipping missing package: $int"
                 skipped_installs="$skipped_installs $int"
             fi
 
@@ -1297,14 +1286,14 @@ emerald_integrity() {
         printf "%s\n" "Checking '$pkg' integrity..."
 
         [ -f "$PKGDB_DIR/$pkg" ] || {
-            msg_portnotinstalled "$pkg"
+            msg_port_not_installed "$pkg"
             return 1
         }
 
         found=0
 
         {
-            read -r _   # skip header
+            read -r _ # skip header
 
             while IFS= read -r line; do
                 [ -e "/$line" ] && continue
@@ -1472,7 +1461,7 @@ emerald_path() {
     if PPATH=$(get_port_path "$1"); then
         printf "%s\n" "$PPATH"
     else
-        msg_portnotfound "$1"
+        msg_port_not_found "$1"
         return 1
     fi
 }
@@ -1497,7 +1486,7 @@ emerald_purge() {
     if [ "$PURGENAME" ]; then
         for i in $PURGENAME; do
             emerald_isinstalled "$i" || {
-                msg_portnotinstalled "$i"
+                msg_port_not_installed "$i"
                 needexit=1
             }
         done
@@ -1554,7 +1543,7 @@ emerald_redeps() {
     fi
 
     ppath=$(get_port_path $pkg) || {
-        msg_portnotfound $pkg
+        msg_port_not_found $pkg
         return 1
     }
 
@@ -1604,7 +1593,7 @@ emerald_remove() {
 
     for i in $PKGNAME; do
         if ! emerald_isinstalled "$i"; then
-            msg_portnotinstalled "$i"
+            msg_port_not_installed "$i"
         else
             IPKG="$IPKG $i"
         fi
@@ -1664,7 +1653,7 @@ emerald_search() {
             -n | --name) NAME_ONLY=1 ;;
 
             -*)
-                msgerr "Invalid search option: $1";
+                msg_error "Invalid search option: $1";
                 return 1
             ;;
 
@@ -1718,7 +1707,7 @@ emerald_search() {
         _sr_found=1
 
         printf '%s\n' "$_sr_out" | while IFS='|' read -r name version release desc; do
-            emerald_isinstalled "$name" && ins="[${COLOR2}i${CRESET}]" || ins="[ ]"
+            emerald_isinstalled "$name" && ins=$(printf "[%bi%b]" "$COLOR2" "$CRESET") || ins="[ ]"
             printf "%b %b(%s)%b %b%s%b %b%s-%s%b %s\n" "$ins" "$COLOR5" "${repo##*/}" "$CRESET" "$COLOR2" "$name" "$CRESET" "$COLOR4" "$version" "$release" "$CRESET" "$desc"
         done
     done
@@ -1783,7 +1772,7 @@ emerald_sysup() {
     case " $PKG " in
         *" emerald "*)
             printf "\n"
-            msgwarn "Please upgrade 'emerald' first."
+            msg_warning "Please upgrade 'emerald' first."
 
             msg "Run 'emerald upgrade emerald' as root."
             return 1
@@ -1823,7 +1812,7 @@ emerald_sysup() {
         printf "\n"
 
         for dd in $PKG; do
-            printf "[${COLOR2}u${CRESET}] %s  " "$dd"
+            printf "[%bu%b] %s  " "$COLOR2" "$CRESET" "$dd"
 
             WILLINSTALL="$WILLINSTALL $dd"
             UPGPKG=$(( UPGPKG + 1 ))
@@ -1857,7 +1846,7 @@ emerald_sysup() {
                     done_pkg="$done_pkg $inst"
                 else
                     if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
-                        msgwarn "Install failed for '$inst', continuing with next package..."
+                        msg_warning "Install failed for '$inst', continuing with next package..."
 
                         failed_upgrades="$failed_upgrades $inst"
                         error=1
@@ -1877,7 +1866,7 @@ emerald_sysup() {
                     done_pkg="$done_pkg $inst"
                 else
                     if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
-                        msgwarn "Upgrade failed for '$inst', continuing with next package..."
+                        msg_warning "Upgrade failed for '$inst', continuing with next package..."
 
                         failed_upgrades="$failed_upgrades $inst"
                         error=1
@@ -2072,7 +2061,7 @@ emerald_upgrade() {
 
     for pkg in $PKGNAME; do
         if ! emerald_isinstalled "$pkg"; then
-            msg_portnotinstalled "$pkg"
+            msg_port_not_installed "$pkg"
 
             if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
                 failed_upgrades="$failed_upgrades $pkg"
@@ -2167,7 +2156,7 @@ emerald_upgrade() {
                     done_pkg="$done_pkg $inst"
                 else
                     if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
-                        msgwarn "Install failed for '$inst', continuing with next package..."
+                        msg_warning "Install failed for '$inst', continuing with next package..."
 
                         failed_upgrades="$failed_upgrades $inst"
                         error=1
@@ -2187,7 +2176,7 @@ emerald_upgrade() {
                     done_pkg="$done_pkg $inst"
                 else
                     if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
-                        msgwarn "Upgrade failed for '$inst', continuing with next package..."
+                        msg_warning "Upgrade failed for '$inst', continuing with next package..."
 
                         failed_upgrades="$failed_upgrades $inst"
                         error=1
@@ -2218,7 +2207,7 @@ world_add() {
     grep -qx "$1" "$WORLD_FILE" && return
 
     emerald_isinstalled "$1" || {
-        msg_portnotinstalled "$1"
+        msg_port_not_installed "$1"
         return 1
     }
 
@@ -2317,7 +2306,7 @@ fi
 
 for f in $REPO_FILE $ALIAS_FILE $MASK_FILE $CONFIG_FILE; do
     if [ ! -f "$f" ]; then
-        msgerr "file not found: $f"
+        msg_error "file not found: $f"
         exit 3
     fi
 done
