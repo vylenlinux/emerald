@@ -5,11 +5,11 @@
 # POSIX-compliant shell script for build packages
 #
 
-msg() {
+msg_info() {
     printf "==> %s\n" "$1"
 }
 
-msgerr() {
+msg_error() {
     printf "ERROR: %s\n" "$1" >&2
 }
 
@@ -18,29 +18,29 @@ do_service() {
         _svc_dir="$SRC/files/services/$_svc"
 
         [ -d "$_svc_dir" ] || {
-            msgerr "Service directory not found: $_svc_dir"
+            msg_error "Service directory not found: $_svc_dir"
             return 1
         }
 
         # Install init.d (required)
         if [ -f "$_svc_dir/init.d/$_svc" ]; then
             install -Dm755 "$_svc_dir/init.d/$_svc" "$PKG/etc/init.d/$_svc"
-            msg "Installed: /etc/init.d/$_svc"
+            msg_info "Installed: /etc/init.d/$_svc"
         elif [ -f "$_svc_dir/$_svc.initd" ]; then
             install -Dm755 "$_svc_dir/$_svc.initd" "$PKG/etc/init.d/$_svc"
-            msg "Installed: /etc/init.d/$_svc"
+            msg_info "Installed: /etc/init.d/$_svc"
         else
-            msgerr "No init.d found for $_svc"
+            msg_error "No init.d found for $_svc"
             return 1
         fi
 
         # Install conf.d (optional)
         if [ -f "$_svc_dir/conf.d/$_svc" ]; then
             install -Dm644 "$_svc_dir/conf.d/$_svc" "$PKG/etc/conf.d/$_svc"
-            msg "Installed: /etc/conf.d/$_svc"
+            msg_info "Installed: /etc/conf.d/$_svc"
         elif [ -f "$_svc_dir/$_svc.confd" ]; then
             install -Dm644 "$_svc_dir/$_svc.confd" "$PKG/etc/conf.d/$_svc"
-            msg "Installed: /etc/conf.d/$_svc"
+            msg_info "Installed: /etc/conf.d/$_svc"
         fi
     done
 }
@@ -50,16 +50,16 @@ do_pam() {
         _pam_dir="$SRC/files/pam.d"
 
         [ -d "$_pam_dir" ] || {
-            msgerr "PAM directory not found: $_pam_dir"
+            msg_error "PAM directory not found: $_pam_dir"
             return 1
         }
 
         # Install pam.d config (required)
         if [ -f "$_pam_dir/$_pam" ]; then
             install -Dm644 "$_pam_dir/$_pam" "$PKG/etc/pam.d/$_pam"
-            msg "Installed: /etc/pam.d/$_pam"
+            msg_info "Installed: /etc/pam.d/$_pam"
         else
-            msgerr "No PAM config found for $_pam"
+            msg_error "No PAM config found for $_pam"
             return 1
         fi
     done
@@ -69,12 +69,12 @@ do_revdep() {
     _revdep_file="$SRC/files/$name.revdep"
 
     [ -f "$_revdep_file" ] || {
-        msgerr "Revdep file not found: $_revdep_file"
+        msg_error "Revdep file not found: $_revdep_file"
         return 1
     }
 
     install -Dm644 "$_revdep_file" "$PKG/etc/revdep.d/$name.conf"
-    msg "Installed: /etc/revdep.d/$name.conf"
+    msg_info "Installed: /etc/revdep.d/$name.conf"
 }
 
 parse_git_url() {
@@ -173,13 +173,13 @@ pkg_gen_checksums() {
         fi
 
         [ -f "$i" ] || {
-            msgerr "File missing: $i"
+            msg_error "File missing: $i"
             abort 1
         }
     done
 
     generate_checksum > .checksums
-    msg ".checksums updated"
+    msg_info ".checksums updated"
 }
 
 generate_checksum() {
@@ -204,7 +204,7 @@ pkg_checksum() {
                 TMPCHECKSUM="$WORK_DIR/checksumstmp.$$"
                 DIFCHECKSUM="$WORK_DIR/checksumsdiff.$$"
 
-                msg "Checking checksums..."
+                msg_info "Checking checksums..."
                 generate_checksum > "$TMPCHECKSUM"
 
                 diff -U 0 .checksums "$TMPCHECKSUM" | sed -e '/---/d;/+++/d;/@@/d' \
@@ -213,7 +213,7 @@ pkg_checksum() {
 
                 if [ -s "$DIFCHECKSUM" ]; then
                     cat "$DIFCHECKSUM"
-                    msg "Checksum failed."
+                    msg_info "Checksum failed."
 
                     mismatch=1
                 fi
@@ -232,19 +232,19 @@ clone_or_update_git() {
     _ref="$4"
 
     if [ -d "$_dest/.git" ]; then
-        msg "Updating git repository: $_dest"
+        msg_info "Updating git repository: $_dest"
         cd "$_dest" || return 1
 
         _current_remote=$(git remote get-url origin 2>/dev/null || git config --get remote.origin.url)
 
         if [ "$_current_remote" != "$_url" ]; then
-            msg "Remote URL changed, re-cloning..."
+            msg_info "Remote URL changed, re-cloning..."
             cd - >/dev/null || return 1
 
             rm -rf "$_dest"
         else
             git fetch --all --tags --prune || {
-                msgerr "Failed to fetch updates"
+                msg_error "Failed to fetch updates"
                 cd - >/dev/null
 
                 return 1
@@ -255,17 +255,17 @@ clone_or_update_git() {
                     _latest_tag=$(git describe --tags --abbrev=0 2>/dev/null)
 
                     if [ -n "$_latest_tag" ]; then
-                        msg "Checking out latest tag: $_latest_tag"
+                        msg_info "Checking out latest tag: $_latest_tag"
 
                         git checkout -f "$_latest_tag" || {
-                            msgerr "Failed to checkout tag $_latest_tag"
+                            msg_error "Failed to checkout tag $_latest_tag"
                             cd - >/dev/null
 
                             return 1
                         }
                     else
                         git checkout -f FETCH_HEAD || {
-                            msgerr "Failed to checkout FETCH_HEAD"
+                            msg_error "Failed to checkout FETCH_HEAD"
                             cd - >/dev/null
 
                             return 1
@@ -274,10 +274,10 @@ clone_or_update_git() {
                 ;;
 
                 branch)
-                    msg "Checking out branch: $_ref"
+                    msg_info "Checking out branch: $_ref"
 
                     git checkout -f -B "$_ref" "origin/$_ref" || {
-                        msgerr "Failed to checkout branch $_ref"
+                        msg_error "Failed to checkout branch $_ref"
                         cd - >/dev/null
 
                         return 1
@@ -287,10 +287,10 @@ clone_or_update_git() {
                 ;;
 
                 tag | auto)
-                    msg "Checking out: $_ref"
+                    msg_info "Checking out: $_ref"
 
                     git checkout -f "$_ref" || {
-                        msgerr "Failed to checkout $_ref"
+                        msg_error "Failed to checkout $_ref"
                         cd - >/dev/null
 
                         return 1
@@ -298,10 +298,10 @@ clone_or_update_git() {
                 ;;
 
                 commit)
-                    msg "Checking out commit: $_ref"
+                    msg_info "Checking out commit: $_ref"
 
                     git checkout -f "$_ref" || {
-                        msgerr "Failed to checkout commit $_ref"
+                        msg_error "Failed to checkout commit $_ref"
                         cd - >/dev/null
 
                         return 1
@@ -314,20 +314,20 @@ clone_or_update_git() {
         fi
     fi
 
-    msg "Cloning: $_url"
+    msg_info "Cloning: $_url"
 
     git clone "$_url" "$_dest" || {
-        msgerr "Failed to clone $_url"
+        msg_error "Failed to clone $_url"
         return 1
     }
 
     cd "$_dest" || return 1
         case "$_ref_type" in
             branch)
-                msg "Switching to branch: $_ref"
+                msg_info "Switching to branch: $_ref"
 
                 git checkout -b "$_ref" "origin/$_ref" 2>/dev/null || git checkout -f "$_ref" || {
-                    msgerr "Failed to checkout branch $_ref"
+                    msg_error "Failed to checkout branch $_ref"
                     cd - >/dev/null
 
                     return 1
@@ -335,10 +335,10 @@ clone_or_update_git() {
             ;;
 
             tag | auto)
-                msg "Checking out: $_ref"
+                msg_info "Checking out: $_ref"
 
                 git checkout -f "$_ref" || {
-                    msgerr "Failed to checkout $_ref"
+                    msg_error "Failed to checkout $_ref"
                     cd - >/dev/null
 
                     return 1
@@ -346,10 +346,10 @@ clone_or_update_git() {
             ;;
 
             commit)
-                msg "Checking out commit: $_ref"
+                msg_info "Checking out commit: $_ref"
 
                 git checkout -f "$_ref" || {
-                    msgerr "Failed to checkout commit $_ref"
+                    msg_error "Failed to checkout commit $_ref"
                     cd - >/dev/null
 
                     return 1
@@ -377,7 +377,7 @@ pkg_fetch() {
                     _ref="$3"
 
                     if [ -d "$filepath/.git" ]; then
-                        msg "Git repository found: $filepath"
+                        msg_info "Git repository found: $filepath"
                         _need_update=0
 
                         if [ "$_ref_type" != "none" ]; then
@@ -411,7 +411,7 @@ pkg_fetch() {
                 filepath="$SOURCE_DIR/$(get_git_dirname "$_git_url" "$_ref_type" "$_ref")"
 
                 if [ -d "$filepath/.git" ]; then
-                    msg "Git repository found: $filepath"
+                    msg_info "Git repository found: $filepath"
                     _need_update=0
 
                     if [ "$_ref_type" != "none" ]; then
@@ -440,7 +440,7 @@ pkg_fetch() {
         esac
 
         [ -f "$filepath" ] && {
-            msg "Source found: $filepath"
+            msg_info "Source found: $filepath"
             continue
         }
 
@@ -448,17 +448,17 @@ pkg_fetch() {
         if [ -f "$filepath.partial" ]; then
             if [ -s "$filepath.partial" ] && [ -r "$filepath.partial" ]; then
                 COPT="-C -"
-                msg "Continuing download: $i"
+                msg_info "Continuing download: $i"
             else
-                msg "Removing corrupted partial file"
+                msg_info "Removing corrupted partial file"
                 rm -f "$filepath.partial"
             fi
         fi
 
-        msg "Fetching: $i"
+        msg_info "Fetching: $i"
 
         curl $COPT -L --fail --retry 3 --retry-delay 3 -o "$filepath.partial" $CURL_OPTS "$url" || {
-            msgerr "Fetching failed: $i"
+            msg_error "Fetching failed: $i"
             rm -f "$filepath.partial"
 
             abort 1
@@ -478,25 +478,25 @@ pkg_unpack() {
     mkdir -p "$SRC" "$PKG"
 
     if [ -d "$PWD/files" ]; then
-        msg "Preparing files directory"
+        msg_info "Preparing files directory"
 
         cp -r "$PWD/files" "$SRC" || {
-            msgerr "Failed to copy files directory"
+            msg_error "Failed to copy files directory"
             abort 1
         }
     fi
 
     for i in $(get_filepath); do
         if [ ! -f "$i" ] && [ ! -d "$i" ]; then
-            msgerr "Source missing: $i"
+            msg_error "Source missing: $i"
             abort 1
         fi
 
         if [ -d "$i" ] && [ -d "$i/.git" ]; then
-            msg "Preparing git source: $i"
+            msg_info "Preparing git source: $i"
 
             cp -r "$i" "$SRC" || {
-                msgerr "Preparing failed: $i"
+                msg_error "Preparing failed: $i"
                 abort 1
             }
 
@@ -507,10 +507,10 @@ pkg_unpack() {
             _basename="${i##*/}"
 
             if [ "$_basename" = "$n" ]; then
-                msg "Preparing: $i"
+                msg_info "Preparing: $i"
 
                 cp --reflink=auto "$i" "$SRC" || {
-                    msgerr "Preparing failed: $i"
+                    msg_error "Preparing failed: $i"
                     abort 1
                 }
 
@@ -520,30 +520,30 @@ pkg_unpack() {
 
         case "$i" in
             *.tar | *.tar.* | *.tgz | *.tbz2 | *.txz | *.zst | *.zip | *.rpm | *.7z)
-                msg "Unpacking: $i"
+                msg_info "Unpacking: $i"
                 bsdtar -xpo -C "$SRC" -f "$i"
             ;;
 
             *)
-                msg "Preparing: $i"
+                msg_info "Preparing: $i"
                 cp --reflink=auto "$i" "$SRC"
             ;;
         esac || {
-            msgerr "Unpacking/Preparing failed: $i"
+            msg_error "Unpacking/Preparing failed: $i"
             abort 1
         }
     done
 }
 
 pkg_build() {
-    [ "$(id -u)" = 0 ] || {
-        msgerr "You must build package as root, or use fakeroot."
+    [ "$(id -u)" -ne 0 ] && {
+        msg_error "You must build package as root, or use fakeroot."
         help
 
         abort 1
     }
 
-    msg "Build start: $name-$version-$release"
+    msg_info "Build start: $name-$version-$release"
 
     cd "$SRC" >/dev/null || abort 1
         if [ "$QUIET" ]; then
@@ -553,32 +553,32 @@ pkg_build() {
         fi
 
         if [ $? -ne 0 ]; then
-            msgerr "Build failed: $name-$version-$release"
+            msg_error "Build failed: $name-$version-$release"
             abort 1
         else
-            msg "Build success: $name-$version-$release"
+            msg_info "Build success: $name-$version-$release"
         fi
     cd - >/dev/null || return 1
 }
 
 pkg_lint() {
-    linterror=0
+    lint_error=0
 
     # check empty PKG
     if ! find "$PKG" -mindepth 1 -maxdepth 1 2>/dev/null | read -r _; then
-        msgerr "PKG is empty"
+        msg_error "PKG is empty"
         abort 1
     fi
 
     # check for backup file
     for f in $backup; do
         if [ ! -f "$PKG/$f" ]; then
-            msgerr "Backup file '$f' does not exist in PKG!"
-            linterror=1
+            msg_error "Backup file '$f' does not exist in PKG!"
+            lint_error=1
         fi
     done
 
-    if [ "$linterror" = 1 ]; then
+    if [ "$lint_error" = 1 ]; then
         abort 1
     fi
 }
@@ -601,37 +601,25 @@ strip_files() {
         should_skip "$binary" && continue
 
         case "$(file -bi "$binary")" in
-            *application/x-sharedlib*)
-                # Libraries (.so)
-                ${CROSS_COMPILE}strip --strip-unneeded "$binary" 2>/dev/null
-            ;;
+            # Libraries (.so)
+            *application/x-sharedlib*) "${CROSS_COMPILE}strip" --strip-unneeded "$binary" 2>/dev/null ;;
 
-            *application/x-pie-executable*)
-                # PIE executables
-                ${CROSS_COMPILE}strip --strip-unneeded "$binary" 2>/dev/null
-            ;;
+            # PIE executables
+            *application/x-pie-executable*) "${CROSS_COMPILE}strip" --strip-unneeded "$binary" 2>/dev/null ;;
 
-            *application/x-archive*)
-                # Libraries (.a)
-                ${CROSS_COMPILE}strip --strip-debug "$binary" 2>/dev/null
-            ;;
+            # Libraries (.a)
+            *application/x-archive*) "${CROSS_COMPILE}strip" --strip-debug "$binary" 2>/dev/null ;;
 
             *application/x-object*)
                 case "$binary" in
-                    *.ko)
-                        # Kernel module
-                        ${CROSS_COMPILE}strip --strip-unneeded "$binary" 2>/dev/null
-                    ;;
-
+                    # Kernel module
+                    *.ko) "${CROSS_COMPILE}strip" --strip-unneeded "$binary" 2>/dev/null ;;
                     *) continue ;;
                 esac
             ;;
 
-            *application/x-executable*)
-                # Binaries
-                ${CROSS_COMPILE}strip --strip-all "$binary" 2>/dev/null
-            ;;
-
+            # Binaries
+            *application/x-executable*) ${CROSS_COMPILE}strip --strip-all "$binary" 2>/dev/null ;;
             *) continue ;;
         esac
     done
@@ -685,33 +673,23 @@ pkg_package() {
         }
 
         case "$KEEP_LIBTOOL" in
-            0 | no)
-                find . ! -type d -name "*.la" -delete
-            ;;
+            0 | no) find . ! -type d -name "*.la" -delete ;;
         esac
 
         case "$KEEP_LOCALE" in
-            0 | no)
-                rm -fr usr/share/locale usr/locale usr/lib/locale
-            ;;
+            0 | no) rm -fr usr/share/locale usr/locale usr/lib/locale ;;
         esac
 
         case "$KEEP_DOC" in
-            0 | no)
-                rm -fr usr/share/doc usr/share/gtk-doc usr/doc usr/gtk-doc
-            ;;
+            0 | no) rm -fr usr/share/doc usr/share/gtk-doc usr/doc usr/gtk-doc ;;
         esac
 
         case "$KEEP_MAN" in
-            0 | no)
-                rm -fr usr/man usr/share/man
-            ;;
+            0 | no) rm -fr usr/man usr/share/man ;;
         esac
 
         case "$NO_STRIP" in
-            0 | no)
-                strip_files
-            ;;
+            0 | no) strip_files ;;
         esac
 
         compress_info_man_pages
@@ -732,26 +710,26 @@ pkg_package() {
 
         tar -c -I "$COMPRESS" -f "$PACKAGE_DIR/$PKGNAME" * || {
             rm -f "$PACKAGE_DIR/$PKGNAME"
-            msgerr "Packaging failed: $PKGNAME"
+            msg_error "Packaging failed: $PKGNAME"
 
             abort 1
         }
 
         # Capture listing once; reuse for display and pkgfiles (avoids re-reading the archive)
-        _tarlist=$(tar -tvf "$PACKAGE_DIR/$PKGNAME")
-        printf '%s\n' "$_tarlist" | sort -k 6
+        _tar_list=$(tar -tvf "$PACKAGE_DIR/$PKGNAME")
+        printf '%s\n' "$_tar_list" | sort -k 6
 
-        msg "Packaging success: $PKGNAME ($(ls -lh "$PACKAGE_DIR/$PKGNAME" | awk '{print $5}'))"
+        msg_info "Packaging success: $PKGNAME ($(ls -lh "$PACKAGE_DIR/$PKGNAME" | awk '{print $5}'))"
     cd - >/dev/null || return 1
 
     if [ ! -f .pkgfiles ] || [ "$(head -n1 .pkgfiles)" != "$name-$version-$release" ]; then
-        pkg_gen_pkgfiles "$_tarlist"
+        pkg_gen_pkgfiles "$_tar_list"
     fi
 }
 
 pkg_gen_pkgfiles() {
     [ -f "$PACKAGE_DIR/$PKGNAME" ] || {
-        msgerr "Package not found: $PKGNAME"
+        msg_error "Package not found: $PKGNAME"
         exit 1
     }
 
@@ -767,13 +745,13 @@ pkg_gen_pkgfiles() {
         print $0;
     }' | sort -k 3 >> .pkgfiles
 
-    msg ".pkgfiles updated"
+    msg_info ".pkgfiles updated"
 }
 
 pkg_clean() {
     [ -e "$PACKAGE_DIR/$PKGNAME" ] && {
         rm -f "$PACKAGE_DIR/$PKGNAME"
-        msg "Package removed: $PACKAGE_DIR/$PKGNAME"
+        msg_info "Package removed: $PACKAGE_DIR/$PKGNAME"
     }
 
     for i in $(get_filepath); do
@@ -783,19 +761,19 @@ pkg_clean() {
 
         if [ -d "$i/.git" ]; then
             rm -rf "$i"
-            msg "Repository removed: $i"
+            msg_info "Repository removed: $i"
 
             continue
         fi
 
         [ -e "$i" ] && {
             rm -f "$i"
-            msg "File removed: $i"
+            msg_info "File removed: $i"
         }
 
         [ -e "$i.partial" ] && {
             rm -f "$i.partial"
-            msg "File removed: $i.partial"
+            msg_info "File removed: $i.partial"
         }
     done
 }
@@ -803,58 +781,58 @@ pkg_clean() {
 check_buildscript() {
     # check the required field in buildscript
     [ "$name" ] || {
-        msgerr "'name' is empty!";
+        msg_error "'name' is empty!";
         exit 1
     }
 
     case "$name" in
         *[A-Z]*)
-            msgerr "Capital letters for port name are not allowed!";
+            msg_error "Capital letters for port name are not allowed!";
             exit 1
         ;;
     esac
 
     [ "${PWD##*/}" = "$name" ] || {
-        msgerr "Port name and Directory name is different!";
+        msg_error "Port name and Directory name is different!";
         exit 1
     }
 
     [ "$version" ] || {
-        msgerr "'version' is empty!";
+        msg_error "'version' is empty!";
         exit 1
     }
 
     [ "$release" ] || {
-        msgerr "'release' is empty!";
+        msg_error "'release' is empty!";
         exit 1
     }
 
     case "$release" in
         *[A-Z]* | *[a-z]* | *-* | *\.* | *_*)
-            msgerr "only numeric allowed in 'release'";
+            msg_error "only numeric allowed in 'release'";
             exit 1
         ;;
     esac
 
     command -v build >/dev/null 2>&1 || {
-        msgerr "'build' function not exist!";
+        msg_error "'build' function not exist!";
         exit 1
     }
 
     case "$version" in
         *-*)
-            msgerr "'version' should not contain '-'.";
+            msg_error "'version' should not contain '-'.";
             exit 1
         ;;
     esac
 
     if [ "$release" -gt 99 ] || [ "$release" -lt 1 ]; then
-        msgerr "'release' should numeric between 1 to 99";
+        msg_error "'release' should numeric between 1 to 99";
         exit 1
     fi
 
     [ "$description" ] || {
-        msgerr "'description' is empty!";
+        msg_error "'description' is empty!";
         exit 1
     }
 }
@@ -862,13 +840,13 @@ check_buildscript() {
 check_dir() {
     for DIR in "$@"; do
         if [ ! -d "$DIR" ]; then
-            msgerr "Directory '$DIR' does not exist."
+            msg_error "Directory '$DIR' does not exist."
             exit 1
         elif [ ! -w "$DIR" ]; then
-            msgerr "Directory '$DIR' not writable."
+            msg_error "Directory '$DIR' not writable."
             exit 1
         elif [ ! -x "$DIR" ] || [ ! -r "$DIR" ]; then
-            msgerr "Directory '$DIR' not readable."
+            msg_error "Directory '$DIR' not readable."
             exit 1
         fi
     done
@@ -880,14 +858,14 @@ cbuild_restore() {
     _rs_cfg="$CBUILD_DIR/${2:-$name}.cfg"
 
     [ -n "$_rs_dest" ] || {
-        msgerr "cbuild_restore: destination path required"
+        msg_error "cbuild_restore: destination path required"
         return 1
     }
 
     [ -f "$_rs_cfg" ] || return 1
 
     cp "$_rs_cfg" "$_rs_dest" || {
-        msgerr "cbuild_restore: failed to copy to '$_rs_dest'"
+        msg_error "cbuild_restore: failed to copy to '$_rs_dest'"
         return 1
     }
 
@@ -899,17 +877,17 @@ cbuild_save() {
     _sv_cfg="$CBUILD_DIR/${2:-$name}.cfg"
 
     [ -n "$_sv_src" ] || {
-        msgerr "cbuild_save: source path required"
+        msg_error "cbuild_save: source path required"
         return 1
     }
 
     [ -f "$_sv_src" ] || {
-        msgerr "cbuild_save: '$_sv_src' not found"
+        msg_error "cbuild_save: '$_sv_src' not found"
         return 1
     }
 
     cp "$_sv_src" "$_sv_cfg" || {
-        msgerr "cbuild_save: failed to write '$_sv_cfg'"
+        msg_error "cbuild_save: failed to write '$_sv_cfg'"
         return 1
     }
 }
@@ -992,7 +970,7 @@ parse_opts() {
             --workdir=*) CUSTOM_WORK_DIR="${1#*=}" ;;
 
             *)
-                msg "Invalid ${0##*/} option! ($1)";
+                msg_info "Invalid ${0##*/} option! ($1)";
                 exit 1
             ;;
         esac
@@ -1037,7 +1015,7 @@ main() {
     if [ -f "$PKGBUILD_CONF" ]; then
         . "$PKGBUILD_CONF"
     else
-        msgerr "Config file not found: $PKGBUILD_CONF"
+        msg_error "Config file not found: $PKGBUILD_CONF"
         exit 1
     fi
 
@@ -1059,7 +1037,7 @@ main() {
     if [ -f "$PKGBUILD_BSCRIPT" ]; then
         . ./"$PKGBUILD_BSCRIPT"
     else
-        msgerr "'$PKGBUILD_BSCRIPT' file not found."
+        msg_error "'$PKGBUILD_BSCRIPT' file not found."
         exit 1
     fi
 
@@ -1069,7 +1047,7 @@ main() {
         gz | bz2 | xz | lz4 | zstd) PKGNAME="$name-$version-$release.epkg.tar.$COMPRESSION_MODE" ;;
 
         *)
-            msgerr "Invalid compression mode: $COMPRESSION_MODE";
+            msg_error "Invalid compression mode: $COMPRESSION_MODE";
             exit 1
         ;;
     esac
@@ -1108,26 +1086,26 @@ main() {
 
     # check for lock file
     [ -f "$LOCK_FILE" ] && {
-        msgerr "Cannot build same package simultaneously."
-        msgerr "remove '$LOCK_FILE' if no build process for '$name'."
+        msg_error "Cannot build same package simultaneously."
+        msg_error "remove '$LOCK_FILE' if no build process for '$name'."
 
         exit 1
     }
 
     # create lock file
     touch "$LOCK_FILE" 2>/dev/null || {
-        msgerr "Cannot create lock file in '$LOCK_FILE'."
+        msg_error "Cannot create lock file in '$LOCK_FILE'."
         exit 1
     }
 
     # build package
     if [ -f "$PACKAGE_DIR/$PKGNAME" ] && [ ! "$FORCE_REBUILD" ]; then
         if [ ! "$INSTALL_PKG" ] && [ ! "$REINSTALL_PKG" ] && [ ! "$UPGRADE_PKG" ]; then
-            msg "Package is up-to-date: $PKGNAME"
+            msg_info "Package is up-to-date: $PKGNAME"
             abort 0
         fi
     else
-        msg "Building: $name-$version-$release"
+        msg_info "Building: $name-$version-$release"
 
         if [ "$QUIET" ]; then
             pkg_fetch 2>/dev/null

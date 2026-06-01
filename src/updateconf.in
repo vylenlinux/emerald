@@ -36,11 +36,11 @@ epkgnew=$(find /etc -regextype posix-extended -regex ".+\.epkgnew" 2>/dev/null)
 # Process each .epkgnew file
 for file in $epkgnew; do
     # Remove .epkgnew extension to get original filename
-    currentfile=${file%.*}
+    current_file=${file%.*}
 
     # If original file doesn't exist, remove the .epkgnew file
-    if [ ! -e "$currentfile" ]; then
-        printf "Remove '%s', '%s' not exist.\n" "$file" "$currentfile"
+    if [ ! -e "$current_file" ]; then
+        printf "Remove '%s', '%s' not exist.\n" "$file" "$current_file"
         rm -f "$file"
 
         sleep 1
@@ -53,7 +53,7 @@ for file in $epkgnew; do
 
         # Show unified diff between current and new file
         # Use --color=always if available (GNU extension, but gracefully degrades)
-        diff -u "$currentfile" "$file" --color=always 2>/dev/null || diff -u "$currentfile" "$file"
+        diff -u "$current_file" "$file" --color=always 2>/dev/null || diff -u "$current_file" "$file"
         diff_result=$?
 
         # If files are identical, remove .epkgnew and continue
@@ -67,7 +67,7 @@ for file in $epkgnew; do
 
         # Display menu
         printf "\n"
-        printf "File: %s\n" "$currentfile"
+        printf "File: %s\n" "$current_file"
         printf "\n"
         printf "[U]pdate [D]iscard [E]dit [K]eep ?: "
 
@@ -77,8 +77,8 @@ for file in $epkgnew; do
         # Process user's choice
         case "$ACTION" in
             U | u)
-                printf "Replace '%s' with '%s'.\n" "$currentfile" "$file"
-                mv -f "$file" "$currentfile"
+                printf "Replace '%s' with '%s'.\n" "$current_file" "$file"
+                mv -f "$file" "$current_file"
 
                 break
             ;;
@@ -90,7 +90,7 @@ for file in $epkgnew; do
                 break
             ;;
 
-            E | e) "$EDITOR" "$currentfile" ;;
+            E | e) "$EDITOR" "$current_file" ;;
 
             K | k)
                 printf "Keeping both.\n"

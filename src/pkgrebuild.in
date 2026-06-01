@@ -13,12 +13,12 @@ TCRB=1
 BASERB=1
 
 # Print informational message to stdout
-msg() {
+msg_info() {
     printf "==> %s\n" "$1"
 }
 
 # Print error message to stderr
-msgerr() {
+msg_error() {
     printf "ERROR: %s\n" "$1" >&2
 }
 
@@ -39,8 +39,8 @@ EOF
 }
 
 # Verify root privileges - required for package installation
-[ "$(id -u)" = "0" ] || {
-    msgerr "Rebuild packages requires root access!"
+[ "$(id -u)" -ne 0 ] && {
+    msg_error "Rebuild packages requires root access!"
     help
 
     exit 1
@@ -56,7 +56,7 @@ parse_opts() {
             -h | --help) help ;;
 
             *)
-                msg "Invalid option! ($1)";
+                msg_info "Invalid option! ($1)";
                 exit 1
             ;;
         esac
@@ -67,7 +67,7 @@ parse_opts() {
 
 # Rebuild toolchain packages in proper dependency order
 toolchain_rebuild() {
-    msg "Rebuilding toolchain..."
+    msg_info "Rebuilding toolchain..."
 
     # Iterate through toolchain packages in dependency order
     for tc in $TOOLCHAIN; do
@@ -87,7 +87,7 @@ toolchain_rebuild() {
         fi
     done
 
-    msg "Rebuilding toolchain done."
+    msg_info "Rebuilding toolchain done."
 }
 
 # Rebuild all base system packages except toolchain components
@@ -97,11 +97,11 @@ base_rebuild() {
 
     # Validate that base package was found
     if [ -z "$BASE" ]; then
-        msgerr "No base package found in $PKGDB_DIR"
+        msg_error "No base package found in $PKGDB_DIR"
         exit 1
     fi
 
-    msg "Rebuilding $BASE..."
+    msg_info "Rebuilding $BASE..."
 
     # Get dependency list for base package and process each dependency
     for pkg in $(emerald deplist "$BASE" | awk '{print $2}'); do
@@ -123,7 +123,7 @@ base_rebuild() {
         fi
     done
 
-    msg "Rebuilding $BASE done."
+    msg_info "Rebuilding $BASE done."
 }
 
 # Initialize tracking file to record which packages have been rebuilt
@@ -131,7 +131,7 @@ base_rebuild() {
 LIST="/tmp/${0##*/}-list"
 
 touch "$LIST" || {
-    msgerr "Cannot create temporary file: $LIST"
+    msg_error "Cannot create temporary file: $LIST"
     exit 1
 }
 

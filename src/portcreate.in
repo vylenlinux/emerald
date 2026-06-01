@@ -3,7 +3,7 @@
 # portcreate - Create port templates with different build systems
 # Usage: portcreate [-b builder] <portname>
 
-msgerr() {
+msg_error() {
     printf "ERROR: %s\n" "$1" >&2
 }
 
@@ -225,7 +225,7 @@ shift $((OPTIND - 1))
 
 # Check if portname is provided
 if [ -z "${1}" ]; then
-    msgerr "Port name is required!"
+    msg_error "Port name is required!"
     usage
 fi
 
@@ -233,13 +233,13 @@ PORTNAME="${1}"
 
 # Check if directory already exists
 if [ -d "${PORTNAME}" ]; then
-    msgerr "Directory '${PORTNAME}' already exists!"
+    msg_error "Directory '${PORTNAME}' already exists!"
     exit 1
 fi
 
 # Create directory
 mkdir "${PORTNAME}" || {
-    msgerr "Failed to create directory '${PORTNAME}'!"
+    msg_error "Failed to create directory '${PORTNAME}'!"
     exit 1
 }
 
@@ -253,7 +253,7 @@ case "${BUILDER}" in
     rust | rs) TEMPLATE=$(get_rust_template) ;;
 
     *)
-        msgerr "Unknown builder '${BUILDER}'!"
+        msg_error "Unknown builder '${BUILDER}'!"
         printf "Available builders: autotools, meson, cmake, go, python, rust\n" >&2
 
         rm -rf "${PORTNAME}"

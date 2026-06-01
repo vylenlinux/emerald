@@ -50,19 +50,19 @@ Notes:
 EOF
 }
 
-# Print error message to stderr
-msgerr() {
-    printf "ERROR: %s\n" "$*" >&2
+# Print info message to stdout
+msg_info() {
+    printf "==> %s\n" "$*"
 }
 
-# Print info message to stdout
-msginfo() {
-    printf "==> %s\n" "$*"
+# Print error message to stderr
+msg_error() {
+    printf "ERROR: %s\n" "$*" >&2
 }
 
 # Check for root privileges
 if [ "$(id -u)" -ne 0 ]; then
-    msgerr "this script requires root privileges!"
+    msg_error "this script requires root privileges!"
     help
 
     exit 1
@@ -84,7 +84,7 @@ umount_all() {
 
 # Validate that target directory argument is provided
 if [ -z "$1" ]; then
-    msgerr "Please specify a directory for chroot"
+    msg_error "Please specify a directory for chroot"
     help
 
     exit 1
@@ -95,7 +95,7 @@ TARGET="${1%/}"
 
 # Verify target directory exists
 if [ ! -d "$TARGET" ]; then
-    msgerr "Directory '$TARGET' does not exist"
+    msg_error "Directory '$TARGET' does not exist"
     help
 
     exit 1
@@ -103,7 +103,7 @@ fi
 
 # Optional check: inform if target is already a mount point
 if mountpoint -q "$TARGET" 2>/dev/null; then
-    msginfo "Target '$TARGET' is already a mount point"
+    msg_info "Target '$TARGET' is already a mount point"
 fi
 
 # Shift to process command arguments
@@ -125,7 +125,7 @@ fi
 #   3  = QUIT  - quit signal (Ctrl+\)
 #   15 = TERM  - termination signal (kill default)
 trap umount_all 0 1 2 3 15
-msginfo "Mounting filesystems for chroot environment..."
+msg_info "Mounting filesystems for chroot environment..."
 
 # Mount all required filesystems using a loop with break pattern
 # Benefits: single exit point, automatic cleanup via trap, less code repetition
@@ -133,53 +133,53 @@ msginfo "Mounting filesystems for chroot environment..."
 while true; do
     # Mount /dev - required for device access
     mount -o bind /dev "$TARGET/dev" || {
-        msgerr "Failed to mount /dev"
+        msg_error "Failed to mount /dev"
         break
     }
 
     # Mount devpts - required for pseudo-terminals (PTY)
     # gid=5 typically corresponds to 'tty' group
     mount -t devpts devpts -o gid=5,mode=620 "$TARGET/dev/pts" || {
-        msgerr "Failed to mount /dev/pts"
+        msg_error "Failed to mount /dev/pts"
         break
     }
 
     # Mount /dev/shm - shared memory tmpfs
     # nosuid,nodev for security
     mount -t tmpfs tmpfs -o nosuid,nodev "$TARGET/dev/shm" || {
-        msgerr "Failed to mount /dev/shm"
+        msg_error "Failed to mount /dev/shm"
         break
     }
 
     # Mount /proc - process information pseudo-filesystem
     # Critical for most system tools
     mount -t proc proc "$TARGET/proc" || {
-        msgerr "Failed to mount /proc"
+        msg_error "Failed to mount /proc"
         break
     }
 
     # Mount /run - runtime data tmpfs
     # Required for socket files, PIDs, etc.
     mount -t tmpfs tmpfs "$TARGET/run" || {
-        msgerr "Failed to mount /run"
+        msg_error "Failed to mount /run"
         break
     }
 
     # Mount /sys - kernel and device information
     # Critical for hardware interaction
     mount -t sysfs sysfs "$TARGET/sys" || {
-        msgerr "Failed to mount /sys"
+        msg_error "Failed to mount /sys"
         break
     }
 
     # Mount EFI variables (optional, UEFI systems only)
     # Does not break loop on failure - not all systems have EFI
-    mount -t efivarfs efivarfs "$TARGET/sys/firmware/efi/efivars" 2>/dev/null || msginfo "EFI variables not mounted (may not be available)"
+    mount -t efivarfs efivarfs "$TARGET/sys/firmware/efi/efivars" 2>/dev/null || msg_info "EFI variables not mounted (may not be available)"
 
     # Mount /tmp - temporary files
     # mode=1777 = rwxrwxrwt (sticky bit for multi-user safety)
     mount -t tmpfs tmpfs -o mode=1777,nosuid,nodev "$TARGET/tmp" || {
-        msgerr "Failed to mount /tmp"
+        msg_error "Failed to mount /tmp"
         break
     }
 
@@ -191,22 +191,22 @@ done
 # Post-loop verification: check if any mount failed
 # $? contains exit status of last command (last mount or break)
 if [ $? -ne 0 ]; then
-    msgerr "Mount sequence failed, cleaning up..."
+    msg_error "Mount sequence failed, cleaning up..."
     exit 1
 fi
 
 # Handle DNS resolution configuration
 if [ -f /etc/resolv.conf ]; then
     # Create empty resolv.conf in target if needed
-    touch "$TARGET/etc/resolv.conf" 2>/dev/null || msginfo "Could not create resolv.conf in chroot"
+    touch "$TARGET/etc/resolv.conf" 2>/dev/null || msg_info "Could not create resolv.conf in chroot"
 
     # Bind mount host's resolv.conf for DNS resolution
     # Non-critical: doesn't fail if unsuccessful
-    mount -o bind /etc/resolv.conf "$TARGET/etc/resolv.conf" 2>/dev/null || msginfo "Could not bind mount resolv.conf"
+    mount -o bind /etc/resolv.conf "$TARGET/etc/resolv.conf" 2>/dev/null || msg_info "Could not bind mount resolv.conf"
 fi
 
-msginfo "Entering chroot environment: $TARGET"
-msginfo "Executing: $*"
+msg_info "Entering chroot environment: $TARGET"
+msg_info "Executing: $*"
 
 # Enter chroot with clean environment
 # /usr/bin/env -i creates fresh environment with only specified variables
@@ -220,7 +220,7 @@ retval=$?
 
 # Trap will automatically call umount_all on EXIT
 # No need to call it manually here
-msginfo "Exited chroot with status: $retval"
+msg_info "Exited chroot with status: $retval"
 
 # Exit with same status as chrooted command
 exit "$retval"

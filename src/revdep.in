@@ -227,7 +227,7 @@ SEARCH_DIRS="/bin /usr/bin /sbin /usr/sbin /lib /usr/lib /lib64 /usr/lib64 /usr/
 parse_opts "$@"
 
 # Check for root privileges when rebuilding
-if [ "$(id -u)" != 0 ] && [ "$REBUILD" = 1 ]; then
+if [ "$(id -u)" -ne 0 ] && [ "$REBUILD" -eq 1 ]; then
     printf '%s need to run as root to rebuild & reinstall package\n' "$(basename "$0")" >&2
     help
 
@@ -263,7 +263,7 @@ if [ -d /etc/ld.so.conf.d ]; then
 fi
 
 # Apply exclusion filters
-if [ "$NO_FILTER" != 1 ]; then
+if [ "$NO_FILTER" -ne 1 ]; then
     rev_exclude
 fi
 
@@ -335,9 +335,9 @@ printf 'Checking for broken linkage...\n'
 # Main checking loop
 while read -r line; do
     count=$((count + 1))
-    libname=${line##*/}
+    lib_name=${line##*/}
 
-    printf ' %d%% %s\033[0K\r' "$((100 * count / total))" "$libname"
+    printf ' %d%% %s\033[0K\r' "$((100 * count / total))" "$lib_name"
 
     case "$(file -bi "$line")" in
         *application/x-sharedlib* | *application/x-executable* | *application/x-pie-executable*)
@@ -372,11 +372,11 @@ while read -r line; do
                     REQ_LIB=$(objdump -p "$line" 2>/dev/null | awk '/NEEDED/{printf "%s ", $2}')
 
                     for i in $LIB_NAME; do
-                        [ "$PRINTALL" = 1 ] && printf ' %s -> %s (requires %s)\n' "$PKG_NAME" "$line" "$i"
+                        [ "$PRINTALL" -eq 1 ] && printf ' %s -> %s (requires %s)\n' "$PKG_NAME" "$line" "$i"
 
                         case " $REQ_LIB" in
                             *" $i "*)
-                                [ "$PRINTALL" = 1 ] || printf ' %s -> %s (requires %s)\n' "$PKG_NAME" "$line" "$i"
+                                [ "$PRINTALL" -eq 1 ] || printf ' %s -> %s (requires %s)\n' "$PKG_NAME" "$line" "$i"
 
                                 case " $ALLPKG " in
                                     *" $PKG_NAME "*) ;;
@@ -420,7 +420,7 @@ if [ "$ALLPKG" ]; then
     LISTALLPKG=$(printf ' %s\n' $ALLPKG | awk '!seen[$0]++') # remove duplicates, preserve order
     printf '%s\n' "$LISTALLPKG"
 
-    if [ "$REBUILD" = 1 ]; then
+    if [ "$REBUILD" -eq 1 ]; then
         rebuild
     fi
 else
