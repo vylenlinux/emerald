@@ -180,14 +180,6 @@ all_installed() {
     find "$PKGDB_DIR" -maxdepth 1 -type f -printf '%f\n'
 }
 
-version_comp() {
-    [ "$1" = "$2" ] && return 0
-
-    # - If sorted (exit code 0): $1 <= $2, but we know $1 != $2, so $1 < $2 → return 1
-    # - If not sorted (exit code 1): $1 > $2 → return 2
-    printf '%s\n%s\n' "$1" "$2" | sort -VC && return 1 || return 2
-}
-
 deps_alias() {
     printf '%s\n' $deps | awk -v alias_file="$ALIAS_FILE" 'BEGIN {
         while ((getline line < alias_file) > 0) {
@@ -1410,13 +1402,20 @@ emerald_orphan() {
     all_installed | awk -v dep=" $DEP " '{if (index(dep, " " $0 " ") == 0) print}'
 }
 
+version_comp() {
+    [ "$1" = "$2" ] && return 0
+
+    # - If sorted (exit code 0): $1 <= $2, but we know $1 != $2, so $1 < $2 → return 1
+    # - If not sorted (exit code 1): $1 > $2 → return 2
+    printf '%s\n%s\n' "$1" "$2" | sort -VC && return 1 || return 2
+}
+
 check_outdated() {
-    # Load once
     _MASKED_LIST=$(awk '!/^[[:space:]]*$/ && !/^#/ {printf "%s ", $0}' "$MASK_FILE" 2>/dev/null)
 
     for pkg in $(all_installed); do
+        # Check NEWINSTALLED
         NEWINSTALLED=0
-        MASKED=0
 
         pvr=$(get_version "$pkg") || continue
         ivr=$(get_iversion "$pkg") || continue
@@ -1437,33 +1436,34 @@ check_outdated() {
             [ $? = 1 ] && NEWINSTALLED=1
         fi
 
-        # Check mask
+        # Check MASKED
+        MASKED=0
+
         case " $_MASKED_LIST " in
             *" $pkg "*) MASKED=1 ;;
         esac
 
+        # Example 'glib#2.87.0-1#2.88.1-1#1#0'
         printf "%s#%s#%s#%s#%s\n" "$pkg" "$ivr" "$pvr" "$NEWINSTALLED" "$MASKED"
     done
 }
 
 emerald_outdate() {
-    for i in $(check_outdated); do
-        OUTDATE=1
-        unset ii
+    out=$(check_outdated)
 
-        pname=${i%%#*}; i=${i#*#}
-        oldver=${i%%#*}; i=${i#*#}
-        newver=${i%%#*}; i=${i#*#}
-        newins=${i%%#*}; i=${i#*#}
-        masked=${i%%#*}; i=${i#*#}
+    [ -z "$out" ] && {
+        msg "All packages are up to date.";
+        return 0
+    }
+
+    printf '%s\n' "$out" | while IFS='#' read -r pname oldver newver newins masked; do
+        unset ii
 
         [ "$newins" = 1 ] && ii=" [newer installed]"
         [ "$masked" = 1 ] && ii="$ii [masked]"
 
         printf "%s %s => %s%s\n" "$pname" "$oldver" "$newver" "$ii"
     done
-
-    [ ! "$OUTDATE" ] && msg "All packages are up to date."
 }
 
 emerald_path() {
@@ -1757,10 +1757,10 @@ emerald_sysup() {
     printf "%s\n" "Checking for outdated packages..."
     PKGOUTDATE=$(check_outdated)
 
-    # filter out masked
+    # filter out masked (format: name#ivr#pvr#newer_installed#masked)
     for i in $PKGOUTDATE; do
         case $i in
-            *#1) continue ;;
+            *#1) continue ;; # masked: skip, example: 'glib#2.87.0-1#2.88.1-1#1#1'
             *) ii="$ii ${i%%#*}" ;;
         esac
     done
