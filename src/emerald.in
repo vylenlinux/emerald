@@ -1204,7 +1204,7 @@ emerald_install() {
 
         for pkg in $INST; do
             pkgcount=$(( pkgcount + 1 ))
-            installmsg="$installmsg_info install#$pkg#$(get_version "$pkg")"
+            installmsg="$installmsg install#$pkg#$(get_version "$pkg")"
         done
 
         printf "%s\n" "$installmsg" | tr ' ' '\n' | tr '#' ' ' | column -t
@@ -1610,7 +1610,7 @@ emerald_remove() {
 
     for pkg in $IPKG; do
         pkgcount=$(( pkgcount + 1 ))
-        installmsg="$installmsg_info remove#$pkg#$(get_iversion "$pkg")"
+        installmsg="$installmsg remove#$pkg#$(get_iversion "$pkg")"
     done
 
     printf "%s\n" "$installmsg" | tr ' ' '\n' | tr '#' ' ' | column -t
@@ -1792,7 +1792,7 @@ emerald_sysup() {
         for d in $DEP; do
             case " $PKG " in
                 *" $d "*)
-                    installmsg="$installmsg_info upgrade#$d#$(get_version "$d")#$(get_iversion "$d")"
+                    installmsg="$installmsg upgrade#$d#$(get_version "$d")#$(get_iversion "$d")"
 
                     WILLINSTALL="$WILLINSTALL $d"
                     UPGPKG=$(( UPGPKG + 1 ))
@@ -1800,7 +1800,7 @@ emerald_sysup() {
 
                 *)
                     if ! emerald_isinstalled "$d" && get_port_path "$d" >/dev/null 2>&1; then
-                        installmsg="$installmsg_info install#$d#$(get_version "$d")#$(get_iversion "$d")"
+                        installmsg="$installmsg install#$d#$(get_version "$d")#$(get_iversion "$d")"
 
                         WILLINSTALL="$WILLINSTALL $d"
                         NEWPKG=$(( NEWPKG + 1 ))
@@ -2102,7 +2102,7 @@ emerald_upgrade() {
         for d in $DEP; do
             case " $upkg " in
                 *" $d "*)
-                    installmsg="$installmsg_info upgrade#$d#$(get_version "$d")#$(get_iversion "$d")"
+                    installmsg="$installmsg upgrade#$d#$(get_version "$d")#$(get_iversion "$d")"
 
                     WILLINSTALL="$WILLINSTALL $d"
                     UPGPKG=$(( UPGPKG + 1 ))
@@ -2110,7 +2110,7 @@ emerald_upgrade() {
 
                 *)
                     if ! emerald_isinstalled "$d" && get_port_path "$d" >/dev/null 2>&1; then
-                        installmsg="$installmsg_info install#$d#$(get_version "$d")#$(get_iversion "$d")"
+                        installmsg="$installmsg install#$d#$(get_version "$d")#$(get_iversion "$d")"
 
                         WILLINSTALL="$WILLINSTALL $d"
                         NEWPKG=$(( NEWPKG + 1 ))
@@ -2122,7 +2122,7 @@ emerald_upgrade() {
         printf "\n"
 
         for dd in $upkg; do
-            installmsg="$installmsg_info upgrade#$dd#$(get_version "$dd")#$(get_iversion "$dd")"
+            installmsg="$installmsg upgrade#$dd#$(get_version "$dd")#$(get_iversion "$dd")"
 
             WILLINSTALL="$WILLINSTALL $dd"
             UPGPKG=$(( UPGPKG + 1 ))
