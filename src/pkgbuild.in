@@ -5,6 +5,8 @@
 # POSIX-compliant shell script for build packages
 #
 
+# shellcheck disable=SC2317
+
 msg_info() {
     printf "==> %s\n" "$1"
 }

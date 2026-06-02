@@ -6,6 +6,8 @@
 # This script checks for broken library linkages and identifies packages
 # that need to be rebuilt due to missing shared library dependencies.
 
+# shellcheck disable=SC2317
+
 interrupted() {
     cleanup
     printf '\n'
@@ -67,7 +69,7 @@ parse_opts() {
         esac
 
         case $1 in
-            -a | --all) PRINTALL=1 ;;
+            -a | --all) PRINT_ALL=1 ;;
             -r | --rebuild) REBUILD=1 ;;
             -y | --yes) NOCONFIRM=1 ;;
             -f | --no-filter) NO_FILTER=1 ;;
@@ -177,11 +179,11 @@ rev_exclude() {
 
 check_python_modules() {
     command -v python3 >/dev/null 2>&1 || return
-    pylibpath=$(python3 -c "import sys; print(':'.join(x for x in sys.path if x))" | tr ':' '\n' | sort | head -n1)
+    python_lib_path=$(python3 -c "import sys; print(':'.join(x for x in sys.path if x))" | tr ':' '\n' | sort | head -n1)
 
     for i in /usr/lib/python3.*; do
         [ -d "$i" ] || continue
-        [ "$i" = "$pylibpath" ] && continue
+        [ "$i" = "$python_lib_path" ] && continue
 
         brokenpkg="$brokenpkg $(emerald provide "$i/" | awk '{print $1}')"
     done
@@ -190,11 +192,11 @@ check_python_modules() {
 check_perl_modules() {
     command -v perl >/dev/null 2>&1 || return
 
-    perlpath=$(perl -MConfig -e 'print $Config{sitearch}')
-    [ -d "$perlpath" ] || return
+    perl_path=$(perl -MConfig -e 'print $Config{sitearch}')
+    [ -d "$perl_path" ] || return
 
-    for i in $(dirname "$perlpath")/*; do
-        [ "$perlpath" = "$i" ] && continue
+    for i in "$(dirname "$perl_path")"/*; do
+        [ "$perl_path" = "$i" ] && continue
         [ -d "$i" ] || continue
 
         brokenpkg="$brokenpkg $(emerald provide "$i/" | awk '{print $1}')"
@@ -203,10 +205,10 @@ check_perl_modules() {
 
 check_ruby_gem() {
     command -v gem >/dev/null 2>&1 || return
-    gempath=$(gem env gemdir)
+    gem_path=$(gem env gemdir)
 
-    for i in $(dirname "$gempath")/*; do
-        [ "$gempath" = "$i" ] && continue
+    for i in "$(dirname "$gem_path")"/*; do
+        [ "$gem_path" = "$i" ] && continue
         brokenpkg="$brokenpkg $(emerald provide "$i/" | awk '{print $1}')"
     done
 }
@@ -372,11 +374,11 @@ while read -r line; do
                     REQ_LIB=$(objdump -p "$line" 2>/dev/null | awk '/NEEDED/{printf "%s ", $2}')
 
                     for i in $LIB_NAME; do
-                        [ "$PRINTALL" -eq 1 ] && printf ' %s -> %s (requires %s)\n' "$PKG_NAME" "$line" "$i"
+                        [ "$PRINT_ALL" -eq 1 ] && printf ' %s -> %s (requires %s)\n' "$PKG_NAME" "$line" "$i"
 
                         case " $REQ_LIB" in
                             *" $i "*)
-                                [ "$PRINTALL" -eq 1 ] || printf ' %s -> %s (requires %s)\n' "$PKG_NAME" "$line" "$i"
+                                [ "$PRINT_ALL" -eq 1 ] || printf ' %s -> %s (requires %s)\n' "$PKG_NAME" "$line" "$i"
 
                                 case " $ALLPKG " in
                                     *" $PKG_NAME "*) ;;

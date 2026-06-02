@@ -111,7 +111,7 @@ prune_local() {
 
 # Completely reset repositories
 reset_repos() {
-    printf "%s\n" "Removing REPOS..."
+    printf "Removing REPOS...\n"
 
     while read -r _rr_dir _rr_url _ _; do
         case "$_rr_dir" in
@@ -201,7 +201,7 @@ repo_file="@SYSCONFDIR@/emerald.repo"
 [ "$RESET" -eq 1 ] && reset_repos
 
 # Process each repository from configuration file
-printf "%s\n" "Syncing PORTS..."
+printf "Syncing PORTS...\n"
 
 while read -r repodir repourl repobranch _; do
     case "$repodir" in

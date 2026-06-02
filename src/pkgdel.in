@@ -5,6 +5,8 @@
 # POSIX-compliant shell script for removing installed packages
 #
 
+# shellcheck disable=SC2317
+
 trap "interrupted" 1 2 3 15
 export LC_ALL=C
 

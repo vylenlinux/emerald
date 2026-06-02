@@ -5,6 +5,8 @@
 # POSIX-compliant shell script for install, reinstall or upgrade packages
 #
 
+# shellcheck disable=SC2317
+
 trap "interrupted" 1 2 3 15
 export LC_ALL=C
 
@@ -298,7 +300,6 @@ if [ "$UPGRADE_PKG" ] || [ "$REINSTALL_PKG" ]; then
 fi
 
 # Register package into database
-# Use printf for safe output of version and release strings
 printf '%s %s\n' "$version" "$release" > "$ROOT_DIR/$PKGDB_DIR/$name"
 cat "$TMP_PKGINSTALL" >> "$ROOT_DIR/$PKGDB_DIR/$name"
 

@@ -62,7 +62,7 @@ printf "Searching for base package...\n"
 BASE=$(find "$PKGDB_DIR" -type f -name 'base*' -exec basename {} \;)
 
 if [ -z "$BASE" ]; then
-    printf "Error: base package not found in $PKGDB_DIR\n" >&2
+    printf "Error: base package not found in %s\n" "$PKGDB_DIR" >&2
     exit 1
 fi
 
