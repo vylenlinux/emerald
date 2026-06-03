@@ -119,7 +119,7 @@ rebuild() {
     done
 
     if [ -n "$order" ]; then
-        if [ "$NOCONFIRM" -ne 1 ]; then
+        if [ "$NOCONFIRM" -eq 0 ]; then
             printf '\nPackage will be rebuild & reinstall by this order:\n'
             printf ' %s\n\n' "$order"
 
@@ -270,7 +270,7 @@ if [ -d /etc/ld.so.conf.d ]; then
 fi
 
 # Apply exclusion filters
-if [ "$NO_FILTER" -ne 1 ]; then
+if [ "$NO_FILTER" -eq 0 ]; then
     rev_exclude
 fi
 
