@@ -14,6 +14,7 @@ ALIAS_FILE="${ALIAS_FILE:-@SYSCONFDIR@/emerald.alias}"
 
 KEEP_GOING_LOCAL=0
 DOWNLOAD_ONLY=0
+QUICK=0
 
 # check alias port
 grep -qEv '^(#|[[:space:]]*$)' "$ALIAS_FILE" 2>/dev/null && ALIAS_PORT="yes" || ALIAS_PORT="no"
@@ -637,8 +638,7 @@ deplist() {
 
     # check dependencies
     for dep in $(get_depends "$pkg"); do
-        # quick is set by emerald_deplist() (-q option)
-        if [ "$quick" -eq 1 ] && emerald_isinstalled "$dep"; then
+        if [ "$QUICK" -eq 1 ] && emerald_isinstalled "$dep"; then
             continue
         fi
 
@@ -658,8 +658,7 @@ deplist() {
         *" $pkg "*) ;;
 
         *)
-            # quick is set by emerald_deplist() (-q option)
-            if [ "$quick" -eq 1 ]; then
+            if [ "$QUICK" -eq 1 ]; then
                 emerald_isinstalled "$pkg" || DEP="$DEP $pkg "
             else
                 DEP="$DEP $pkg "
@@ -675,11 +674,10 @@ emerald_deplist() {
     # parse arguments
     OLDIFS=$IFS
     IFS=,
-    quick=0
 
     while [ "$1" ]; do
         case $1 in
-            -q) quick=1 ;;
+            -q) QUICK=1 ;;
 
             --exclude=*)
                 for i in ${1#*=}; do
@@ -705,7 +703,7 @@ emerald_deplist() {
     for p in $PKG; do
         if get_port_path "$p" >/dev/null 2>&1; then
             PPKG="$PPKG $p "
-        elif [ "$quick" -ne 1 ]; then
+        elif [ "$QUICK" -ne 1 ]; then
             msg_port_not_found "$p"
         fi
     done
@@ -718,7 +716,7 @@ emerald_deplist() {
     [ "$DEP" ] || return 0
 
     # output results
-    if [ "$quick" -eq 1 ]; then
+    if [ "$QUICK" -eq 1 ]; then
         printf "%s\n" $DEP
     else
         msg_deps_status $DEP
