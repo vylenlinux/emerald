@@ -210,7 +210,7 @@ confirm() {
 
     case "$response" in
         [Nn][Oo] | [Nn])
-            printf "%s\n" "$2";
+            printf "%s\n" "$2"
             return 2
         ;;
 
@@ -272,14 +272,15 @@ summary_title() {
     total="$4"    # $4 -> total number of packages
     action="$5"   # $5 -> action: installed, upgraded, built, ...
 
-    if [ "$error" -ne 0 ]; then
-        # When errors occurred, recalculate the number of successfully processed packages
-        successful_count=$(printf "%s\n" "$done_pkg" | wc -w)
-        set_term_title "$successful_count/$total package(s) $action."
-    else
+    if [ "$error" -eq 0 ]; then
         # Fast path: no errors, use the normal counter
         set_term_title "$count/$total package(s) $action."
+        return 0
     fi
+
+    # When errors occurred, recalculate the number of successfully processed packages
+    successful_count="$(printf "%s\n" "$done_pkg" | wc -w)"
+    set_term_title "$successful_count/$total package(s) $action."
 }
 
 emerald_build() {
@@ -310,9 +311,9 @@ emerald_build() {
             if keep_going; then
                 failed_builds="$failed_builds $pkg"
                 continue
-            else
-                return 1
             fi
+
+            return 1
         }
 
         cd "$ppath" || return 1
@@ -584,38 +585,37 @@ emerald_config() {
 emerald_dependent() {
     need_arg "$@"
 
-    if get_port_path "$1" >/dev/null 2>&1; then
-        for repo in $PORT_REPO; do
-            awk -v pkg="$1" 'FNR == 1 {
-                f = FILENAME;
-            } $0 == pkg {
-                found = 1;
-            } found {
-                n = split(f, a, "/");
-                print a[n-1];
-
-                found = 0;
-                nextfile;
-            }' "$repo"/*/depends 2>/dev/null
-        done | sort -u | while read -r dpd; do
-            msg_deps_status "$dpd"
-        done
-    else
+    get_port_path "$1" >/dev/null 2>&1 || {
         msg_port_not_found "$1"
         return 1
-    fi
+    }
+
+    for repo in $PORT_REPO; do
+        awk -v pkg="$1" 'FNR == 1 {
+            f = FILENAME;
+        } $0 == pkg {
+            found = 1;
+        } found {
+            n = split(f, a, "/");
+            print a[n-1];
+
+            found = 0;
+            nextfile;
+        }' "$repo"/*/depends 2>/dev/null
+    done | sort -u | while read -r dpd; do
+        msg_deps_status "$dpd"
+    done
 }
 
 emerald_depends() {
     need_arg "$@"
 
-    if get_port_path "$1" >/dev/null; then
-        depends=$(get_depends "$1")
-    else
+    get_port_path "$1" >/dev/null || {
         msg_port_not_found "$1"
         return 1
-    fi
+    }
 
+    depends=$(get_depends "$1")
     msg_deps_status $depends
 }
 
@@ -715,17 +715,17 @@ emerald_deplist() {
 
     [ "$DEP" ] || return 0
 
-    # output results
     if [ "$QUICK" -eq 1 ]; then
         printf "%s\n" $DEP
-    else
-        msg_deps_status $DEP
+        return 0
+    fi
 
-        if [ "$MISSINGDEP" ]; then
-            for m in $MISSINGDEP; do
-                printf "Missing deps: %s\n" "$m" | sed 's/(/ (/'
-            done
-        fi
+    msg_deps_status $DEP
+
+    if [ "$MISSINGDEP" ]; then
+        for m in $MISSINGDEP; do
+            printf "Missing deps: %s\n" "$m" | sed 's/(/ (/'
+        done
     fi
 }
 
@@ -751,29 +751,29 @@ EOF
 }
 
 emerald_dup() {
-    dup=$(find $PORT_REPO -type d -printf '%P\n'| sort | uniq -d)
+    dup=$(find "$PORT_REPO" -type d -printf '%P\n'| sort | uniq -d)
 
-    if [ "$dup" ]; then
-        for dport in $dup; do
-            for drepo in $PORT_REPO; do
-                [ -d "$drepo/$dport" ] && dup_status "$dport" "$drepo"
-            done
-        done
-    else
+    if [ -z "$dup" ]; then
         msg_info "No duplicate ports found."
+        return 0
     fi
 
-    return 0
+    for dport in $dup; do
+        for drepo in $PORT_REPO; do
+            [ -d "$drepo/$dport" ] && dup_status "$dport" "$drepo"
+        done
+    done
 }
 
 emerald_files() {
     need_arg "$@"
 
-    if emerald_isinstalled "$1"; then
-        cat "$PKGDB_DIR/$1"
-    else
+    ! emerald_isinstalled "$1" && {
         msg_port_not_installed "$1"
-    fi
+        return 0
+    }
+
+    cat "$PKGDB_DIR/$1"
 }
 
 emerald_foreign() {
@@ -971,17 +971,17 @@ EOF
         done
     }
 
-    printf "%b%s%b %s\n" "$COLOR5" "Description:" "$CRESET" "$desc"
-    printf "%b%s%b %s\n" "$COLOR5" "Maintainer:" "$CRESET" "$maint"
-    printf "%b%s%b %s\n" "$COLOR5" "Homepage:" "$CRESET" "$homep"
-    printf "%b%s%b %s\n" "$COLOR5" "Path:" "$CRESET" "$ppath"
-    printf "%b%s%b %b%s%b\n" "$COLOR5" "Name:" "$CRESET" "$COLOR2" "$1" "$CRESET"
-    printf "%b%s%b %b%s%b\n" "$COLOR5" "Version:" "$CRESET" "$COLOR4" "$version" "$CRESET"
-    printf "%b%s%b %b%s%b\n" "$COLOR5" "Release:" "$CRESET" "$COLOR4" "$release" "$CRESET"
-    [ "$commit" ] && printf "%b%s%b %s\n" "$COLOR5" "Commit:" "$CRESET" "$commit"
-    printf "%b%s%b %b%s%b\n" "$COLOR5" "Installed:" "$CRESET" "$COLOR2" "$iver" "$CRESET"
-    printf "%b%s%b %s\n" "$COLOR5" "Depends:" "$CRESET" "$deps_out"
-    printf "%b%s%b %s\n" "$COLOR5" "Required by:" "$CRESET" "$required_by_out"
+    printf '%b%s%b %s\n' "$COLOR5" "Description:" "$CRESET" "$desc"
+    printf '%b%s%b %s\n' "$COLOR5" "Maintainer:" "$CRESET" "$maint"
+    printf '%b%s%b %s\n' "$COLOR5" "Homepage:" "$CRESET" "$homep"
+    printf '%b%s%b %s\n' "$COLOR5" "Path:" "$CRESET" "$ppath"
+    printf '%b%s%b %b%s%b\n' "$COLOR5" "Name:" "$CRESET" "$COLOR2" "$1" "$CRESET"
+    printf '%b%s%b %b%s%b\n' "$COLOR5" "Version:" "$CRESET" "$COLOR4" "$version" "$CRESET"
+    printf '%b%s%b %b%s%b\n' "$COLOR5" "Release:" "$CRESET" "$COLOR4" "$release" "$CRESET"
+    [ "$commit" ] && printf '%b%s%b %s\n' "$COLOR5" "Commit:" "$CRESET" "$commit"
+    printf '%b%s%b %b%s%b\n' "$COLOR5" "Installed:" "$CRESET" "$COLOR2" "$iver" "$CRESET"
+    printf '%b%s%b %s\n' "$COLOR5" "Depends:" "$CRESET" "$deps_out"
+    printf '%b%s%b %s\n' "$COLOR5" "Required by:" "$CRESET" "$required_by_out"
 }
 
 hook() {
@@ -1320,34 +1320,36 @@ emerald_integrity() {
         } < "$PKGDB_DIR/$pkg"
 
         [ "$found" -eq 0 ] && msg_info "'$pkg' integrity is OK!"
-    else
-        printf "Checking ports integrity...\n"
-        interr=$(mktemp) || return 1
-
-        all_installed | xargs -P "$(nproc)" -I{} sh -c '
-            pkg="$1"
-            db="$2/$pkg"
-            interr="$3"
-
-            [ -f "$db" ] || exit 0
-
-            {
-                read -r _
-
-                while IFS= read -r line; do
-                    [ -e "/$line" ] && continue
-
-                    # mark error
-                    printf 1 >> "$interr"
-
-                    [ -L "/$line" ] && printf "broken symlink %s: /%s\n" "$pkg" "$line" || printf "missing file %s: /%s\n" "$pkg" "$line"
-			          done
-            } < "$db"
-        ' _ {} "$PKGDB_DIR" "$interr"
-
-        [ ! -s "$interr" ] && msg_info "No integrity issues found!"
-        rm -f "$interr"
+        return 0
     fi
+
+    printf "Checking ports integrity...\n"
+    interr=$(mktemp) || return 1
+
+    # shellcheck disable=SC2016
+    all_installed | xargs -P "$(nproc)" -I{} sh -c '
+        pkg="$1"
+        db="$2/$pkg"
+        interr="$3"
+
+        [ -f "$db" ] || exit 0
+
+        {
+            read -r _
+
+            while IFS= read -r line; do
+                [ -e "/$line" ] && continue
+
+                # mark error
+                printf 1 >> "$interr"
+
+                [ -L "/$line" ] && printf "broken symlink %s: /%s\n" "$pkg" "$line" || printf "missing file %s: /%s\n" "$pkg" "$line"
+		        done
+        } < "$db"
+    ' _ {} "$PKGDB_DIR" "$interr"
+
+    [ ! -s "$interr" ] && msg_info "No integrity issues found!"
+    rm -f "$interr"
 }
 
 emerald_isinstalled() {
@@ -1419,8 +1421,8 @@ check_outdated() {
     _MASKED_LIST=$(awk '!/^[[:space:]]*$/ && !/^#/ {printf "%s ", $0}' "$MASK_FILE" 2>/dev/null)
 
     for pkg in $(all_installed); do
-        # Check NEWINSTALLED
-        NEWINSTALLED=0
+        # Check NEW_INSTALLED
+        NEW_INSTALLED=0
 
         pvr=$(get_version "$pkg") || continue
         ivr=$(get_iversion "$pkg") || continue
@@ -1435,10 +1437,10 @@ check_outdated() {
 
         if [ "$pversion" != "$iversion" ]; then
             version_comp "$pversion" "$iversion"
-            [ $? -eq 1 ] && NEWINSTALLED=1
+            [ $? -eq 1 ] && NEW_INSTALLED=1
         elif [ "$prelease" != "$irelease" ]; then
             version_comp "$prelease" "$irelease"
-            [ $? -eq 1 ] && NEWINSTALLED=1
+            [ $? -eq 1 ] && NEW_INSTALLED=1
         fi
 
         # Check MASKED
@@ -1449,7 +1451,7 @@ check_outdated() {
         esac
 
         # Example 'glib#2.87.0-1#2.88.1-1#1#0'
-        printf "%s#%s#%s#%s#%s\n" "$pkg" "$ivr" "$pvr" "$NEWINSTALLED" "$MASKED"
+        printf "%s#%s#%s#%s#%s\n" "$pkg" "$ivr" "$pvr" "$NEW_INSTALLED" "$MASKED"
     done
 }
 
@@ -1457,7 +1459,7 @@ emerald_outdate() {
     out=$(check_outdated)
 
     [ -z "$out" ] && {
-        msg_info "All packages are up to date.";
+        msg_info "All packages are up to date."
         return 0
     }
 
@@ -1474,12 +1476,12 @@ emerald_outdate() {
 emerald_path() {
     need_arg "$@"
 
-    if PPATH=$(get_port_path "$1"); then
-        printf "%s\n" "$PPATH"
-    else
+    PPATH=$(get_port_path "$1") || {
         msg_port_not_found "$1"
         return 1
-    fi
+    }
+
+    printf "%s\n" "$PPATH"
 }
 
 emerald_provide() {
@@ -1611,9 +1613,10 @@ emerald_remove() {
     for i in $PKGNAME; do
         if ! emerald_isinstalled "$i"; then
             msg_port_not_installed "$i"
-        else
-            IPKG="$IPKG $i"
+            continue
         fi
+
+        IPKG="$IPKG $i"
     done
 
     [ "$IPKG" ] || return 0
@@ -1976,10 +1979,11 @@ trigger_icon_cache() {
 
             if [ -e "$dir/index.theme" ]; then
                 gtk-update-icon-cache -q "$dir" 2>/dev/null
-            else
-                rm -f "$dir/icon-theme.cache"
-                rmdir "$dir" 2>/dev/null
+                continue
             fi
+
+            rm -f "$dir/icon-theme.cache"
+            rmdir "$dir" 2>/dev/null
         done
     }
 }
@@ -2012,7 +2016,7 @@ trigger_fontcache() {
     }
 }
 
-trigger_desktopdb() {
+trigger_desktop_database() {
     command -v update-desktop-database >/dev/null || return 0
 
     printf '%s\n' "$PKGFILES" | grep -q "^usr/share/applications/" && {
@@ -2021,7 +2025,7 @@ trigger_desktopdb() {
     }
 }
 
-trigger_mime_db() {
+trigger_mime_database() {
     command -v update-mime-database >/dev/null || return 0
 
     printf '%s\n' "$PKGFILES" | grep -q "^usr/share/mime/" && {
@@ -2042,7 +2046,7 @@ emerald_trigger() {
             cat "$PKGDB_DIR/$_p" 2>/dev/null
         done)
 
-        for t in mime_db desktopdb fontcache fc_cache udevdb icon_cache gtk3_immodules gtk2_immodules glib_schema gio_modules gdk_pixbuf_cache; do
+        for t in mime_database desktop_database fontcache fc_cache udevdb icon_cache gtk3_immodules gtk2_immodules glib_schema gio_modules gdk_pixbuf_cache; do
             trigger_$t
         done
     fi
@@ -2244,30 +2248,29 @@ world_del() {
 }
 
 emerald_world() {
-    if [ "$1" ]; then
-        require_root
-        touch "$WORLD_FILE"
+    if [ -z "$1" ]; then
+        [ -s "$WORLD_FILE" ] && cat "$WORLD_FILE" || printf "world is empty\n"
+        return 0
+    fi
 
-        while [ "$1" ]; do
-            if ! grep -qx "$1" "$WORLD_FILE"; then
+    require_root
+    touch "$WORLD_FILE"
+
+    while [ "$1" ]; do
+        if ! grep -qx "$1" "$WORLD_FILE"; then
+            if world_add "$1"; then
                 printf "world: '%s' added to world\n" "$1"
-                world_add "$1"
-            else
-                printf "world: '%s' deleted from world\n" "$1"
-                world_del "$1"
             fi
 
             shift
-        done
-    else
-        [ -s "$WORLD_FILE" ] && {
-            cat "$WORLD_FILE"
-        } || {
-            printf "world is empty\n"
-        }
-    fi
+            continue
+        fi
 
-    return 0
+        printf "world: '%s' deleted from world\n" "$1"
+        world_del "$1"
+
+        shift
+    done
 }
 
 # check for 'pkgadd', required for package database path
