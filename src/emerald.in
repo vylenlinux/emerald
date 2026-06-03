@@ -222,6 +222,10 @@ need_arg() {
     }
 }
 
+keep_going() {
+    [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]
+}
+
 set_term_title() {
     printf "\033]0;%s\a" "$*"
 }
@@ -298,7 +302,7 @@ emerald_build() {
             msg_port_not_found "$pkg"
 
             # If keep going is enabled, log and continue
-            if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
+            if keep_going; then
                 failed_builds="$failed_builds $pkg"
                 continue
             else
@@ -316,7 +320,7 @@ emerald_build() {
                 else
                     set_term_title "Building $pkg failed."
 
-                    if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
+                    if keep_going; then
                         msg_warning "Build failed for '$pkg', continuing with next package..."
                         failed_builds="$failed_builds $pkg"
                     else
@@ -329,7 +333,7 @@ emerald_build() {
                 else
                     set_term_title "Building $pkg failed."
 
-                    if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
+                    if keep_going; then
                         msg_warning "Build failed for '$pkg', continuing with next package..."
                         failed_builds="$failed_builds $pkg"
                     else
@@ -558,7 +562,7 @@ emerald_config() {
     printf '%b%s%b %b%s%b\n' "$COLOR5" "IGNORE_CHECKSUM:" "$CRESET" "$COLOR4" "$IGNORE_CHECKSUM" "$CRESET"
     printf '%b%s%b %b%s%b\n' "$COLOR5" "KEEP_LIBTOOL:" "$CRESET" "$COLOR4" "$KEEP_LIBTOOL" "$CRESET"
     printf '%b%s%b %b%s%b\n' "$COLOR5" "KEEP_LOCALE:" "$CRESET" "$COLOR4" "$KEEP_LOCALE" "$CRESET"
-    printf "%b%s%b %b%s%b\n" "$COLOR5" "KEEP_MAN:" "$CRESET" "$COLOR4" "$KEEP_MAN" "$CRESET"
+    printf '%b%s%b %b%s%b\n' "$COLOR5" "KEEP_MAN:" "$CRESET" "$COLOR4" "$KEEP_MAN" "$CRESET"
     printf '%b%s%b %b%s%b\n' "$COLOR5" "KEEP_DOC:" "$CRESET" "$COLOR4" "$KEEP_DOC" "$CRESET"
     printf '%b%s%b %b%s%b\n' "$COLOR5" "KEEP_GOING:" "$CRESET" "$COLOR4" "$KEEP_GOING" "$CRESET"
     printf '%b%s%b %s\n' "$COLOR5" "SOURCE_DIR:" "$CRESET" "$SOURCE_DIR"
@@ -1078,7 +1082,7 @@ emerald_install() {
             if ! ppath=$(get_port_path "$ii"); then
                 msg_port_not_found "$ii"
 
-                if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
+                if keep_going; then
                     failed_installs="$failed_installs $ii"
                     continue
                 else
@@ -1087,7 +1091,7 @@ emerald_install() {
             elif ! emerald_isinstalled "$ii"; then
                 msg_port_not_installed "$ii"
 
-                if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
+                if keep_going; then
                     failed_installs="$failed_installs $ii"
                     continue
                 else
@@ -1100,7 +1104,7 @@ emerald_install() {
                     if pkgbuild $OPTS -r; then
                         done_pkg="$done_pkg $ii"
                     else
-                        if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
+                        if keep_going; then
                             msg_warning "Reinstall failed for '$ii', continuing with next package..."
 
                             failed_installs="$failed_installs $ii"
@@ -1136,7 +1140,7 @@ emerald_install() {
             if ! ppath=$(get_port_path "$ii"); then
                 msg_port_not_found "$ii"
 
-                if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
+                if keep_going; then
                     failed_installs="$failed_installs $ii"
                     continue
                 else
@@ -1155,7 +1159,7 @@ emerald_install() {
                         done_pkg="$done_pkg $ii"
                         world_add "$ii"
                     else
-                        if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
+                        if keep_going; then
                             msg_warning "Install failed for '$ii', continuing with next package..."
 
                             failed_installs="$failed_installs $ii"
@@ -1239,7 +1243,7 @@ emerald_install() {
                         hook "post" "install"
                         done_pkg="$done_pkg $int"
                     else
-                        if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
+                        if keep_going; then
                             msg_warning "Install failed for '$int', continuing with next package..."
 
                             failed_installs="$failed_installs $int"
@@ -1845,7 +1849,7 @@ emerald_sysup() {
                     hook "post" "install"
                     done_pkg="$done_pkg $inst"
                 else
-                    if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
+                    if keep_going; then
                         msg_warning "Install failed for '$inst', continuing with next package..."
 
                         failed_upgrades="$failed_upgrades $inst"
@@ -1865,7 +1869,7 @@ emerald_sysup() {
                     hook "post" "install"
                     done_pkg="$done_pkg $inst"
                 else
-                    if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
+                    if keep_going; then
                         msg_warning "Upgrade failed for '$inst', continuing with next package..."
 
                         failed_upgrades="$failed_upgrades $inst"
@@ -2063,7 +2067,7 @@ emerald_upgrade() {
         if ! emerald_isinstalled "$pkg"; then
             msg_port_not_installed "$pkg"
 
-            if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
+            if keep_going; then
                 failed_upgrades="$failed_upgrades $pkg"
                 continue
             else
@@ -2072,7 +2076,7 @@ emerald_upgrade() {
         elif ! get_port_path "$pkg" >/dev/null 2>&1; then
             printf "Package '%s' not exist.\n" "$pkg"
 
-            if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
+            if keep_going; then
                 failed_upgrades="$failed_upgrades $pkg"
                 continue
             else
@@ -2155,7 +2159,7 @@ emerald_upgrade() {
                     hook "post" "install"
                     done_pkg="$done_pkg $inst"
                 else
-                    if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
+                    if keep_going; then
                         msg_warning "Install failed for '$inst', continuing with next package..."
 
                         failed_upgrades="$failed_upgrades $inst"
@@ -2175,7 +2179,7 @@ emerald_upgrade() {
                     hook "post" "install"
                     done_pkg="$done_pkg $inst"
                 else
-                    if [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = "1" ]; then
+                    if keep_going; then
                         msg_warning "Upgrade failed for '$inst', continuing with next package..."
 
                         failed_upgrades="$failed_upgrades $inst"
