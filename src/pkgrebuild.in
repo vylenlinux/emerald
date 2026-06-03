@@ -7,6 +7,8 @@
 # manager, ensuring proper build order and dependency resolution.
 # POSIX-compliant implementation for maximum portability.
 
+# shellcheck disable=SC2317
+
 # Vars
 PKGDB_DIR="@STATE_DIR@/db"
 TCRB=1

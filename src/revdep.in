@@ -8,6 +8,11 @@
 
 # shellcheck disable=SC2317
 
+PRINT_ALL=0
+REBUILD=0
+NOCONFIRM=0
+NO_FILTER=0
+
 interrupted() {
     cleanup
     printf '\n'
@@ -114,7 +119,7 @@ rebuild() {
     done
 
     if [ -n "$order" ]; then
-        if [ ! "$NOCONFIRM" ]; then
+        if [ "$NOCONFIRM" -ne 1 ]; then
             printf '\nPackage will be rebuild & reinstall by this order:\n'
             printf ' %s\n\n' "$order"
 
