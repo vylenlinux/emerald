@@ -623,7 +623,8 @@ emerald_depends() {
 }
 
 deplist() {
-    pkg="$1"
+    # shellcheck disable=SC3043
+    local pkg="$1"
 
     # skip excluded dependencies
     case " $exclude " in
