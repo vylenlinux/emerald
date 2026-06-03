@@ -632,7 +632,7 @@ deplist() {
 
     # check dependencies
     for dep in $(get_depends "$pkg"); do
-        if [ "$quick" = 1 ] && emerald_isinstalled "$dep"; then
+        if [ "$quick" -eq 1 ] && emerald_isinstalled "$dep"; then
             continue
         fi
 
@@ -652,7 +652,7 @@ deplist() {
         *" $pkg "*) ;;
 
         *)
-            if [ "$quick" = 1 ]; then
+            if [ "$quick" -eq 1 ]; then
                 emerald_isinstalled "$pkg" || DEP="$DEP $pkg "
             else
                 DEP="$DEP $pkg "
@@ -697,7 +697,7 @@ emerald_deplist() {
     for p in $PKG; do
         if get_port_path "$p" >/dev/null 2>&1; then
             PPKG="$PPKG $p "
-        elif [ "$quick" != 1 ]; then
+        elif [ "$quick" -ne 1 ]; then
             msg_port_not_found "$p"
         fi
     done
@@ -710,7 +710,7 @@ emerald_deplist() {
     [ "$DEP" ] || return 0
 
     # output results
-    if [ "$quick" = 1 ]; then
+    if [ "$quick" -eq 1 ]; then
         printf "%s\n" $DEP
     else
         msg_deps_status $DEP
@@ -1075,7 +1075,7 @@ emerald_install() {
     }
 
     # if reinstall, dont calculate dep, just reinstall it then exit
-    if [ "$REINSTALL" = 1 ]; then
+    if [ "$REINSTALL" -eq 1 ]; then
         error=0
 
         for ii in $PKGNAME; do
@@ -1133,7 +1133,7 @@ emerald_install() {
     fi
 
     # No dep
-    if [ "$NO_DEP" = 1 ]; then
+    if [ "$NO_DEP" -eq 1 ]; then
         error=0
 
         for ii in $PKGNAME; do
@@ -1425,10 +1425,10 @@ check_outdated() {
 
         if [ "$pversion" != "$iversion" ]; then
             version_comp "$pversion" "$iversion"
-            [ $? = 1 ] && NEWINSTALLED=1
+            [ $? -eq 1 ] && NEWINSTALLED=1
         elif [ "$prelease" != "$irelease" ]; then
             version_comp "$prelease" "$irelease"
-            [ $? = 1 ] && NEWINSTALLED=1
+            [ $? -eq 1 ] && NEWINSTALLED=1
         fi
 
         # Check MASKED
@@ -1454,8 +1454,8 @@ emerald_outdate() {
     printf '%s\n' "$out" | while IFS='#' read -r pname oldver newver newins masked; do
         unset ii
 
-        [ "$newins" = 1 ] && ii=" [newer installed]"
-        [ "$masked" = 1 ] && ii="$ii [masked]"
+        [ "$newins" -eq 1 ] && ii=" [newer installed]"
+        [ "$masked" -eq 1 ] && ii="$ii [masked]"
 
         printf "%s %s => %s%s\n" "$pname" "$oldver" "$newver" "$ii"
     done
@@ -1787,7 +1787,7 @@ emerald_sysup() {
     NEWPKG=0
     installmsg="ACTION#PORTNAME#VERSION#INSTALLED"
 
-    if [ "$NODEP" != 1 ]; then
+    if [ "$NODEP" -ne 1 ]; then
         printf "Resolving dependencies...\n"
         DEP=$(emerald_deplist "$PKG" "$EXOPT" | awk '{print $2}')
 
@@ -2098,7 +2098,7 @@ emerald_upgrade() {
     NEWPKG=0
     installmsg="ACTION#PORTNAME#VERSION#INSTALLED"
 
-    if [ "$NO_DEP" != 1 ]; then
+    if [ "$NO_DEP" -ne 1 ]; then
         printf "Resolving dependencies...\n"
         DEP=$(emerald_deplist "$upkg" "$EXOPT" | awk '{print $2}')
         printf "\n"
