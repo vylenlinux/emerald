@@ -1226,10 +1226,10 @@ emerald_install() {
         printf "( %s install )\n" "$pkgcount"
         printf "\n"
 
-        if [ ! "$NOCONFIRM" ]; then
+        [ "$NOCONFIRM" -eq 0 ] && {
             confirm "Continue install package(s)?" "Package installation cancelled." || exit $?
             printf "\n"
-        fi
+        }
 
         error=0
         count=0
@@ -1630,7 +1630,7 @@ emerald_remove() {
     printf "( %s remove )\n" "$pkgcount"
     printf "\n"
 
-    [ "$NOCONFIRM" ] || {
+    [ "$NOCONFIRM" -eq 0 ] && {
         confirm "Continue remove package(s)?" "Package removing cancelled." || exit $?
         printf "\n"
     }
@@ -1836,7 +1836,7 @@ emerald_sysup() {
     printf "( %s upgrade, %s new install )\n" "$UPGPKG" "$NEWPKG"
     printf "\n"
 
-    [ "$NOCONFIRM" -eq 0 ] || {
+    [ "$NOCONFIRM" -eq 0 ] && {
         confirm "Continue upgrade/install these package(s)?" "Package upgrade cancelled." || exit $?
         printf "\n"
     }
@@ -2146,7 +2146,7 @@ emerald_upgrade() {
     printf "( %s upgrade, %s new install )\n" "$UPGPKG" "$NEWPKG"
     printf "\n"
 
-    [ "$NOCONFIRM" ] || {
+    [ "$NOCONFIRM" -eq 0 ] && {
         confirm "Continue upgrade/install these package(s)?" "Package upgrade cancelled." || exit $?
         printf "\n"
     }
