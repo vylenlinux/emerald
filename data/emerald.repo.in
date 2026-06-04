@@ -7,4 +7,3 @@
 
 @PORTS_DIR@/main         https://gitlab.com/vylen/ports/main
 @PORTS_DIR@/community    https://gitlab.com/vylen/ports/community
-#@PORTS_DIR@/multilib    https://gitlab.com/vylen/ports/multilib
