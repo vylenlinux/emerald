@@ -83,7 +83,7 @@ done
 
 # Execute removal or show dry-run
 if [ -n "$remove" ]; then
-    if [ "$dryrun" = 1 ]; then
+    if [ "$dryrun" -eq 1 ]; then
         printf "DRY-RUN MODE - No packages will be removed\n"
         printf "The following packages would be removed:\n"
 

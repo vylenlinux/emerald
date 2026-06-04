@@ -1,13 +1,12 @@
 #!/bin/sh
 
+# shellcheck disable=SC2317
 #
 # pkgrebuild - Rebuild base packages in correct toolchain order
 #
 # This script rebuilds system toolchain and base packages for emerald package
 # manager, ensuring proper build order and dependency resolution.
 # POSIX-compliant implementation for maximum portability.
-
-# shellcheck disable=SC2317
 
 # Vars
 PKGDB_DIR="@STATE_DIR@/db"
@@ -95,7 +94,7 @@ toolchain_rebuild() {
 # Rebuild all base system packages except toolchain components
 base_rebuild() {
     # Locate base package in database
-    BASE=$(find "$PKGDB_DIR" -type f -name 'base*' 2>/dev/null | sed 's|.*/||' | head -n 1)
+    BASE=$(find "$PKGDB_DIR" -type f -name 'base' 2>/dev/null | sed 's|.*/||' | head -n 1)
 
     # Validate that base package was found
     if [ -z "$BASE" ]; then

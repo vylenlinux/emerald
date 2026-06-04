@@ -1,12 +1,11 @@
 #!/bin/sh
 
+# shellcheck disable=SC2317
 #
 # revdep - Reverse dependency checker for broken packages
 #
 # This script checks for broken library linkages and identifies packages
 # that need to be rebuilt due to missing shared library dependencies.
-
-# shellcheck disable=SC2317
 
 PRINT_ALL=0
 REBUILD=0
@@ -47,7 +46,7 @@ confirm() {
 
     case "$response" in
         [Nn][Oo] | [Nn])
-            printf '%s\n' "$2";
+            printf '%s\n' "$2"
             exit 2
         ;;
 
@@ -91,17 +90,17 @@ parse_opts() {
             ;;
 
             -p | --package)
-                PKG=$2;
+                PKG=$2
                 shift
             ;;
 
             -h | --help)
-                help;
+                help
                 exit 0
             ;;
 
             *)
-                printf 'Invalid option (%s)\n' "$1";
+                printf 'Invalid option (%s)\n' "$1"
                 exit 1
             ;;
         esac
@@ -128,7 +127,7 @@ rebuild() {
 
         for p in $order; do
             emerald install -fr "$p" || {
-                cleanup;
+                cleanup
                 exit 1
             }
         done

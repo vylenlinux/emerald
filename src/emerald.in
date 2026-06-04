@@ -154,20 +154,20 @@ get_version() {
     p=$(get_port_path "$1") || return 1
 
     awk '/^version=/{
-        v=$0;
+        v = $0;
 
         sub(/^version=/, "", v);
         gsub(/["'\'']/, "", v);
     } /^release=/{
-        r=$0;
+        r = $0;
 
         sub(/^release=/, "", r);
         gsub(/["'\'']/, "", r)
     } END {
-        if (v == "") v=0;
-        if (r == "") r=0;
+        if (v == "") v = 0;
+        if (r == "") r = 0;
 
-        print v "-" r;
+        printf "%s-%s", v, r;
     }' "$p/$BUILD_SCRIPT"
 }
 
@@ -285,6 +285,7 @@ summary_title() {
 
 emerald_build() {
     failed_builds=""
+    LOG=0
 
     while [ "$1" ]; do
         case $1 in
@@ -620,7 +621,6 @@ emerald_depends() {
 }
 
 deplist() {
-    # shellcheck disable=SC3043
     local pkg="$1"
 
     # skip excluded dependencies
@@ -1068,7 +1068,7 @@ emerald_install() {
                 OPTS="$OPTS $1"
             ;;
 
-            -y) NOCONFIRM=1 ;;
+            -y | --yes) NOCONFIRM=1 ;;
             -n) NO_DEP=1 ;;
             -k) KEEP_GOING_LOCAL=1 ;;
             --exclude=*) EXOPT=$1 ;;
@@ -1577,13 +1577,11 @@ emerald_redeps() {
                     printf "[%s] %s (already pulled from %s)\n" "$i" "$dd" "$d"
 
                     [ "$fix" = "yes" ] && {
-                        [ -f "$CBUILD_DIR/$i.dep" ] && {
-                            sed -i "/^$dd$/d" "$CBUILD_DIR/$i.dep"
-                            msg_info " $dd removed from $i cbuild deps"
-                        } || {
-                            sed -i "/^$dd$/d" "$ppath/depends"
-                            msg_info " $dd removed from $i depends"
-                        }
+                        deps_file="$ppath/depends"
+                        [ -f "$CBUILD_DIR/$i.dep" ] && deps_file="$CBUILD_DIR/$i.dep"
+
+                        sed -i "/^$dd$/d" "$deps_file"
+                        msg_info " $dd removed from $i $(basename "$deps_file")"
                     }
                 }
             done
@@ -1692,7 +1690,7 @@ emerald_search() {
         [ -d "$repo" ] || continue
 
         _sr_out=$(awk -v pat="$PATTERN" -v nonly="$NAME_ONLY" 'FNR == 1 {
-            if (NR > 1 && matched) printf "%s|%s|%s|%s\n", name, ver, rel, desc;
+            if ((NR > 1) && matched) printf "%s|%s|%s|%s\n", name, ver, rel, desc;
             name = ver = rel = desc = "";
             matched = 0;
         } /^name=/ {
@@ -1750,11 +1748,11 @@ emerald_sysup() {
             -i | -u | -r ) ;;
 
             -o)
-                DOWNLOAD_ONLY=1;
+                DOWNLOAD_ONLY=1
                 OPTS="$OPTS $1"
             ;;
 
-            -y) NOCONFIRM=1 ;;
+            -y | --yes) NOCONFIRM=1 ;;
             -n) NO_DEP=1 ;;
             -k) KEEP_GOING_LOCAL=1 ;;
             --exclude=*) EXOPT=$1 ;;
@@ -1804,7 +1802,7 @@ emerald_sysup() {
     NEWPKG=0
     installmsg="ACTION#PORTNAME#VERSION#INSTALLED"
 
-    if [ "$NO_DEP" -ne 1 ]; then
+    if [ "$NO_DEP" -eq 0 ]; then
         printf "Resolving dependencies...\n"
         DEP=$(emerald_deplist "$PKG" "$EXOPT" | awk '{print $2}')
 
@@ -2062,7 +2060,7 @@ emerald_upgrade() {
     while [ "$1" ]; do
         case $1 in
             -i | -r) ;;
-            -y) NOCONFIRM=1 ;;
+            -y | --yes) NOCONFIRM=1 ;;
 
             -o)
                 DOWNLOAD_ONLY=1;
@@ -2119,7 +2117,7 @@ emerald_upgrade() {
     NEWPKG=0
     installmsg="ACTION#PORTNAME#VERSION#INSTALLED"
 
-    if [ "$NO_DEP" -ne 1 ]; then
+    if [ "$NO_DEP" -eq 0 ]; then
         printf "Resolving dependencies...\n"
         DEP=$(emerald_deplist "$upkg" "$EXOPT" | awk '{print $2}')
         printf "\n"

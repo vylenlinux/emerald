@@ -1,11 +1,10 @@
 #!/bin/sh
 
+# shellcheck disable=SC2317
 #
 # pkgbuild - Package build utility
 # POSIX-compliant shell script for build packages
 #
-
-# shellcheck disable=SC2317
 
 msg_info() {
     printf "==> %s\n" "$1"
@@ -56,14 +55,14 @@ do_pam() {
             return 1
         }
 
-        # Install pam.d config (required)
-        if [ -f "$_pam_dir/$_pam" ]; then
-            install -Dm644 "$_pam_dir/$_pam" "$PKG/etc/pam.d/$_pam"
-            msg_info "Installed: /etc/pam.d/$_pam"
-        else
+        [ ! -f "$_pam_dir/$_pam" ] && {
             msg_error "No PAM config found for $_pam"
             return 1
-        fi
+        }
+
+        # Install pam.d config (required)
+        install -Dm644 "$_pam_dir/$_pam" -t "$PKG/etc/pam.d/"
+        msg_info "Installed: /etc/pam.d/$_pam"
     done
 }
 
@@ -209,9 +208,11 @@ pkg_checksum() {
                 msg_info "Checking checksums..."
                 generate_checksum > "$TMPCHECKSUM"
 
-                diff -U 0 .checksums "$TMPCHECKSUM" | sed -e '/---/d;/+++/d;/@@/d' \
+                diff -U 0 .checksums "$TMPCHECKSUM" | sed \
+                    -e '/---/d;/+++/d;/@@/d' \
                     -e 's/^+/ new    : /' \
-                    -e 's/^-/ missing: /' > "$DIFCHECKSUM"
+                    -e 's/^-/ missing: /' \
+                > "$DIFCHECKSUM"
 
                 if [ -s "$DIFCHECKSUM" ]; then
                     cat "$DIFCHECKSUM"
@@ -557,9 +558,9 @@ pkg_build() {
         if [ $? -ne 0 ]; then
             msg_error "Build failed: $name-$version-$release"
             abort 1
-        else
-            msg_info "Build success: $name-$version-$release"
         fi
+
+        msg_info "Build success: $name-$version-$release"
     cd - >/dev/null || return 1
 }
 
@@ -621,7 +622,7 @@ strip_files() {
             ;;
 
             # Binaries
-            *application/x-executable*) ${CROSS_COMPILE}strip --strip-all "$binary" 2>/dev/null ;;
+            *application/x-executable*) "${CROSS_COMPILE}strip" --strip-all "$binary" 2>/dev/null ;;
             *) continue ;;
         esac
     done
@@ -710,6 +711,7 @@ pkg_package() {
             zstd) COMPRESS="zstd -19 -T0" ;;
         esac
 
+        # shellcheck disable=SC2035
         tar -c -I "$COMPRESS" -f "$PACKAGE_DIR/$PKGNAME" * || {
             rm -f "$PACKAGE_DIR/$PKGNAME"
             msg_error "Packaging failed: $PKGNAME"
@@ -905,7 +907,8 @@ cbuild_options() {
 
 pkg_cleanup() {
     if [ ! "$KEEP_WORK" ] && [ "$name" ]; then
-        rm -fr "$WORK_DIR/$name"
+        # shellcheck disable=SC2115
+        rm -rf "$WORK_DIR/$name"
     fi
 }
 
@@ -944,12 +947,12 @@ parse_opts() {
             -i | --install) INSTALL_PKG=yes ;;
 
             -u | --upgrade)
-                UPGRADE_PKG=yes;
+                UPGRADE_PKG=yes
                 OPTS="$OPTS $1"
             ;;
 
             -r | --reinstall)
-                REINSTALL_PKG=yes;
+                REINSTALL_PKG=yes
                 OPTS="$OPTS $1"
             ;;
 
@@ -1014,16 +1017,17 @@ EOF
 main() {
     parse_opts "$@"
 
-    if [ -f "$PKGBUILD_CONF" ]; then
-        . "$PKGBUILD_CONF"
-    else
+    [ ! -f "$PKGBUILD_CONF" ] && {
         msg_error "Config file not found: $PKGBUILD_CONF"
         exit 1
-    fi
+    }
 
-    [ "$CUSTOM_SOURCE_DIR" ]  && SOURCE_DIR="$CUSTOM_SOURCE_DIR"
+    # shellcheck source=@SYSCONFDIR@/emerald.conf
+    . "$PKGBUILD_CONF"
+
+    [ "$CUSTOM_SOURCE_DIR" ] && SOURCE_DIR="$CUSTOM_SOURCE_DIR"
     [ "$CUSTOM_PACKAGE_DIR" ] && PACKAGE_DIR="$CUSTOM_PACKAGE_DIR"
-    [ "$CUSTOM_WORK_DIR" ]    && WORK_DIR="$CUSTOM_WORK_DIR"
+    [ "$CUSTOM_WORK_DIR" ] && WORK_DIR="$CUSTOM_WORK_DIR"
 
     # Ensure cbuild directory exists; non-fatal if it cannot be created
     [ -d "$CBUILD_DIR" ] || mkdir -p "$CBUILD_DIR" 2>/dev/null
@@ -1036,13 +1040,13 @@ main() {
         exit 0
     }
 
-    if [ -f "$PKGBUILD_BSCRIPT" ]; then
-        . ./"$PKGBUILD_BSCRIPT"
-    else
+    [ ! -f "$PKGBUILD_BSCRIPT" ] && {
         msg_error "'$PKGBUILD_BSCRIPT' file not found."
         exit 1
-    fi
+    }
 
+    # shellcheck source=$PKGBUILD_BSCRIPT
+    . ./"$PKGBUILD_BSCRIPT"
     check_buildscript
 
     case "$COMPRESSION_MODE" in
@@ -1128,7 +1132,7 @@ main() {
 
     # install package
     if [ "$INSTALL_PKG" ] || [ "$REINSTALL_PKG" ] || [ "$UPGRADE_PKG" ]; then
-        pkgadd "$PACKAGE_DIR/$PKGNAME" $INST_OPT $OPTS || abort 1
+        pkgadd "$PACKAGE_DIR/$PKGNAME" $OPTS || abort 1
     fi
 
     abort 0

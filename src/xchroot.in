@@ -1,5 +1,6 @@
 #!/bin/sh
 
+# shellcheck disable=SC2317
 #
 # xchroot - Script to enter chroot environment with proper mounts
 # POSIX-compliant version for production use
