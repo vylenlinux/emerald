@@ -229,8 +229,9 @@ if [ -z "$IGNORE_CONFLICT" ]; then
             printf '%s %s\n' "$owner" "$line"
             conflicts=1
         fi
+    # List package files (excluding directories ending in '/') to check for conflicts with awk command
     done <<EOF
-$(awk '!/\/$/{print $6}' "$TMP_PKGADD") # Check for conflicts with non-directory entries in the package
+$(awk '!/\/$/{print $6}' "$TMP_PKGADD")
 EOF
 
     if [ "$conflicts" -eq 1 ]; then
@@ -272,7 +273,7 @@ if [ "$UPGRADE_PKG" ] || [ "$REINSTALL_PKG" ]; then
 
             */)
                 # Directory removal logic
-                if grep "^$line$" "$ROOT_DIR/$PKGDB_DIR"/* "$TMP_PKGINSTALL" 2>/dev/null | grep -qv "$ROOT_DIR/$PKGDB_DIR/$name"; then
+                if grep -F "^$line$" "$ROOT_DIR/$PKGDB_DIR"/* "$TMP_PKGINSTALL" 2>/dev/null | grep -qv "$ROOT_DIR/$PKGDB_DIR/$name"; then
                     : # Do nothing if directory is used by another package
                 else
                     # Manual verbose printing, as 'rmdir -v' is not POSIX
