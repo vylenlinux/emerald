@@ -316,31 +316,24 @@ emerald_build() {
             set_term_title "Building $pkg..."
 
             # Run pkgbuild and capture the result
-            if [ "$LOG" = 1 ]; then
-                if pkgbuild $OPTS | tee "/var/log/$pkg-$(get_version "$pkg")-build-$(date +%Y-%m-%d-%H:%M).log"; then
-                    set_term_title "Building $pkg done."
-                else
-                    set_term_title "Building $pkg failed."
-
-                    if keep_going; then
-                        msg_warning "Build failed for '$pkg', continuing with next package..."
-                        failed_builds="$failed_builds $pkg"
-                    else
-                        return 1
-                    fi
-                fi
+            if [ "$LOG" ]; then
+                pkgbuild $OPTS | tee "/var/log/$pkg-$(get_version "$pkg")-build-$(date +%Y-%m-%d-%H:%M).log"
+                _build_ret=$?
             else
-                if pkgbuild $OPTS; then
-                    set_term_title "Building $pkg done."
-                else
-                    set_term_title "Building $pkg failed."
+                pkgbuild $OPTS
+                _build_ret=$?
+            fi
 
-                    if keep_going; then
-                        msg_warning "Build failed for '$pkg', continuing with next package..."
-                        failed_builds="$failed_builds $pkg"
-                    else
-                        return 1
-                    fi
+            if [ "$_build_ret" -eq 0 ]; then
+                settermtitle "Building $pkg done."
+            else
+                settermtitle "Building $pkg failed."
+
+                if keep_going; then
+                    msgwarn "Build failed for '$pkg', continuing with next package..."
+                    failed_builds="$failed_builds $pkg"
+                else
+                    return 1
                 fi
             fi
         cd - >/dev/null || return 1
