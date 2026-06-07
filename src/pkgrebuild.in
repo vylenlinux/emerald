@@ -9,7 +9,7 @@
 # POSIX-compliant implementation for maximum portability.
 
 # Vars
-PKGDB_DIR="@STATE_DIR@/db"
+PKGDB_DIR="$(pkgadd --print-db-dir)"
 TCRB=1
 BASERB=1
 

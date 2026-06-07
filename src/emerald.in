@@ -4,7 +4,7 @@
 
 # vars
 BUILD_SCRIPT="build.eme"
-PKGDB_DIR="@STATE_DIR@/db"
+PKGDB_DIR="$(pkgadd --print-db-dir)"
 CBUILD_DIR="@STATE_DIR@/cbuild"
 WORLD_FILE="@STATE_DIR@/world"
 REPO_FILE="${REPO_FILE:-@SYSCONFDIR@/emerald.repo}"

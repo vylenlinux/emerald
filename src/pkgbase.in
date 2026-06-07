@@ -52,7 +52,7 @@ yes=""
 pkg=""
 keep=""
 remove=""
-PKGDB_DIR="@STATE_DIR@/db"
+PKGDB_DIR="$(pkgadd --print-db-dir)"
 
 # Parse command line options
 parse_opts "$@"

@@ -78,7 +78,7 @@ if [ -z "$RMNAME" ]; then
     exit 0
 fi
 
-PKGDB_DIR="$(pkgadd --print-dbdir)"
+PKGDB_DIR="$(pkgadd --print-db-dir)"
 PKGDB_DIR="${PKGDB_DIR##/}"
 
 LOCK_FILE="@STATE_DIR@/epkg.lock"

@@ -46,7 +46,7 @@ Options:
   -v, --verbose              print files installed
   -h, --help                 show this help message
       --no-backup            skip backup when upgrading package
-      --print-dbdir          print package database path
+      --print-db-dir         print package database path
       --root=<path>          install to custom root directory
 
 EOF
@@ -82,7 +82,7 @@ parse_opts() {
             -v | --verbose) VERBOSE_INSTALL=yes ;;
             -h | --help) SHOW_HELP=yes ;;
             --no-backup) NO_BACKUP=yes ;;
-            --print-dbdir) PRINT_DB_DIR=yes ;;
+            --print-db-dir) PRINT_DB_DIR=yes ;;
             --root=*) ROOT_DIR="${1#*=}" ;;
             *.epkg.tar.*) PKGNAME="$(get_realpath "$1")" ;;
 
