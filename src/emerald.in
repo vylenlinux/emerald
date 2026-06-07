@@ -321,7 +321,7 @@ emerald_build() {
             set_term_title "Building $pkg..."
 
             # Run pkgbuild and capture the result
-            if [ "$LOG" ]; then
+            if [ "$LOG" -eq 1 ]; then
                 if pkgbuild $OPTS | tee "/var/log/$pkg-$(get_version "$pkg")-build-$(date +%Y-%m-%d-%H:%M).log"; then
                     set_term_title "Building $pkg done."
                 else
@@ -987,7 +987,7 @@ EOF
 hook() {
     # hook <stage> <action> [port]
     # if using -o (download only), dont run hook
-    [ "$DOWNLOAD_ONLY" ] && return 0
+    [ "$DOWNLOAD_ONLY" -eq 1 ] && return 0
 
     # silent sanity check
     [ "$1" ] && [ "$2" ] || return 0
