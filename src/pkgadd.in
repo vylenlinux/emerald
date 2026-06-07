@@ -1,11 +1,10 @@
 #!/bin/sh
 
+# shellcheck disable=SC2317
 #
 # pkgadd - Package install utility
 # POSIX-compliant shell script for install, reinstall or upgrade packages
 #
-
-# shellcheck disable=SC2317
 
 trap "interrupted" 1 2 3 15
 export LC_ALL=C
@@ -38,7 +37,7 @@ msg_error() {
 help() {
     cat <<'EOF'
 Usage:
-  pkgadd [ <options> <package.epkg.txz> ]
+  pkgadd [ <options> <package.epkg.tar.xz> ]
 
 Options:
   -u, --upgrade              upgrade package
@@ -55,45 +54,46 @@ EOF
 
 parse_opts() {
     if [ -z "$1" ]; then
-        SHOWHELP=yes
-    else
-        while [ -n "$1" ]; do
-            case $1 in
-                -[!-]?*)
-                    _rest=${1#-}
-                    shift
-
-                    while [ -n "$_rest" ]; do
-                        _chr="${_rest%"${_rest#?}"}"
-                        set -- "-$_chr" "$@"
-
-                        _rest=${_rest#?}
-                    done
-
-                    continue
-                ;;
-            esac
-
-            case $1 in
-                -u | --upgrade) UPGRADE_PKG=yes ;;
-                -r | --reinstall) REINSTALL_PKG=yes ;;
-                -c | --ignore-conflict) IGNORE_CONFLICT=yes ;;
-                -v | --verbose) VERBOSE_INSTALL=yes ;;
-                -h | --help) SHOWHELP=yes ;;
-                --no-backup) NO_BACKUP=yes ;;
-                --print-dbdir) PRINTDBDIR=yes ;;
-                --root=*) ROOT_DIR="${1#*=}" ;;
-                *.epkg.tar.*) PKGNAME="$(get_realpath "$1")" ;;
-
-                *)
-                    msg_info "Invalid option! ($1)";
-                    exit 1
-                ;;
-            esac
-
-            shift
-        done
+        SHOW_HELP=yes
+        return
     fi
+
+    while [ -n "$1" ]; do
+        case $1 in
+            -[!-]?*)
+                _rest=${1#-}
+                shift
+
+                while [ -n "$_rest" ]; do
+                    _chr="${_rest%"${_rest#?}"}"
+                    set -- "-$_chr" "$@"
+
+                    _rest=${_rest#?}
+                done
+
+                continue
+            ;;
+        esac
+
+        case $1 in
+            -u | --upgrade) UPGRADE_PKG=yes ;;
+            -r | --reinstall) REINSTALL_PKG=yes ;;
+            -c | --ignore-conflict) IGNORE_CONFLICT=yes ;;
+            -v | --verbose) VERBOSE_INSTALL=yes ;;
+            -h | --help) SHOW_HELP=yes ;;
+            --no-backup) NO_BACKUP=yes ;;
+            --print-dbdir) PRINT_DB_DIR=yes ;;
+            --root=*) ROOT_DIR="${1#*=}" ;;
+            *.epkg.tar.*) PKGNAME="$(get_realpath "$1")" ;;
+
+            *)
+                msg_info "Invalid option! ($1)";
+                exit 1
+            ;;
+        esac
+
+        shift
+    done
 }
 
 ret() {
@@ -111,13 +111,13 @@ LOCK_FILE="$EMERALD_DIR/epkg.lock"
 
 ROOT_DIR="${ROOT_DIR%/}" # Remove trailing slash
 
-[ "$PRINTDBDIR" ] && {
+[ "$PRINT_DB_DIR" ] && {
     printf '%s/%s\n' "$ROOT_DIR" "$PKGDB_DIR"
     exit 0
 }
 
 # Show help page
-if [ "$SHOWHELP" ] || [ -z "$PKGNAME" ]; then
+if [ "$SHOW_HELP" ] || [ -z "$PKGNAME" ]; then
     help
     exit 0
 fi
@@ -128,7 +128,7 @@ fi
 }
 
 # Check for root access
-[ "$(id -u)" = "0" ] || {
+[ "$(id -u)" -ne 0 ] && {
     msg_error "Installing packages requires root access!"
     help
 
@@ -165,17 +165,17 @@ name=${noextname%-*}
 # Get package information if installed
 if [ -s "$ROOT_DIR/$PKGDB_DIR/$name" ]; then
     read -r iversion irelease < "$ROOT_DIR/$PKGDB_DIR/$name" # read first line
-    ALREADYINSTALLED=yes
+    ALREADY_INSTALLED=yes
 fi
 
-if [ "$ALREADYINSTALLED" = "yes" ] && [ ! "$UPGRADE_PKG" ] && [ ! "$REINSTALL_PKG" ]; then
+if [ "$ALREADY_INSTALLED" = "yes" ] && [ ! "$UPGRADE_PKG" ] && [ ! "$REINSTALL_PKG" ]; then
     printf "Package '%s' already installed. (%s-%s)\n" "$name" "$iversion" "$irelease"
     ret 0
 fi
 
 # Can't reinstall if not installed and can't upgrade if up-to-date
 if [ "$UPGRADE_PKG" ] || [ "$REINSTALL_PKG" ]; then
-    if [ "$ALREADYINSTALLED" != "yes" ]; then
+    if [ "$ALREADY_INSTALLED" != "yes" ]; then
         msg_error "Package '$name' not installed."
         ret 1
     fi
@@ -210,7 +210,7 @@ if [ -z "$IGNORE_CONFLICT" ]; then
     while IFS= read -r line; do
         # Remove .epkgnew suffix if present
         case "$line" in
-            *.epkgnew) line=${line%.epkgnew} ;;
+            *.epkgnew) line="${line%.epkgnew}" ;;
         esac
 
         # Check if file or symlink (including broken) exists in root
@@ -242,13 +242,13 @@ fi
 rm -f "$TMP_PKGINSTALL"
 
 # Extract package into ROOT_DIR
-tar -xvhpf "$PKGNAME" -C "$ROOT_DIR"/ | while read -r line; do
+tar -xvhpf "$PKGNAME" -C "$ROOT_DIR/" | while read -r line; do
     case "$line" in
         *.epkgnew)
             line="${line%.epkgnew}"
 
             # Handle epkgnew file in fresh install OR upgrade/reinstall when file is absent OR --no-backup is set
-            if [ ! "$UPGRADE_PKG" ] && [ ! "$REINSTALL_PKG" ] || [ ! -e "$ROOT_DIR/$line" ] || [ "$NO_BACKUP" = yes ]; then
+            if [ ! "$UPGRADE_PKG" ] && [ ! "$REINSTALL_PKG" ] || [ ! -e "$ROOT_DIR/$line" ] || [ "$NO_BACKUP" = "yes" ]; then
                 cp --reflink=auto "$ROOT_DIR/$line.epkgnew" "$ROOT_DIR/$line"
                 rm -f "$ROOT_DIR/$line.epkgnew"
             fi
@@ -304,8 +304,8 @@ printf '%s %s\n' "$version" "$release" > "$ROOT_DIR/$PKGDB_DIR/$name"
 cat "$TMP_PKGINSTALL" >> "$ROOT_DIR/$PKGDB_DIR/$name"
 
 # Running ldconfig
-if [ -x "$ROOT_DIR"/sbin/ldconfig ]; then
-    "$ROOT_DIR"/sbin/ldconfig -r "$ROOT_DIR"/
+if [ -x "$ROOT_DIR/sbin/ldconfig" ]; then
+    "$ROOT_DIR/sbin/ldconfig" -r "$ROOT_DIR/"
 fi
 
 ret 0
