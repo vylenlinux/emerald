@@ -12,10 +12,6 @@ MASK_FILE="${MASK_FILE:-@SYSCONFDIR@/emerald.mask}"
 CONFIG_FILE="${CONFIG_FILE:-@SYSCONFDIR@/emerald.conf}"
 ALIAS_FILE="${ALIAS_FILE:-@SYSCONFDIR@/emerald.alias}"
 
-KEEP_GOING_LOCAL=0
-DOWNLOAD_ONLY=0
-QUICK=0
-
 # check alias port
 grep -qEv '^(#|[[:space:]]*$)' "$ALIAS_FILE" 2>/dev/null && ALIAS_PORT="yes" || ALIAS_PORT="no"
 
@@ -228,7 +224,7 @@ need_arg() {
 }
 
 keep_going() {
-    [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" -eq 1 ]
+    [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = 1 ]
 }
 
 set_term_title() {
@@ -285,7 +281,6 @@ summary_title() {
 
 emerald_build() {
     failed_builds=""
-    LOG=0
 
     while [ "$1" ]; do
         case $1 in
@@ -321,7 +316,7 @@ emerald_build() {
             set_term_title "Building $pkg..."
 
             # Run pkgbuild and capture the result
-            if [ "$LOG" -eq 1 ]; then
+            if [ "$LOG" = 1 ]; then
                 if pkgbuild $OPTS | tee "/var/log/$pkg-$(get_version "$pkg")-build-$(date +%Y-%m-%d-%H:%M).log"; then
                     set_term_title "Building $pkg done."
                 else
@@ -638,7 +633,7 @@ deplist() {
 
     # check dependencies
     for dep in $(get_depends "$pkg"); do
-        if [ "$QUICK" -eq 1 ] && emerald_isinstalled "$dep"; then
+        if [ "$quick" = 1 ] && emerald_isinstalled "$dep"; then
             continue
         fi
 
@@ -658,7 +653,7 @@ deplist() {
         *" $pkg "*) ;;
 
         *)
-            if [ "$QUICK" -eq 1 ]; then
+            if [ "$quick" = 1 ]; then
                 emerald_isinstalled "$pkg" || DEP="$DEP $pkg "
             else
                 DEP="$DEP $pkg "
@@ -677,7 +672,7 @@ emerald_deplist() {
 
     while [ "$1" ]; do
         case $1 in
-            -q) QUICK=1 ;;
+            -q) quick=1 ;;
 
             --exclude=*)
                 for i in ${1#*=}; do
@@ -703,7 +698,7 @@ emerald_deplist() {
     for p in $PKG; do
         if get_port_path "$p" >/dev/null 2>&1; then
             PPKG="$PPKG $p "
-        elif [ "$QUICK" -ne 1 ]; then
+        elif [ "$quick" = 0 ]; then
             msg_port_not_found "$p"
         fi
     done
@@ -715,7 +710,7 @@ emerald_deplist() {
 
     [ "$DEP" ] || return 0
 
-    if [ "$QUICK" -eq 1 ]; then
+    if [ "$quick" = 1 ]; then
         printf "%s\n" $DEP
         return 0
     fi
@@ -987,7 +982,7 @@ EOF
 hook() {
     # hook <stage> <action> [port]
     # if using -o (download only), dont run hook
-    [ "$DOWNLOAD_ONLY" -eq 1 ] && return 0
+    [ "$DOWNLOAD_ONLY" = 1 ] && return 0
 
     # silent sanity check
     [ "$1" ] && [ "$2" ] || return 0
@@ -1054,10 +1049,6 @@ emerald_install() {
     failed_installs=""
     skipped_installs=""
 
-    NOCONFIRM=0
-    NO_DEP=0
-    REINSTALL=0
-
     while [ "$1" ]; do
         case $1 in
             -i | -u) ;;
@@ -1085,7 +1076,7 @@ emerald_install() {
     }
 
     # if reinstall, dont calculate dep, just reinstall it then exit
-    if [ "$REINSTALL" -eq 1 ]; then
+    if [ "$REINSTALL" = 1 ]; then
         error=0
 
         for ii in $PKGNAME; do
@@ -1143,7 +1134,7 @@ emerald_install() {
     fi
 
     # No dep
-    if [ "$NO_DEP" -eq 1 ]; then
+    if [ "$NO_DEP" = 1 ]; then
         error=0
 
         for ii in $PKGNAME; do
@@ -1228,7 +1219,7 @@ emerald_install() {
         printf "( %s install )\n" "$pkgcount"
         printf "\n"
 
-        [ "$NOCONFIRM" -eq 0 ] && {
+        [ "$NOCONFIRM" = 0 ] && {
             confirm "Continue install package(s)?" "Package installation cancelled." || exit $?
             printf "\n"
         }
@@ -1591,7 +1582,6 @@ emerald_redeps() {
 
 emerald_remove() {
     require_root "Removing package"
-    NOCONFIRM=0
 
     while [ "$1" ]; do
         case $1 in
@@ -1634,7 +1624,7 @@ emerald_remove() {
     printf "( %s remove )\n" "$pkgcount"
     printf "\n"
 
-    [ "$NOCONFIRM" -eq 0 ] && {
+    [ "$NOCONFIRM" = 0 ] && {
         confirm "Continue remove package(s)?" "Package removing cancelled." || exit $?
         printf "\n"
     }
@@ -1740,9 +1730,6 @@ emerald_sysup() {
     require_root "Upgrading package"
     failed_upgrades=""
 
-    NOCONFIRM=0
-    NO_DEP=0
-
     while [ "$1" ]; do
         case $1 in
             -i | -u | -r ) ;;
@@ -1802,7 +1789,7 @@ emerald_sysup() {
     NEWPKG=0
     installmsg="ACTION#PORTNAME#VERSION#INSTALLED"
 
-    if [ "$NO_DEP" -eq 0 ]; then
+    if [ "$NO_DEP" = 0 ]; then
         printf "Resolving dependencies...\n"
         DEP=$(emerald_deplist "$PKG" "$EXOPT" | awk '{print $2}')
 
@@ -1843,7 +1830,7 @@ emerald_sysup() {
     printf "( %s upgrade, %s new install )\n" "$UPGPKG" "$NEWPKG"
     printf "\n"
 
-    [ "$NOCONFIRM" -eq 0 ] && {
+    [ "$NOCONFIRM" = 0 ] && {
         confirm "Continue upgrade/install these package(s)?" "Package upgrade cancelled." || exit $?
         printf "\n"
     }
@@ -2035,7 +2022,7 @@ trigger_mime_database() {
 emerald_trigger() {
     require_root "Run trigger"
 
-    if [ "$DOWNLOAD_ONLY" -eq 0 ]; then
+    if [ "$DOWNLOAD_ONLY" = 0 ]; then
         [ "$#" -gt 0 ] || set -- $(all_installed)
 
         # Read all DB files once in memory
@@ -2053,9 +2040,6 @@ emerald_trigger() {
 emerald_upgrade() {
     require_root "Upgrading package"
     failed_upgrades=""
-
-    NOCONFIRM=0
-    NO_DEP=0
 
     while [ "$1" ]; do
         case $1 in
@@ -2117,7 +2101,7 @@ emerald_upgrade() {
     NEWPKG=0
     installmsg="ACTION#PORTNAME#VERSION#INSTALLED"
 
-    if [ "$NO_DEP" -eq 0 ]; then
+    if [ "$NO_DEP" = 0 ]; then
         printf "Resolving dependencies...\n"
         DEP=$(emerald_deplist "$upkg" "$EXOPT" | awk '{print $2}')
         printf "\n"
@@ -2157,7 +2141,7 @@ emerald_upgrade() {
     printf "( %s upgrade, %s new install )\n" "$UPGPKG" "$NEWPKG"
     printf "\n"
 
-    [ "$NOCONFIRM" -eq 0 ] && {
+    [ "$NOCONFIRM" = 0 ] && {
         confirm "Continue upgrade/install these package(s)?" "Package upgrade cancelled." || exit $?
         printf "\n"
     }
