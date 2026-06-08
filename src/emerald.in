@@ -149,12 +149,12 @@ get_iversion() {
 get_version() {
     p=$(get_port_path "$1") || return 1
 
-    awk '/^version=/{
+    awk '/^version=/ {
         v = $0;
 
         sub(/^version=/, "", v);
         gsub(/["'\'']/, "", v);
-    } /^release=/{
+    } /^release=/ {
         r = $0;
 
         sub(/^release=/, "", r);
@@ -609,6 +609,7 @@ emerald_depends() {
 }
 
 deplist() {
+    # shellcheck disable=SC3043
     local pkg="$1"
 
     # skip excluded dependencies
@@ -2256,12 +2257,11 @@ command -v pkgadd >/dev/null 2>&1 || {
 
 mode=$1
 
-print_usage() {
+if [ -z "$mode" ] || ! command -v "emerald_$mode" >/dev/null 2>&1; then
     printf "Run '%s help' to see available options.\n" "${0##*/}"
     exit 2
-}
+fi
 
-[ "$mode" ] || print_usage
 shift
 
 for opt in "$@"; do
@@ -2297,11 +2297,7 @@ if [ -f "$REPO_FILE" ]; then
     done
 fi
 
-if [ "$OVERRIDEREPO" ]; then
-    PORT_REPO="$OVERRIDEREPO"
-else
-    PORT_REPO="$PREPENDREPO $PORT_REPO $APPENDREPO"
-fi
+[ "$OVERRIDEREPO" ] && PORT_REPO="$OVERRIDEREPO" || PORT_REPO="$PREPENDREPO $PORT_REPO $APPENDREPO"
 
 for f in $REPO_FILE $ALIAS_FILE $MASK_FILE $CONFIG_FILE; do
     if [ ! -f "$f" ]; then
@@ -2310,10 +2306,5 @@ for f in $REPO_FILE $ALIAS_FILE $MASK_FILE $CONFIG_FILE; do
     fi
 done
 
-if [ "$(command -v "emerald_$mode")" ]; then
-    "emerald_$mode" $MAINOPTS
-else
-    print_usage
-fi
-
+"emerald_$mode" $MAINOPTS
 exit $?
