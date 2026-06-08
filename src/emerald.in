@@ -109,7 +109,7 @@ msg_port_already_installed() {
 
 msg_deps_status() {
     for i in "$@"; do
-        if emerald_isinstalled "$i"; then
+        if emerald_is_installed "$i"; then
             printf "[%bi%b] %s\n" "$COLOR2" "$CRESET" "$i"
         elif get_port_path "$i" >/dev/null; then
             printf "[-] %s\n" "$i"
@@ -294,7 +294,7 @@ emerald_build() {
         shift
     done
 
-    [ "$PKGNAME" ] || {
+    [ -z "$PKGNAME" ] && {
         printf "Please specify package(s) to build.\n"
         return 1
     }
@@ -382,7 +382,7 @@ diff_lists() {
 
     for f; do
         case "|$keep|" in
-            *"|$f|"*) ;;  # keep
+            *"|$f|"*) ;; # keep
             *) out="${out}${out:+|}$f" ;;
         esac
     done
@@ -627,7 +627,7 @@ deplist() {
 
     # check dependencies
     for dep in $(get_depends "$pkg"); do
-        if [ "$quick" = 1 ] && emerald_isinstalled "$dep"; then
+        if [ "$quick" = 1 ] && emerald_is_installed "$dep"; then
             continue
         fi
 
@@ -648,7 +648,7 @@ deplist() {
 
         *)
             if [ "$quick" = 1 ]; then
-                emerald_isinstalled "$pkg" || DEP="$DEP $pkg "
+                emerald_is_installed "$pkg" || DEP="$DEP $pkg "
             else
                 DEP="$DEP $pkg "
             fi
@@ -683,7 +683,7 @@ emerald_deplist() {
 
     IFS=$OLDIFS
 
-    [ "$PKG" ] || {
+    [ -z "$PKG" ] && {
         printf "Please specify port(s) to list dependencies.\n"
         return 1
     }
@@ -735,7 +735,7 @@ $(awk '/^version=/ {
 }' "$2/$1/$BUILD_SCRIPT")
 EOF
 
-    emerald_isinstalled "$1" && ins=$(printf "[%bi%b]" "$COLOR2" "$CRESET") || ins="[ ]"
+    emerald_is_installed "$1" && ins=$(printf "[%bi%b]" "$COLOR2" "$CRESET") || ins="[ ]"
     printf "%b %b(%s)%b %s %b%s-%s%b\n" "$ins" "$COLOR5" "${2##*/}" "$CRESET" "$1" "$COLOR4" "$dversion" "$drelease" "$CRESET"
 }
 
@@ -757,7 +757,7 @@ emerald_dup() {
 emerald_files() {
     need_arg "$@"
 
-    ! emerald_isinstalled "$1" && {
+    ! emerald_is_installed "$1" && {
         msg_port_not_installed "$1"
         return 0
     }
@@ -868,11 +868,11 @@ Options:
     info         <port>             print information
     installed                       print all installed ports
     integrity                       check installed port integrity
-    isinstalled  <port>             check whether port is installed (status 0=installed, 1=not installed)
+    is-installed  <port>            check whether port is installed (status 0=installed, 1=not installed)
     locate       <file>             print location of file in ports repo
-    missingdep                      print missing dependencies
+    missing-deps                    print missing dependencies
     orphan                          print orphan installed ports
-    outdate                         print outdated ports
+    outdated                        print outdated ports
     path         <port>             print path in repo
     provide      <file>             print ports provided file
     purge        [ports]            remove installed ports and its orphan dependencies
@@ -946,7 +946,7 @@ EOF
 
     [ -z "$deps" ] && deps_out="None" || {
         for pkg in $deps; do
-            emerald_isinstalled "${pkg}" && deps_out=$(printf "%s%b%s%b " "${deps_out}" "${COLOR2}" "${pkg}" "${CRESET}") || deps_out=$(printf "%s%b%s%b " "${deps_out}" "${COLOR1}" "${pkg}" "${CRESET}")
+            emerald_is_installed "${pkg}" && deps_out=$(printf "%s%b%s%b " "${deps_out}" "${COLOR2}" "${pkg}" "${CRESET}") || deps_out=$(printf "%s%b%s%b " "${deps_out}" "${COLOR1}" "${pkg}" "${CRESET}")
         done
     }
 
@@ -956,7 +956,7 @@ EOF
 
     [ -z "${required_by}" ] && required_by_out="None" || {
         for pkg in $required_by; do
-            emerald_isinstalled "${pkg}" && required_by_out=$(printf "%s%b%s%b " "${required_by_out}" "${COLOR2}" "${pkg}" "${CRESET}") || required_by_out=$(printf "%s%b%s%b " "${required_by_out}" "${COLOR1}" "${pkg}" "${CRESET}")
+            emerald_is_installed "${pkg}" && required_by_out=$(printf "%s%b%s%b " "${required_by_out}" "${COLOR2}" "${pkg}" "${CRESET}") || required_by_out=$(printf "%s%b%s%b " "${required_by_out}" "${COLOR1}" "${pkg}" "${CRESET}")
         done
     }
 
@@ -1064,7 +1064,7 @@ emerald_install() {
         shift
     done
 
-    [ "$PKGNAME" ] || {
+    [ -z "$PKGNAME" ] && {
         printf "Please specify package(s) to install.\n"
         return 1
     }
@@ -1083,7 +1083,7 @@ emerald_install() {
                 else
                     return 1
                 fi
-            elif ! emerald_isinstalled "$ii"; then
+            elif ! emerald_is_installed "$ii"; then
                 msg_port_not_installed "$ii"
 
                 if keep_going; then
@@ -1141,7 +1141,7 @@ emerald_install() {
                 else
                     return 1
                 fi
-            elif emerald_isinstalled "$ii"; then
+            elif emerald_is_installed "$ii"; then
                 msg_port_already_installed "$ii"
                 skipped_installs="$skipped_installs $ii"
 
@@ -1185,7 +1185,7 @@ emerald_install() {
     for i in $PKGNAME; do
         if ! get_port_path "$i" >/dev/null 2>&1; then
             msg_port_not_found "$i"
-        elif emerald_isinstalled "$i"; then
+        elif emerald_is_installed "$i"; then
             msg_port_already_installed "$i"
         else
             IPKG="$IPKG $i"
@@ -1337,7 +1337,7 @@ emerald_integrity() {
     rm -f "$interr"
 }
 
-emerald_isinstalled() {
+emerald_is_installed() {
     [ -n "$1" ] && [ -f "$PKGDB_DIR/$1" ]
 }
 
@@ -1349,7 +1349,7 @@ emerald_locate() {
     done
 }
 
-emerald_missingdep() {
+emerald_missing_deps() {
     printf "Checking ports missing deps...\n"
     found=0
 
@@ -1361,7 +1361,7 @@ emerald_missingdep() {
         msd=""
 
         for d in $depends; do
-            emerald_isinstalled "$d" || msd="$msd $d"
+            emerald_is_installed "$d" || msd="$msd $d"
         done
 
         if [ -n "$msd" ]; then
@@ -1394,7 +1394,7 @@ emerald_orphan() {
     all_installed | awk -v dep=" $DEP " '{if (index(dep, " " $0 " ") == 0) print}'
 }
 
-version_comp() {
+version_compare() {
     [ "$1" = "$2" ] && return 0
 
     # - If sorted (exit code 0): $1 <= $2, but we know $1 != $2, so $1 < $2 → return 1
@@ -1421,10 +1421,10 @@ check_outdated() {
         irelease=${ivr#*-}
 
         if [ "$pversion" != "$iversion" ]; then
-            version_comp "$pversion" "$iversion"
+            version_compare "$pversion" "$iversion"
             [ $? -eq 1 ] && NEW_INSTALLED=1
         elif [ "$prelease" != "$irelease" ]; then
-            version_comp "$prelease" "$irelease"
+            version_compare "$prelease" "$irelease"
             [ $? -eq 1 ] && NEW_INSTALLED=1
         fi
 
@@ -1440,7 +1440,7 @@ check_outdated() {
     done
 }
 
-emerald_outdate() {
+emerald_outdated() {
     out=$(check_outdated)
 
     [ -z "$out" ] && {
@@ -1488,7 +1488,7 @@ emerald_purge() {
 
     if [ "$PURGENAME" ]; then
         for i in $PURGENAME; do
-            emerald_isinstalled "$i" || {
+            emerald_is_installed "$i" || {
                 msg_port_not_installed "$i"
                 needexit=1
             }
@@ -1511,23 +1511,19 @@ emerald_purge() {
                 esac
             done
 
-            [ "$pkg" ] || printf "Cant purge '%s', it required by other package(s)...\n" "$purge"
-
-            if [ "$remove" ]; then
-                remove="$remove $pkg"
-            else
-                remove="$pkg"
-            fi
+            [ -z "$pkg" ] && printf "Cant purge '%s', it required by other package(s)...\n" "$purge"
+            [ "$remove" ] && remove="$remove $pkg" || remove="$pkg"
         done
     else
         remove=$orphan
     fi
 
-    if [ "$remove" ]; then
-        emerald_remove $remove $PURGEOPTS
-    else
+    [ -z "$remove" ] && {
         printf "No orphan packages found...\n"
-    fi
+        return 0
+    }
+
+    emerald_remove $remove $PURGEOPTS
 }
 
 emerald_redeps() {
@@ -1587,13 +1583,13 @@ emerald_remove() {
         shift
     done
 
-    [ "$PKGNAME" ] || {
+    [ -z "$PKGNAME" ] && {
         printf "Please specify package(s) to remove.\n"
         return 1
     }
 
     for i in $PKGNAME; do
-        if ! emerald_isinstalled "$i"; then
+        if ! emerald_is_installed "$i"; then
             msg_port_not_installed "$i"
             continue
         fi
@@ -1663,7 +1659,7 @@ emerald_search() {
         shift
     done
 
-    [ "$PATTERN" ] || {
+    [ -z "$PATTERN" ] && {
         printf "Please specify a search pattern.\n"
         return 1
     }
@@ -1707,7 +1703,7 @@ emerald_search() {
         _sr_found=1
 
         printf '%s\n' "$_sr_out" | while IFS='|' read -r name version release desc; do
-            emerald_isinstalled "$name" && ins=$(printf "[%bi%b]" "$COLOR2" "$CRESET") || ins="[ ]"
+            emerald_is_installed "$name" && ins=$(printf "[%bi%b]" "$COLOR2" "$CRESET") || ins="[ ]"
             printf "%b %b(%s)%b %b%s%b %b%s-%s%b %s\n" "$ins" "$COLOR5" "${repo##*/}" "$CRESET" "$COLOR2" "$name" "$CRESET" "$COLOR4" "$version" "$release" "$CRESET" "$desc"
         done
     done
@@ -1764,7 +1760,7 @@ emerald_sysup() {
         esac
     done
 
-    [ "$PKG" ] || {
+    [ -z "$PKG" ] && {
         printf "All packages are up to date.\n"
         return 0
     }
@@ -1799,7 +1795,7 @@ emerald_sysup() {
                 ;;
 
                 *)
-                    if ! emerald_isinstalled "$d" && get_port_path "$d" >/dev/null 2>&1; then
+                    if ! emerald_is_installed "$d" && get_port_path "$d" >/dev/null 2>&1; then
                         installmsg="$installmsg install#$d#$(get_version "$d")#$(get_iversion "$d")"
 
                         WILLINSTALL="$WILLINSTALL $d"
@@ -1837,7 +1833,7 @@ emerald_sysup() {
         count=$(( count + 1 ))
 
         cd "$(get_port_path "$inst")" || return 1
-            if ! emerald_isinstalled "$inst"; then
+            if ! emerald_is_installed "$inst"; then
                 set_term_title "[ $count/$total ] Installing $inst..."
                 hook "pre" "install"
 
@@ -2055,13 +2051,13 @@ emerald_upgrade() {
         shift
     done
 
-    [ "$PKGNAME" ] || {
+    [ -z "$PKGNAME" ] && {
         printf "Please specify package(s) to upgrade.\n"
         return 1
     }
 
     for pkg in $PKGNAME; do
-        if ! emerald_isinstalled "$pkg"; then
+        if ! emerald_is_installed "$pkg"; then
             msg_port_not_installed "$pkg"
 
             if keep_going; then
@@ -2110,7 +2106,7 @@ emerald_upgrade() {
                 ;;
 
                 *)
-                    if ! emerald_isinstalled "$d" && get_port_path "$d" >/dev/null 2>&1; then
+                    if ! emerald_is_installed "$d" && get_port_path "$d" >/dev/null 2>&1; then
                         installmsg="$installmsg install#$d#$(get_version "$d")#$(get_iversion "$d")"
 
                         WILLINSTALL="$WILLINSTALL $d"
@@ -2148,7 +2144,7 @@ emerald_upgrade() {
         count=$(( count + 1 ))
 
         cd "$(get_port_path "$inst")" || return 1
-            if ! emerald_isinstalled "$inst"; then
+            if ! emerald_is_installed "$inst"; then
                 set_term_title "[ $count/$total ] Installing $inst..."
                 hook "pre" "install"
 
@@ -2207,7 +2203,7 @@ emerald_upgrade() {
 world_add() {
     grep -qx "$1" "$WORLD_FILE" && return
 
-    emerald_isinstalled "$1" || {
+    emerald_is_installed "$1" || {
         msg_port_not_installed "$1"
         return 1
     }
@@ -2257,8 +2253,15 @@ command -v pkgadd >/dev/null 2>&1 || {
 
 mode=$1
 
-if [ -z "$mode" ] || ! command -v "emerald_$mode" >/dev/null 2>&1; then
+if [ -z "$mode" ]; then
     printf "Run '%s help' to see available options.\n" "${0##*/}"
+    exit 2
+fi
+
+func="$(printf '%s' "$mode" | tr '-' '_')"
+
+if ! command -v "emerald_$func" >/dev/null 2>&1; then
+    printf "%s: unknown subcommand '%s'. See '%s help'.\n" "${0##*/}" "$mode" "${0##*/}"
     exit 2
 fi
 
@@ -2306,5 +2309,5 @@ for f in $REPO_FILE $ALIAS_FILE $MASK_FILE $CONFIG_FILE; do
     fi
 done
 
-"emerald_$mode" $MAINOPTS
+"emerald_$func" $MAINOPTS
 exit $?
