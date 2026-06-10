@@ -485,7 +485,7 @@ if [ "$PKG" ]; then
         unset NEW_LIB_NAME
 
         libname=${line##*/}
-        printf ' %d%% %s\033[0K\r' "$((100*count/total))" "$libname"
+        printf ' %d%% %s\033[0K\r' "$((100 * count / total))" "$libname"
 
         case "$(file -bi "$line")" in
             *application/x-sharedlib* | *application/x-executable* | *application/x-pie-executable*)
