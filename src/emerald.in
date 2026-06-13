@@ -325,12 +325,12 @@ emerald_build() {
             fi
 
             if [ "$_build_ret" -eq 0 ]; then
-                settermtitle "Building $pkg done."
+                set_term_title "Building $pkg done."
             else
-                settermtitle "Building $pkg failed."
+                set_term_title "Building $pkg failed."
 
                 if keep_going; then
-                    msgwarn "Build failed for '$pkg', continuing with next package..."
+                    msg_warning "Build failed for '$pkg', continuing with next package..."
                     failed_builds="$failed_builds $pkg"
                 else
                     return 1
