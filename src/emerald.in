@@ -163,7 +163,7 @@ get_version() {
         if (v == "") v = 0;
         if (r == "") r = 0;
 
-        printf "%s-%s", v, r;
+        printf "%s-%s\n", v, r;
     }' "$p/$BUILD_SCRIPT"
 }
 
@@ -318,11 +318,11 @@ emerald_build() {
             # Run pkgbuild and capture the result
             if [ "$LOG" ]; then
                 pkgbuild $OPTS | tee "/var/log/$pkg-$(get_version "$pkg")-build-$(date +%Y-%m-%d-%H:%M).log"
-                _build_ret=$?
             else
                 pkgbuild $OPTS
-                _build_ret=$?
             fi
+
+            _build_ret=$?
 
             if [ "$_build_ret" -eq 0 ]; then
                 set_term_title "Building $pkg done."
@@ -635,11 +635,12 @@ deplist() {
             *" $dep "*) continue ;;
         esac
 
-        if ! get_port_path "$dep" >/dev/null 2>&1; then
+        get_port_path "$dep" >/dev/null 2>&1 || {
             MISSINGDEP="$MISSINGDEP $dep($pkg) "
-        else
-            deplist "$dep"
-        fi
+            continue
+        }
+
+        deplist "$dep"
     done
 
     # add dependency to list
@@ -757,7 +758,7 @@ emerald_dup() {
 emerald_files() {
     need_arg "$@"
 
-    ! emerald_is_installed "$1" && {
+    emerald_is_installed "$1" || {
         msg_port_not_installed "$1"
         return 0
     }
@@ -951,7 +952,7 @@ EOF
     }
 
     # Check dependent (required by)
-    required_by="$(emerald_dependent "$1" | awk '{printf "%s ", $2}')"
+    required_by="$(emerald_dependent "$1" | awk '{printf "%s ", $2;}')"
     required_by_out=""
 
     [ -z "${required_by}" ] && required_by_out="None" || {
@@ -1345,7 +1346,7 @@ emerald_locate() {
     need_arg "$@"
 
     for repo in $PORT_REPO; do
-        grep -Ri "$@" "$repo"/*/.pkgfiles 2>/dev/null | sed 's/:/ /;s/\/\.pkgfiles//' | awk '{print $1,$4}'
+        grep -Ri "$@" "$repo"/*/.pkgfiles 2>/dev/null | sed 's/:/ /;s/\/\.pkgfiles//' | awk '{printf "%s %s\n" $1, $4;}'
     done
 }
 
@@ -1391,7 +1392,9 @@ emerald_orphan() {
         done < "$WORLD_FILE"
     fi
 
-    all_installed | awk -v dep=" $DEP " '{if (index(dep, " " $0 " ") == 0) print}'
+    all_installed | awk -v dep=" $DEP " '{
+        if (index(dep, " " $0 " ") == 0) print;
+    }'
 }
 
 version_compare() {
@@ -1403,7 +1406,7 @@ version_compare() {
 }
 
 check_outdated() {
-    _MASKED_LIST=$(awk '!/^[[:space:]]*$/ && !/^#/ {printf "%s ", $0}' "$MASK_FILE" 2>/dev/null)
+    _MASKED_LIST=$(awk '!/^[[:space:]]*$/ && !/^#/ {printf "%s ", $0;}' "$MASK_FILE" 2>/dev/null)
 
     for pkg in $(all_installed); do
         # Check NEW_INSTALLED
@@ -1422,11 +1425,11 @@ check_outdated() {
 
         if [ "$pversion" != "$iversion" ]; then
             version_compare "$pversion" "$iversion"
-            [ $? -eq 1 ] && NEW_INSTALLED=1
         elif [ "$prelease" != "$irelease" ]; then
             version_compare "$prelease" "$irelease"
-            [ $? -eq 1 ] && NEW_INSTALLED=1
         fi
+
+        [ $? -eq 1 ] && NEW_INSTALLED=1
 
         # Check MASKED
         MASKED=0
@@ -1451,8 +1454,8 @@ emerald_outdated() {
     printf '%s\n' "$out" | while IFS='#' read -r pname oldver newver newins masked; do
         unset ii
 
-        [ "$newins" -eq 1 ] && ii=" [newer installed]"
-        [ "$masked" -eq 1 ] && ii="$ii [masked]"
+        [ "$newins" = 1 ] && ii=" [newer installed]"
+        [ "$masked" = 1 ] && ii="$ii [masked]"
 
         printf "%s %s => %s%s\n" "$pname" "$oldver" "$newver" "$ii"
     done
@@ -1554,7 +1557,7 @@ emerald_redeps() {
             for dd in $deps_i; do
                 [ "$dd" = "$d" ] && continue
 
-                [ "$(emerald deplist "$d" | awk '{print $2}' | grep -x "$dd")" ] && {
+                if emerald_deplist "$d" | awk '{print $2;}' | grep -x "$dd"; then
                     printf "[%s] %s (already pulled from %s)\n" "$i" "$dd" "$d"
 
                     [ "$fix" = "yes" ] && {
@@ -1564,7 +1567,7 @@ emerald_redeps() {
                         sed -i "/^$dd$/d" "$deps_file"
                         msg_info " $dd removed from $i $(basename "$deps_file")"
                     }
-                }
+                fi
             done
         done
     done
@@ -1589,10 +1592,10 @@ emerald_remove() {
     }
 
     for i in $PKGNAME; do
-        if ! emerald_is_installed "$i"; then
+        emerald_is_installed "$i" || {
             msg_port_not_installed "$i"
             continue
-        fi
+        }
 
         IPKG="$IPKG $i"
     done
@@ -1781,7 +1784,7 @@ emerald_sysup() {
 
     if [ "$NO_DEP" != 1 ]; then
         printf "Resolving dependencies...\n"
-        DEP=$(emerald_deplist "$PKG" "$EXOPT" | awk '{print $2}')
+        DEP=$(emerald_deplist "$PKG" "$EXOPT" | awk '{print $2;}')
 
         printf "\n"
 
@@ -2037,7 +2040,7 @@ emerald_upgrade() {
             -y | --yes) NOCONFIRM=1 ;;
 
             -o)
-                DOWNLOAD_ONLY=1;
+                DOWNLOAD_ONLY=1
                 OPTS="$OPTS $1"
             ;;
 
@@ -2093,7 +2096,7 @@ emerald_upgrade() {
 
     if [ "$NO_DEP" != 1 ]; then
         printf "Resolving dependencies...\n"
-        DEP=$(emerald_deplist "$upkg" "$EXOPT" | awk '{print $2}')
+        DEP=$(emerald_deplist "$upkg" "$EXOPT" | awk '{print $2;}')
         printf "\n"
 
         for d in $DEP; do
@@ -2295,7 +2298,7 @@ for opt in "$@"; do
 done
 
 if [ -f "$REPO_FILE" ]; then
-    for repodir in $(awk '!/^[[:space:]]*$/ && !/^#/ {print $1}' "$REPO_FILE"); do
+    for repodir in $(awk '!/^[[:space:]]*$/ && !/^#/ {print $1;}' "$REPO_FILE"); do
         PORT_REPO="$PORT_REPO $repodir"
     done
 fi
@@ -2303,10 +2306,10 @@ fi
 [ "$OVERRIDEREPO" ] && PORT_REPO="$OVERRIDEREPO" || PORT_REPO="$PREPENDREPO $PORT_REPO $APPENDREPO"
 
 for f in $REPO_FILE $ALIAS_FILE $MASK_FILE $CONFIG_FILE; do
-    if [ ! -f "$f" ]; then
+    [ -f "$f" ] || {
         msg_error "file not found: $f"
         exit 3
-    fi
+    }
 done
 
 "emerald_$func" $MAINOPTS

@@ -28,7 +28,7 @@ command -v "$EDITOR" >/dev/null 2>&1 || {
 epkgnew=$(find /etc -regextype posix-extended -regex ".+\.epkgnew" 2>/dev/null)
 
 # Exit if no .epkgnew files found
-[ -n "$epkgnew" ] || {
+[ -z "$epkgnew" ] && {
     printf "Nothing to do. Exiting...\n"
     exit 0
 }
@@ -39,13 +39,13 @@ for file in $epkgnew; do
     current_file=${file%.*}
 
     # If original file doesn't exist, remove the .epkgnew file
-    if [ ! -e "$current_file" ]; then
+    [ -e "$current_file" ] || {
         printf "Remove '%s', '%s' not exist.\n" "$file" "$current_file"
         rm -f "$file"
 
         sleep 1
         continue
-    fi
+    }
 
     # Interactive loop for handling this file
     while true; do
@@ -66,10 +66,8 @@ for file in $epkgnew; do
         fi
 
         # Display menu
-        printf "\n"
-        printf "File: %s\n" "$current_file"
-        printf "\n"
-        printf "[U]pdate [D]iscard [E]dit [K]eep ?: "
+        printf "\nFile: %s\n" "$current_file"
+        printf "\n[U]pdate [D]iscard [E]dit [K]eep ?: "
 
         read -r ACTION
         printf "\n"

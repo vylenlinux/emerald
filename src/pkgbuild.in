@@ -55,7 +55,7 @@ do_pam() {
             return 1
         }
 
-        [ ! -f "$_pam_dir/$_pam" ] && {
+        [ -f "$_pam_dir/$_pam" ] || {
             msg_error "No PAM config found for $_pam"
             return 1
         }
@@ -393,7 +393,7 @@ pkg_fetch() {
                             cd - >/dev/null || abort 1
                         fi
 
-                        [ "$_need_update" = 0 ] && continue
+                        [ "$_need_update" -eq 0 ] && continue
                     fi
 
                     clone_or_update_git "$_git_url" "$filepath" "$_ref_type" "$_ref" || abort 1
@@ -427,7 +427,7 @@ pkg_fetch() {
                         cd - >/dev/null || abort 1
                     fi
 
-                    [ "$_need_update" = 0 ] && continue
+                    [ "$_need_update" -eq 0 ] && continue
                 fi
 
                 clone_or_update_git "$_git_url" "$filepath" "$_ref_type" "$_ref" || abort 1
@@ -460,7 +460,8 @@ pkg_fetch() {
 
         msg_info "Fetching: $i"
 
-        curl $COPT -L --fail --retry 3 --retry-delay 3 -o "$filepath.partial" $CURL_OPTS "$url" || {
+        # shellcheck disable=SC2086
+        curl ${COPT} -L --fail --retry 3 --retry-delay 3 -o "$filepath.partial" ${CURL_OPTS} "$url" || {
             msg_error "Fetching failed: $i"
             rm -f "$filepath.partial"
 
@@ -477,7 +478,7 @@ pkg_unpack() {
 
     umask 022
 
-    rm -fr "$WORK_DIR/$name"
+    rm -rf "$WORK_DIR/$name"
     mkdir -p "$SRC" "$PKG"
 
     if [ -d "$PWD/files" ]; then
@@ -575,13 +576,13 @@ pkg_lint() {
 
     # check for backup file
     for f in $backup; do
-        if [ ! -f "$PKG/$f" ]; then
+        [ -f "$PKG/$f" ] || {
             msg_error "Backup file '$f' does not exist in PKG!"
             lint_error=1
-        fi
+        }
     done
 
-    if [ "$lint_error" = 1 ]; then
+    if [ "$lint_error" -eq 1 ]; then
         abort 1
     fi
 }
@@ -667,10 +668,7 @@ pkg_package() {
         rm -rf usr/share/licenses usr/lib/python3.*/site-packages/*.dist-info/licenses
 
         find . \( -name perllocal.pod -o -name .packlist \) -delete
-
-        [ -d usr/share/fonts ] && {
-            find usr/share/fonts \( -name fonts.dir -o -name fonts.scale \) -delete
-        }
+        [ -d usr/share/fonts ] && find usr/share/fonts \( -name fonts.dir -o -name fonts.scale \) -delete
 
         case "$KEEP_LIBTOOL" in
             0 | no) find . ! -type d -name "*.la" -delete ;;
@@ -961,8 +959,8 @@ parse_opts() {
             -o | --download) DOWNLOAD_ONLY=yes ;;
             -x | --extract) EXTRACT_ONLY=yes ;;
             -w | --keep-work) KEEP_WORK=yes ;;
-            -p | --pkgfiles) GENPKGFILES=yes ;;
-            -h | --help) SHOWHELP=yes ;;
+            -p | --pkgfiles) GEN_PKGFILES=yes ;;
+            -h | --help) SHOW_HELP=yes ;;
             -C | --clean) CLEANUP=yes ;;
             --no-backup) OPTS="$OPTS $1" ;;
             --root=*) OPTS="$OPTS $1" ;;
@@ -1014,7 +1012,7 @@ EOF
 main() {
     parse_opts "$@"
 
-    [ ! -f "$PKGBUILD_CONF" ] && {
+    [ -f "$PKGBUILD_CONF" ] || {
         msg_error "Config file not found: $PKGBUILD_CONF"
         exit 1
     }
@@ -1032,12 +1030,12 @@ main() {
     check_dir "$SOURCE_DIR" "$PACKAGE_DIR" "$WORK_DIR"
 
     # show usage
-    [ "$SHOWHELP" ] && {
+    [ "$SHOW_HELP" ] && {
         help
         exit 0
     }
 
-    [ ! -f "$PKGBUILD_BSCRIPT" ] && {
+    [ -f "$PKGBUILD_BSCRIPT" ] || {
         msg_error "'$PKGBUILD_BSCRIPT' file not found."
         exit 1
     }
@@ -1056,7 +1054,7 @@ main() {
     esac
 
     # generate .pkgfiles
-    [ "$GENPKGFILES" ] && {
+    [ "$GEN_PKGFILES" ] && {
         pkg_gen_pkgfiles
         exit 0
     }
