@@ -317,7 +317,7 @@ emerald_build() {
 
             # Run pkgbuild and capture the result
             if [ "$LOG" ]; then
-                pkgbuild $OPTS | tee "/var/log/$pkg-$(get_version "$pkg")-build-$(date +%Y-%m-%d-%H:%M).log"
+                pkgbuild $OPTS | tee "/var/log/$pkg-$(get_version "$pkg")-build-$(date +%Y%m%d-%H%M).log"
             else
                 pkgbuild $OPTS
             fi
