@@ -525,7 +525,11 @@ pkg_unpack() {
         case "$i" in
             *.tar | *.tar.* | *.tgz | *.tbz2 | *.txz | *.zst | *.zip | *.rpm | *.7z)
                 msg_info "Unpacking: $i"
-                bsdtar -xpo -C "$SRC" -f "$i"
+
+                bsdtar -xpo -C "$SRC" -f "$i" || {
+                    msg_info "Retry unpacking with tar: $i"
+                    tar --no-same-owner -xpf "$i" -C "$SRC"
+                }
             ;;
 
             *)
