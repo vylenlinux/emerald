@@ -8,10 +8,10 @@
 parse_opts() {
     while [ "$1" ]; do
         case "$1" in
-            -n) dryrun=1 ;;
-            -y) yes="$1" ;;
+            -n | --dryrun) dryrun=1 ;;
+            -y | --yes) yes="$1" ;;
 
-            -h)
+            -h | --help)
                 help
                 exit 0
             ;;
@@ -29,9 +29,9 @@ Usage:
   pkgbase [options] [packages]
 
 Options:
-  -n  dry-run (show what would be removed without doing it)
-  -y  don't ask user confirmation
-  -h  print this help message
+  -n, --dryrun  dry-run (show what would be removed without doing it)
+  -y, --yes     don't ask user confirmation
+  -h, --help    print this help message
 
 Description:
   Removes all packages except base and specified packages.
