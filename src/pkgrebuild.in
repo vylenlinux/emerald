@@ -39,12 +39,12 @@ EOF
 	  exit 0
 }
 
-# Verify root privileges - required for package installation
-[ "$(id -u)" -ne 0 ] && {
-    msg_error "Rebuild packages requires root access!"
-    help
-
-    exit 1
+require_root() {
+    # Verify root privileges - required for package installation
+    [ "$(id -u)" -ne 0 ] && {
+        msg_error "Rebuild packages requires root access!"
+        exit 1
+    }
 }
 
 # Parse command line options, build toolchain and base by default
@@ -68,6 +68,7 @@ parse_opts() {
 
 # Rebuild toolchain packages in proper dependency order
 toolchain_rebuild() {
+    require_root
     msg_info "Rebuilding toolchain..."
 
     # Iterate through toolchain packages in dependency order
@@ -93,6 +94,8 @@ toolchain_rebuild() {
 
 # Rebuild all base system packages except toolchain components
 base_rebuild() {
+    require_root
+
     # Locate base package in database
     BASE=$(find "$PKGDB_DIR" -type f -name 'base' 2>/dev/null | sed 's|.*/||' | head -n 1)
 
@@ -127,6 +130,12 @@ base_rebuild() {
     msg_info "Rebuilding $BASE done."
 }
 
+# Define toolchain build order:
+TOOLCHAIN="linux-api-headers glibc-pass1 binutils-pass1 gcc-pass1 glibc binutils gcc libtool libxcrypt libmpc elfutils libmpfr"
+
+# Parse command line arguments
+parse_opts "$@"
+
 # Initialize tracking file to record which packages have been rebuilt
 # This prevents duplicate builds if script is interrupted and rerun
 LIST="/tmp/${0##*/}-list"
@@ -135,12 +144,6 @@ touch "$LIST" || {
     msg_error "Cannot create temporary file: $LIST"
     exit 1
 }
-
-# Define toolchain build order:
-TOOLCHAIN="linux-api-headers glibc-pass1 binutils-pass1 gcc-pass1 glibc binutils gcc libtool libxcrypt libmpc elfutils libmpfr"
-
-# Parse command line arguments
-parse_opts "$@"
 
 # Rebuild toolchain 
 [ "$TOOLCHAIN_REBUILD" -eq 1 ] && toolchain_rebuild
