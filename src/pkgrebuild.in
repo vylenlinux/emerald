@@ -10,8 +10,8 @@
 
 # Vars
 PKGDB_DIR="$(pkgadd --print-db-dir)"
-TCRB=1
-BASERB=1
+TOOLCHAIN_REBUILD=1
+BASE_REBUILD=1
 
 # Print informational message to stdout
 msg_info() {
@@ -52,8 +52,8 @@ parse_opts() {
     while [ "$1" ]; do
         case "$1" in
             "") : ;;  # default: rebuild toolchain and base
-            -t | --toolchain) BASERB=0 ;;
-            -b | --base) TCRB=0 ;;
+            -t | --toolchain) BASE_REBUILD=0 ;;
+            -b | --base) TOOLCHAIN_REBUILD=0 ;;
             -h | --help) help ;;
 
             *)
@@ -73,7 +73,7 @@ toolchain_rebuild() {
     # Iterate through toolchain packages in dependency order
     for tc in $TOOLCHAIN; do
         # Skip if package already rebuilt (recorded in tracking list)
-        if ! grep -Fx "$tc" "$LIST" >/dev/null 2>&1; then
+        grep -Fx "$tc" "$LIST" >/dev/null 2>&1 || {
             # Remove -pass1 suffix to get actual package name
             pkgname="$(printf "%s" "$tc" | sed 's/-pass1//')"
 
@@ -85,7 +85,7 @@ toolchain_rebuild() {
 
             # Install rebuilt package to system
             emerald install -r "$pkgname" || exit 1
-        fi
+        }
     done
 
     msg_info "Rebuilding toolchain done."
@@ -105,14 +105,14 @@ base_rebuild() {
     msg_info "Rebuilding $BASE..."
 
     # Get dependency list for base package and process each dependency
-    for pkg in $(emerald deplist "$BASE" | awk '{print $2}'); do
+    for pkg in $(emerald deplist "$BASE" | awk '{print $2;}'); do
         # Skip toolchain packages - these are handled by toolchain_rebuild()
         case "$pkg" in
             linux-api-headers | glibc | binutils | gcc | libtool | libxcrypt | libmpc | elfutils | libmpfr) continue ;;
         esac
 
         # Skip if package already rebuilt (recorded in tracking list)
-        if ! grep -Fx "$pkg" "$LIST" >/dev/null 2>&1; then
+        grep -Fx "$pkg" "$LIST" >/dev/null 2>&1 || {
             # Force rebuild of package
             emerald build -f "$pkg" || exit 1
 
@@ -121,7 +121,7 @@ base_rebuild() {
 
             # Install rebuilt package to system
             emerald install -r "$pkg" || exit 1
-        fi
+        }
     done
 
     msg_info "Rebuilding $BASE done."
@@ -143,9 +143,9 @@ TOOLCHAIN="linux-api-headers glibc-pass1 binutils-pass1 gcc-pass1 glibc binutils
 parse_opts "$@"
 
 # Rebuild toolchain 
-[ "$TCRB" -eq 1 ] && toolchain_rebuild
+[ "$TOOLCHAIN_REBUILD" -eq 1 ] && toolchain_rebuild
 
 # Rebuild base
-[ "$BASERB" -eq 1 ] && base_rebuild
+[ "$BASE_REBUILD" -eq 1 ] && base_rebuild
 
 exit 0
