@@ -147,7 +147,7 @@ get_iversion() {
 }
 
 get_version() {
-    p=$(get_port_path "$1") || return 1
+    PPATH=$(get_port_path "$1") || return 1
 
     awk '/^version=/ {
         v = $0;
@@ -164,7 +164,7 @@ get_version() {
         if (r == "") r = 0;
 
         printf "%s-%s\n", v, r;
-    }' "$p/$BUILD_SCRIPT"
+    }' "$PPATH/$BUILD_SCRIPT"
 }
 
 all_installed() {
