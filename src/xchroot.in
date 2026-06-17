@@ -84,23 +84,23 @@ umount_all() {
 }
 
 # Validate that target directory argument is provided
-if [ -z "$1" ]; then
+[ -z "$1" ] && {
     msg_error "Please specify a directory for chroot"
     help
 
     exit 1
-fi
+}
 
 # Remove trailing slash from directory path if present
 TARGET="${1%/}"
 
 # Verify target directory exists
-if [ ! -d "$TARGET" ]; then
+[ -d "$TARGET" ] || {
     msg_error "Directory '$TARGET' does not exist"
     help
 
     exit 1
-fi
+}
 
 # Optional check: inform if target is already a mount point
 if mountpoint -q "$TARGET" 2>/dev/null; then
