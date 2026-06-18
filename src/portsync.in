@@ -10,9 +10,6 @@ die() {
     exit 1
 }
 
-# Check root permissions
-[ "$(id -u)" -ne 0 ] && die "This operation needs root access!"
-
 # Vars
 PRUNE=0
 RESET=0
@@ -185,6 +182,9 @@ parse_opts "$@"
 
 # Show help if requested
 [ "$HELP" -eq 1 ] && usage
+
+# Check root permissions
+[ "$(id -u)" -ne 0 ] && die "This operation needs root access!"
 
 # Define working directories
 baredir="@CACHE_DIR@/repos"
