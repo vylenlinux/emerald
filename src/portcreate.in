@@ -30,7 +30,7 @@ EOF
 
 get_autotools_template() {
     cat <<'EOF'
-#!/usr/bin/env sh
+#!/bin/sh
 
 # shellcheck disable=SC2034
 description=""
@@ -57,7 +57,7 @@ EOF
 
 get_meson_template() {
     cat <<'EOF'
-#!/usr/bin/env sh
+#!/bin/sh
 
 # shellcheck disable=SC2034
 description=""
@@ -84,7 +84,7 @@ EOF
 
 get_cmake_template() {
     cat <<'EOF'
-#!/usr/bin/env sh
+#!/bin/sh
 
 # shellcheck disable=SC2034
 description=""
@@ -116,7 +116,7 @@ EOF
 
 get_go_template() {
     cat <<'EOF'
-#!/usr/bin/env sh
+#!/bin/sh
 
 # shellcheck disable=SC2034
 description=""
@@ -155,7 +155,7 @@ EOF
 
 get_python_template() {
     cat <<'EOF'
-#!/usr/bin/env sh
+#!/bin/sh
 
 # shellcheck disable=SC2034
 description=""
@@ -183,7 +183,7 @@ EOF
 
 get_rust_template() {
     cat <<'EOF'
-#!/usr/bin/env sh
+#!/bin/sh
 
 # shellcheck disable=SC2034
 description=""
