@@ -1408,14 +1408,47 @@ version_compare() {
 check_outdated() {
     _MASKED_LIST=$(awk '!/^[[:space:]]*$/ && !/^#/ {printf "%s ", $0;}' "$MASK_FILE" 2>/dev/null)
 
-    for pkg in $(all_installed); do
-        # Check NEW_INSTALLED
+    # Build port version map in memory (first-repo-wins via dedup).
+    _vmap=$(for _repo in $PORT_REPO; do
+        awk 'FNR == 1 {
+            if (name != "") printf "%s %s-%s\n", name, (ver?ver:0), (rel?rel:0);
+            name = ver = rel = "";
+        } /^name=/ {
+            sub(/^name=/, "");
+            gsub(/[^[:alnum:]._+~-]/, "");
+
+            name = $0;
+        } /^version=/ {
+            sub(/^version=/, "");
+            gsub(/[^[:alnum:]._+~-]/, "");
+
+            ver = $0;
+        } /^release=/ {
+            sub(/^release=/, "");
+            gsub(/[^[:alnum:]._+~-]/, "");
+
+            rel = $0;
+        } END {
+            if (name != "") printf "%s %s-%s\n", name, (ver?ver:0), (rel?rel:0);
+        }' "$_repo"/*/build.eme 2>/dev/null
+    done | awk '!seen[$1]++;')
+
+    [ -n "$_vmap" ] || return 0
+
+    # Pipe installed map (built with shell read builtins, zero extra forks) into
+    # a single awk that loads portver[] from _vmap and joins in memory.
+    for _pkg in $(all_installed); do
+        read -r _v _r _ < "$PKGDB_DIR/$_pkg" && printf '%s %s-%s\n' "$_pkg" "$_v" "$_r"
+    done | awk -v vmap="$_vmap" 'BEGIN {
+        n = split(vmap, lines, "\n");
+
+        for (i = 1; i <= n; i++) {
+            if (split(lines[i], a, " ") == 2) portver[a[1]] = a[2];
+        }
+    } ($1 in portver) && (portver[$1] != $2) {
+        printf "%s#%s#%s\n", $1, $2, portver[$1];
+    }' | while IFS='#' read -r pkgname ivr pvr; do
         NEW_INSTALLED=0
-
-        pvr=$(get_version "$pkg") || continue
-        ivr=$(get_iversion "$pkg") || continue
-
-        [ "$pvr" = "$ivr" ] && continue
 
         pversion=${pvr%-*}
         prelease=${pvr#*-}
@@ -1430,16 +1463,14 @@ check_outdated() {
         fi
 
         [ $? -eq 1 ] && NEW_INSTALLED=1
-
-        # Check MASKED
         MASKED=0
 
         case " $_MASKED_LIST " in
-            *" $pkg "*) MASKED=1 ;;
+            *" $pkgname "*) MASKED=1 ;;
         esac
 
-        # Example 'glib#2.87.0-1#2.88.1-1#1#0'
-        printf "%s#%s#%s#%s#%s\n" "$pkg" "$ivr" "$pvr" "$NEW_INSTALLED" "$MASKED"
+        # Example: 'glib#2.87.0-1#2.88.1-1#1#0'
+        printf "%s#%s#%s#%s#%s\n" "$pkgname" "$ivr" "$pvr" "$NEW_INSTALLED" "$MASKED"
     done
 }
 
