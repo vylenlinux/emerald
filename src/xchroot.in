@@ -53,12 +53,12 @@ EOF
 
 # Print info message to stdout
 msg_info() {
-    printf "==> %s\n" "$*"
+    printf "==> %s\n" "$1"
 }
 
 # Print error message to stderr
 msg_error() {
-    printf "ERROR: %s\n" "$*" >&2
+    printf "ERROR: %s\n" "$1" >&2
 }
 
 # Check for root privileges
