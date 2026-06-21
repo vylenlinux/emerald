@@ -6,7 +6,7 @@
 
 # Print errors and exit
 die() {
-    printf "ERROR: %s\n" "$*" >&2
+    printf "ERROR: %s\n" "$1" >&2
     exit 1
 }
 
@@ -54,7 +54,6 @@ Examples:
   portsync -s main custom  sync 'main' and 'custom'
   portsync -r -s main      reset and sync only 'main'
 EOF
-    exit 0
 }
 
 # Parse command line options
@@ -157,9 +156,9 @@ sync_repo() {
     make_dir "$repodir" || die "Failed to create directory: $repodir"
 
     # Create bare repository if it doesn't exist
-    if [ ! -d "$baredir/${portdir}.git" ]; then
+    [ -d "$baredir/${portdir}.git" ] || {
         git init --quiet --bare "$baredir/${portdir}.git" || die "Failed to initialize git repository for $portdir"
-    fi
+    }
 
     # Ensure 'origin' remote exists and points to the correct URL
     bare_git remote set-url origin "$repourl" 2>/dev/null || bare_git remote add origin "$repourl" || die "Failed to configure remote for $portdir"
@@ -181,7 +180,10 @@ sync_repo() {
 parse_opts "$@"
 
 # Show help if requested
-[ "$HELP" -eq 1 ] && usage
+[ "$HELP" -eq 1 ] && {
+    usage
+    exit 0
+}
 
 # Check root permissions
 [ "$(id -u)" -ne 0 ] && die "This operation needs root access!"
@@ -218,8 +220,8 @@ while read -r repodir repourl repobranch _; do
     fi
 
     # Skip entries without a URL (local repositories)
-    [ -n "$repourl" ] || {
-        msg_warning "No URL for repo '$repodir', skipping.";
+    [ -z "$repourl" ] && {
+        msg_warning "No URL for repo '$repodir', skipping."
         continue
     }
 
