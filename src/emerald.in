@@ -2243,9 +2243,7 @@ world_add() {
     }
 
     printf "%s\n" "$1" >> "$WORLD_FILE"
-
-    sort "$WORLD_FILE" -o "$WORLD_FILE" # sort world
-    sed '/^$/d' -i "$WORLD_FILE" # delete empty lines
+    sort -u "$WORLD_FILE" -o "$WORLD_FILE" # sort world
 }
 
 world_del() {
