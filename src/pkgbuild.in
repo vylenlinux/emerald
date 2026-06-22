@@ -193,39 +193,40 @@ generate_checksum() {
 }
 
 pkg_checksum() {
-    if [ ! -f .checksums ]; then
+    [ -f .checksums ] || {
         pkg_gen_checksums
-    else
-        case "$IGNORE_CHECKSUM" in
-            1 | yes) ;;
+        return 0
+    }
 
-            *)
-                mismatch=0
+    case "$IGNORE_CHECKSUM" in
+        1 | yes) ;;
 
-                TMPCHECKSUM="$WORK_DIR/checksumstmp.$$"
-                DIFCHECKSUM="$WORK_DIR/checksumsdiff.$$"
+        *)
+            mismatch=0
 
-                msg_info "Checking checksums..."
-                generate_checksum > "$TMPCHECKSUM"
+            TMP_CHECKSUM="$WORK_DIR/checksumstmp.$$"
+            DIFF_CHECKSUM="$WORK_DIR/checksumsdiff.$$"
 
-                diff -U 0 .checksums "$TMPCHECKSUM" | sed \
-                    -e '/---/d;/+++/d;/@@/d' \
-                    -e 's/^+/ new    : /' \
-                    -e 's/^-/ missing: /' \
-                > "$DIFCHECKSUM"
+            msg_info "Checking checksums..."
+            generate_checksum > "$TMP_CHECKSUM"
 
-                if [ -s "$DIFCHECKSUM" ]; then
-                    cat "$DIFCHECKSUM"
-                    msg_info "Checksum failed."
+            diff -U 0 .checksums "$TMP_CHECKSUM" | sed \
+                -e '/---/d;/+++/d;/@@/d' \
+                -e 's/^+/ new    : /' \
+                -e 's/^-/ missing: /' \
+            > "$DIFF_CHECKSUM"
 
-                    mismatch=1
-                fi
+            if [ -s "$DIFF_CHECKSUM" ]; then
+                cat "$DIFF_CHECKSUM"
+                msg_info "Checksum failed."
 
-                rm -f "$TMPCHECKSUM" "$DIFCHECKSUM"
-                [ "$mismatch" -eq 1 ] && abort 1
-            ;;
-        esac
-    fi
+                mismatch=1
+            fi
+
+            rm -f "$TMP_CHECKSUM" "$DIFF_CHECKSUM"
+            [ "$mismatch" -eq 1 ] && abort 1
+        ;;
+    esac
 }
 
 clone_or_update_git() {
@@ -569,10 +570,10 @@ pkg_lint() {
     lint_error=0
 
     # check empty PKG
-    if ! find "$PKG" -mindepth 1 -maxdepth 1 2>/dev/null | read -r _; then
+    find "$PKG" -mindepth 1 -maxdepth 1 2>/dev/null | read -r _ || {
         msg_error "PKG is empty"
         abort 1
-    fi
+    }
 
     # check for backup file
     for f in $backup; do
@@ -780,58 +781,58 @@ pkg_clean() {
 check_buildscript() {
     # check the required field in buildscript
     [ "$name" ] || {
-        msg_error "'name' is empty!";
+        msg_error "'name' is empty!"
         exit 1
     }
 
     case "$name" in
         *[A-Z]*)
-            msg_error "Capital letters for port name are not allowed!";
+            msg_error "Capital letters for port name are not allowed!"
             exit 1
         ;;
     esac
 
     [ "${PWD##*/}" = "$name" ] || {
-        msg_error "Port name and Directory name is different!";
+        msg_error "Port name and Directory name is different!"
         exit 1
     }
 
     [ "$version" ] || {
-        msg_error "'version' is empty!";
+        msg_error "'version' is empty!"
         exit 1
     }
 
     [ "$release" ] || {
-        msg_error "'release' is empty!";
+        msg_error "'release' is empty!"
         exit 1
     }
 
     case "$release" in
         *[A-Z]* | *[a-z]* | *-* | *\.* | *_*)
-            msg_error "only numeric allowed in 'release'";
+            msg_error "only numeric allowed in 'release'"
             exit 1
         ;;
     esac
 
     command -v build >/dev/null 2>&1 || {
-        msg_error "'build' function not exist!";
+        msg_error "'build' function not exist!"
         exit 1
     }
 
     case "$version" in
         *-*)
-            msg_error "'version' should not contain '-'.";
+            msg_error "'version' should not contain '-'."
             exit 1
         ;;
     esac
 
     if [ "$release" -gt 99 ] || [ "$release" -lt 1 ]; then
-        msg_error "'release' should numeric between 1 to 99";
+        msg_error "'release' should numeric between 1 to 99"
         exit 1
     fi
 
     [ "$description" ] || {
-        msg_error "'description' is empty!";
+        msg_error "'description' is empty!"
         exit 1
     }
 }
