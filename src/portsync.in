@@ -4,12 +4,6 @@
 # portsync - POSIX-compliant script for emerald that synchronizes ports
 #
 
-# Print errors and exit
-die() {
-    printf "ERROR: %s\n" "$1" >&2
-    exit 1
-}
-
 # Vars
 PRUNE=0
 RESET=0
@@ -26,9 +20,16 @@ msg_warning() {
     printf "WARNING: %s\n" "$1" >&2
 }
 
+msg_error() {
+    printf "ERROR: %s\n" "$1" >&2
+}
+
 # Create directories if they don't exist
 make_dir() {
-    [ -d "$1" ] || mkdir -pv "$1" || die "Failed to create directory: $1"
+    [ -d "$1" ] || mkdir -pv "$1" || {
+        msg_error "Failed to create directory: $1"
+        exit 1
+    }
 }
 
 # Wrapper for git commands with specific paths
@@ -79,7 +80,10 @@ parse_opts() {
                 continue
             ;;
 
-            *) die "Invalid options: $1" ;;
+            *)
+                msg_error "Invalid options: $1"
+                exit 1
+            ;;
         esac
 
         shift
@@ -129,7 +133,10 @@ reset_repos() {
             esac
         fi
 
-        rm -rf "$baredir/${_rr_portdir}.git" "$_rr_dir" || die "Failed to remove repo: $_rr_portdir"
+        rm -rf "$baredir/${_rr_portdir}.git" "$_rr_dir" || {
+            msg_error "Failed to remove repo: $_rr_portdir"
+            exit 1
+        }
     done < "$repo_file"
 
     msg_info "Repos reset completed!"
@@ -153,21 +160,39 @@ sync_repo() {
     msg_info "fetching $2"
 
     # Ensure worktree directory exists
-    make_dir "$repodir" || die "Failed to create directory: $repodir"
+    make_dir "$repodir" || {
+        msg_error "Failed to create directory: $repodir"
+        exit 1
+    }
 
     # Create bare repository if it doesn't exist
-    [ -d "$baredir/${portdir}.git" ] || {
-        git init --quiet --bare "$baredir/${portdir}.git" || die "Failed to initialize git repository for $portdir"
+    [ -d "$baredir/${portdir}.git" ] || git init --quiet --bare "$baredir/${portdir}.git" || {
+            msg_error "Failed to initialize git repository for $portdir"
+            exit 1
+        }
     }
 
     # Ensure 'origin' remote exists and points to the correct URL
-    bare_git remote set-url origin "$repourl" 2>/dev/null || bare_git remote add origin "$repourl" || die "Failed to configure remote for $portdir"
+    bare_git remote set-url origin "$repourl" 2>/dev/null || bare_git remote add origin "$repourl" || {
+        msg_error "Failed to configure remote for $portdir"
+        exit 1
+    }
 
     # Shallow fetch (only latest commit), quiet mode
-    bare_git fetch --quiet --depth=1 origin "$repobranch" || die "Failed to fetch from $repourl (branch: $repobranch).\nTry running: 'portsync -r'"
+    bare_git fetch --quiet --depth=1 origin "$repobranch" || {
+        msg_error "Failed to fetch from $repourl (branch: $repobranch)."
+        msg_error "Try running: 'portsync -r'"
+
+        exit 1
+    }
 
     # Update local branch and working tree in one step, quiet mode
-    bare_git checkout --quiet -B "$repobranch" FETCH_HEAD || die "Failed to checkout branch $repobranch for $portdir.\nTry running: 'portsync -r'"
+    bare_git checkout --quiet -B "$repobranch" FETCH_HEAD || {
+        msg_error "Failed to checkout branch $repobranch for $portdir."
+        msg_error "Try running: 'portsync -r'"
+
+        exit 1
+    }
 
     # Optional pruning
     [ "$PRUNE" -eq 1 ] && prune_local
@@ -186,18 +211,33 @@ parse_opts "$@"
 }
 
 # Check root permissions
-[ "$(id -u)" -ne 0 ] && die "This operation needs root access!"
+[ "$(id -u)" -ne 0 ] && {
+    msg_error "This operation needs root access!"
+    exit 1
+}
 
 # Define working directories
 baredir="@CACHE_DIR@/repos"
-make_dir "$baredir" || die "Failed to create cache directory"
+
+make_dir "$baredir" || {
+    msg_error "Failed to create cache directory"
+    exit 1
+}
 
 worktree="@PORTS_DIR@"
-make_dir "$worktree" || die "Failed to create worktree directory"
+
+make_dir "$worktree" || {
+    msg_error "Failed to create worktree directory"
+    exit 1
+}
 
 # Check that configuration file exists
 repo_file="@SYSCONFDIR@/emerald.repo"
-[ -e "$repo_file" ] || die "Missing repo file: $repo_file"
+
+[ -e "$repo_file" ] || {
+    msg_error "Missing repo file: $repo_file"
+    exit 1
+}
 
 # Reset repositories if requested
 [ "$RESET" -eq 1 ] && reset_repos
@@ -225,7 +265,10 @@ while read -r repodir repourl repobranch _; do
         continue
     }
 
-    sync_repo "$repodir" "$repourl" "${repobranch:-main}" || die "Sync failed for repository $repodir"
+    sync_repo "$repodir" "$repourl" "${repobranch:-main}" || {
+        msg_error "Sync failed for repository $repodir"
+        exit 1
+    }
 done < "$repo_file"
 
 # Warn about any requested repositories that were not found in the config file
