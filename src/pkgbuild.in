@@ -74,7 +74,9 @@ do_revdep() {
         return 1
     }
 
-    install -Dm644 "$_revdep_file" "$PKG/etc/revdep.d/$name.conf"
+    install -d "$PKG/etc/revdep.d"
+    envsubst < "$_revdep_file" > "$PKG/etc/revdep.d/$name.conf"
+
     msg_info "Installed: /etc/revdep.d/$name.conf"
 }
 
