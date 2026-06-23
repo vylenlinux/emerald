@@ -167,9 +167,8 @@ sync_repo() {
 
     # Create bare repository if it doesn't exist
     [ -d "$baredir/${portdir}.git" ] || git init --quiet --bare "$baredir/${portdir}.git" || {
-            msg_error "Failed to initialize git repository for $portdir"
-            exit 1
-        }
+        msg_error "Failed to initialize git repository for $portdir"
+        exit 1
     }
 
     # Ensure 'origin' remote exists and points to the correct URL
