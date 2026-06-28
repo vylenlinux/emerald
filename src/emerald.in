@@ -742,7 +742,7 @@ EOF
 
 emerald_dup() {
     # shellcheck disable=SC2086
-    dup=$(find $PORT_REPO -type d -printf '%P\n'| sort | uniq -d)
+    dup=$(find $PORT_REPO -type d -printf '%P\n' | sort | uniq -d)
 
     [ -z "$dup" ] && {
         msg_info "No duplicate ports found."
