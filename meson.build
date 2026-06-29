@@ -5,11 +5,16 @@ SYSCONFDIR = join_paths(PREFIX, get_option('sysconfdir'))
 BINDIR = join_paths(PREFIX, get_option('bindir'))
 LOCALSTATEDIR = join_paths(PREFIX, get_option('localstatedir'))
 
+project_name = meson.project_name()
+project_version = meson.project_version()
+
 conf_data = configuration_data()
 conf_data.set('SYSCONFDIR', SYSCONFDIR)
 conf_data.set('PORTS_DIR', get_option('ports_dir'))
 conf_data.set('CACHE_DIR', get_option('cache_dir'))
 conf_data.set('STATE_DIR', get_option('state_dir'))
+conf_data.set('PROJECT_NAME', project_name)
+conf_data.set('PROJECT_VERSION', project_version)
 
 subdir('data')
 subdir('src')

@@ -890,6 +890,7 @@ Options:
     trigger      [ports]            run system trigger
     world        [ports]            print/add/remove world list
     list                            print all available ports
+    version                         print version information and exit
 
 Global options:
     --append-repo=<repo path>       append custom local repo path (can use multiple times)
@@ -906,6 +907,11 @@ emerald_list() {
     find "@PORTS_DIR@" -mindepth 2 -maxdepth 2 -type d | while IFS= read -r p; do
         printf '%s\n' "${p##*/}"
     done
+}
+
+emerald_version() {
+    printf "%s v%s\n" "@PROJECT_NAME@" "@PROJECT_VERSION@"
+    exit 0
 }
 
 emerald_info() {
