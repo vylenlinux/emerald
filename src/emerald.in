@@ -2052,7 +2052,7 @@ emerald_trigger() {
         done)
 
         for t in mime_database desktop_database fontcache fc_cache udevdb icon_cache gtk3_immodules gtk2_immodules glib_schema gio_modules gdk_pixbuf_cache; do
-            trigger_$t
+            "trigger_${t}"
         done
     fi
 }
