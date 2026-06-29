@@ -943,7 +943,7 @@ EOF
 
     # Read depends file
     deps=$(get_depends "$1" | tr '\n' ' ')
-    deps_out="None"
+    deps_out=""
 
     [ -z "$deps" ] || {
         for pkg in $deps; do
@@ -951,15 +951,19 @@ EOF
         done
     }
 
+    [ -n "$deps_out" ] || deps_out="None"
+
     # Check dependent (required by)
     required_by="$(emerald_dependent "$1" | awk '{printf "%s ", $2;}')"
-    required_by_out="None"
+    required_by_out=""
 
     [ -z "${required_by}" ] || {
         for pkg in $required_by; do
             emerald_is_installed "${pkg}" && required_by_out=$(printf "%s%b%s%b " "${required_by_out}" "${COLOR2}" "${pkg}" "${CRESET}") || required_by_out=$(printf "%s%b%s%b " "${required_by_out}" "${COLOR1}" "${pkg}" "${CRESET}")
         done
     }
+
+    [ -n "$required_by_out" ] || required_by_out="None"
 
     printf '%b%s%b %s\n' "$COLOR5" "Description:" "$CRESET" "$desc"
     printf '%b%s%b %s\n' "$COLOR5" "Maintainer:" "$CRESET" "$maint"
