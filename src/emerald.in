@@ -943,9 +943,9 @@ EOF
 
     # Read depends file
     deps=$(get_depends "$1" | tr '\n' ' ')
-    deps_out=""
+    deps_out="None"
 
-    [ -z "$deps" ] && deps_out="None" || {
+    [ -z "$deps" ] || {
         for pkg in $deps; do
             emerald_is_installed "${pkg}" && deps_out=$(printf "%s%b%s%b " "${deps_out}" "${COLOR2}" "${pkg}" "${CRESET}") || deps_out=$(printf "%s%b%s%b " "${deps_out}" "${COLOR1}" "${pkg}" "${CRESET}")
         done
@@ -953,9 +953,9 @@ EOF
 
     # Check dependent (required by)
     required_by="$(emerald_dependent "$1" | awk '{printf "%s ", $2;}')"
-    required_by_out=""
+    required_by_out="None"
 
-    [ -z "${required_by}" ] && required_by_out="None" || {
+    [ -z "${required_by}" ] || {
         for pkg in $required_by; do
             emerald_is_installed "${pkg}" && required_by_out=$(printf "%s%b%s%b " "${required_by_out}" "${COLOR2}" "${pkg}" "${CRESET}") || required_by_out=$(printf "%s%b%s%b " "${required_by_out}" "${COLOR1}" "${pkg}" "${CRESET}")
         done
@@ -2008,7 +2008,7 @@ trigger_fontcache() {
     printf '%s\n' "$PKGFILES" | grep -q "^usr/share/fonts/" && {
         msg_info "Updating X fontdir indices..."
 
-        for dir in $(find /usr/share/fonts -maxdepth 1 -type d \( ! -path /usr/share/fonts \)); do
+        find /usr/share/fonts -maxdepth 1 -type d ! -path /usr/share/fonts | while IFS= read -r dir; do
             rm -f "$dir/fonts.scale" "$dir/fonts.dir" "$dir/.uuid"
             rmdir "$dir" 2>/dev/null
 
@@ -2042,6 +2042,7 @@ emerald_trigger() {
     require_root "Run trigger"
 
     if [ "$DOWNLOAD_ONLY" != 1 ]; then
+        # shellcheck disable=SC2046
         [ "$#" -gt 0 ] || set -- $(all_installed)
 
         # Read all DB files once in memory
@@ -2322,14 +2323,15 @@ for opt in "$@"; do
 done
 
 if [ -f "$REPO_FILE" ]; then
-    for repodir in $(awk '!/^[[:space:]]*$/ && !/^#/ {print $1;}' "$REPO_FILE"); do
-        PORT_REPO="$PORT_REPO $repodir"
+    # shellcheck disable=SC2013
+    for repo_dir in $(awk '!/^[[:space:]]*$/ && !/^#/ {print $1;}' "$REPO_FILE"); do
+        PORT_REPO="$PORT_REPO $repo_dir"
     done
 fi
 
 [ "$OVERRIDEREPO" ] && PORT_REPO="$OVERRIDEREPO" || PORT_REPO="$PREPENDREPO $PORT_REPO $APPENDREPO"
 
-for f in $REPO_FILE $ALIAS_FILE $MASK_FILE $CONFIG_FILE; do
+for f in "${REPO_FILE}" "${ALIAS_FILE}" "${MASK_FILE}" "${CONFIG_FILE}"; do
     [ -f "$f" ] || {
         msg_error "file not found: $f"
         exit 3
