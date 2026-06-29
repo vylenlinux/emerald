@@ -863,7 +863,7 @@ Options:
                                     -p, --pkg     clean packages cache only
                                     -s, --src     clean sources cache only
 
-    cat          <port>             print build.eme
+    cat          <port>             print $BUILD_SCRIPT
     config                          print emerald config
     dependent    <port>             print reverse dependencies
     depends      <port>             print dependencies
@@ -889,6 +889,7 @@ Options:
 
     trigger      [ports]            run system trigger
     world        [ports]            print/add/remove world list
+    list                            print all available ports
 
 Global options:
     --append-repo=<repo path>       append custom local repo path (can use multiple times)
@@ -899,6 +900,12 @@ Global options:
     --alias-file=<alias file>       use custom alias file (default: $ALIAS_FILE)
     --mask-file=<mask file>         use custom mask file (default: $MASK_FILE)
 EOF
+}
+
+emerald_list() {
+    find "@PORTS_DIR@" -mindepth 2 -maxdepth 2 -type d | while IFS= read -r p; do
+        printf '%s\n' "${p##*/}"
+    done
 }
 
 emerald_info() {
@@ -1437,7 +1444,7 @@ check_outdated() {
             rel = $0;
         } END {
             if (name != "") printf "%s %s-%s\n", name, (ver?ver:0), (rel?rel:0);
-        }' "$_repo"/*/build.eme 2>/dev/null
+        }' "$_repo"/*/"$BUILD_SCRIPT" 2>/dev/null
     done | awk '!seen[$1]++;')
 
     [ -n "$_vmap" ] || return 0
