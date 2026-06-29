@@ -434,7 +434,7 @@ emerald_cache() {
 
         -h | --help)
             cat <<'EOF'
-Usage: emerald cache [pkg|src]
+Usage: @PROJECT_NAME@ cache [pkg|src]
 
   (no args)   clean packages AND sources cache
   -p, --pkg   clean packages cache only
@@ -791,7 +791,7 @@ emerald_foreign() {
 emerald_help() {
     cat <<EOF
 Usage:
-    emerald <options> [<arg>]
+    @PROJECT_NAME@ <options> [<arg>]
 
 Options:
     sync                   <arg>    update ports database (use portsync arg)
@@ -864,14 +864,14 @@ Options:
                                     -s, --src     clean sources cache only
 
     cat          <port>             print $BUILD_SCRIPT
-    config                          print emerald config
+    config                          print @PROJECT_NAME@ config
     dependent    <port>             print reverse dependencies
     depends      <port>             print dependencies
     dup                             print duplicate ports
     files        <port>             print files installed
     foreign                         print foreign ports
     help                            print this help
-    hook  <stage> <action> <port>   run port hook on demand (run 'emerald hook' for help)
+    hook  <stage> <action> <port>   run port hook on demand (run '@PROJECT_NAME@ hook' for help)
     info         <port>             print information
     installed                       print all installed ports
     integrity                       check installed port integrity
@@ -1027,10 +1027,10 @@ emerald_hook() {
     require_root
 
     if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
-        msg_warning "Usage: emerald hook <stage> <action> <port>"
+        msg_warning "Usage: @PROJECT_NAME@ hook <stage> <action> <port>"
 
-        msg_info "emerald hook <pre|post> <install|remove> <port>"
-        msg_info "Example: emerald hook post install linux"
+        msg_info "@PROJECT_NAME@ hook <pre|post> <install|remove> <port>"
+        msg_info "Example: @PROJECT_NAME@ hook post install linux"
 
         return 1
     fi
@@ -1818,11 +1818,11 @@ emerald_sysup() {
     }
 
     case " $PKG " in
-        *" emerald "*)
+        *" @PROJECT_NAME@ "*)
             printf "\n"
-            msg_warning "Please upgrade 'emerald' first."
+            msg_warning "Please upgrade '@PROJECT_NAME@' first."
 
-            msg_info "Run 'emerald upgrade emerald' as root."
+            msg_info "Run '@PROJECT_NAME@ upgrade @PROJECT_NAME@' as root."
             return 1
         ;;
     esac
