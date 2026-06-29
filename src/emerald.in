@@ -570,13 +570,8 @@ emerald_config() {
     return 0
 }
 
-emerald_dependent() {
-    need_arg "$@"
-
-    get_port_path "$1" >/dev/null 2>&1 || {
-        msg_port_not_found "$1"
-        return 1
-    }
+get_dependent() {
+    get_port_path "$1" >/dev/null 2>&1 || return 1
 
     for repo in $PORT_REPO; do
         awk -v pkg="$1" 'FNR == 1 {
@@ -590,8 +585,19 @@ emerald_dependent() {
             found = 0;
             nextfile;
         }' "$repo"/*/depends 2>/dev/null
-    done | sort -u | while read -r dpd; do
-        msg_deps_status "$dpd"
+    done | sort -u
+}
+
+emerald_dependent() {
+    need_arg "${@}"
+
+    depends=$(get_dependent "$1") || {
+        msg_port_not_found "$1"
+        return 1
+    }
+
+    for dep in $depends; do
+        msg_deps_status "$dep"
     done
 }
 
@@ -666,7 +672,7 @@ emerald_deplist() {
 
     while [ "$1" ]; do
         case $1 in
-            -q) quick=1 ;;
+            -q | --quick) quick=1 ;;
 
             --exclude=*)
                 for i in ${1#*=}; do
@@ -794,7 +800,7 @@ Options:
 
     build        <ports>   <arg>    build ports (use pkgbuild arg, except '-i', '-u', '-r', '-g', & '-p')
                                     -f            force rebuild package
-				    -k            keep going building next package on error
+                                    -k            keep going building next package on error
                                     -m            skip checksum checking
                                     -o            fetch sources only
                                     -q, --quiet   show only status messages and errors
@@ -806,56 +812,56 @@ Options:
     install      <ports>   <arg>    install ports (use pkgbuild arg, except '-i' & '-u')
                                     -c            ignore conflict when installing package
                                     -f            force rebuild package
-				    -k            keep going installing next package on error
+                                    -k            keep going installing next package on error
                                     -m            skip checksum checking
                                     -n            skip dependencies
                                     -o            fetch sources only
                                     -q, --quiet   show only status messages and errors
                                     -r            reinstall
                                     -w            keep working directory
-                                    -y            skip ask user confirmation
+                                    -y, --yes     skip ask user confirmation
                                     --exclude=*   exclude dependencies, comma separated
                                     --no-backup   skip backup when reinstalling package
 
     upgrade      <ports>   <arg>    upgrade ports (use pkgbuild arg, except '-i' & '-r')
-	                            -c            ignore conflict when installing package
+                                    -c            ignore conflict when installing package
                                     -f            force rebuild package
-				    -k            keep going upgrading next package on error
+                                    -k            keep going upgrading next package on error
                                     -m            skip checksum checking
                                     -n            skip dependencies
                                     -o            fetch sources only
                                     -q, --quiet   show only status messages and errors
                                     -w            keep working directory
-                                    -y            skip ask user confirmation
+                                    -y, --yes     skip ask user confirmation
                                     --exclude=*   exclude dependencies, comma separated
                                     --no-backup   skip backup when upgrading package
 
     sysup                  <arg>    full system upgrade (use pkgbuild arg, except '-i', '-r'  & '-u')
                                     -c            ignore conflict when installing package
                                     -f            force rebuild package
-				    -k            keep going upgrading next package on error
+                                    -k            keep going upgrading next package on error
                                     -m            skip checksum checking
                                     -n            skip dependencies
                                     -o            fetch sources only
                                     -q, --quiet   show only status messages and errors
                                     -w            keep working directory
-                                    -y            skip ask user confirmation
+                                    -y, --yes     skip ask user confirmation
                                     --exclude=*   exclude dependencies, comma separated
                                     --no-backup   skip backup when upgrading package
 
     remove       <ports>   <arg>    remove installed ports (use pkgdel arg)
-                                    -y            skip ask user confirmation
+                                    -y, --yes     skip ask user confirmation
 
     deplist      <ports>            print all dependencies for ports
-                                    -q            skip installed ports
+                                    -q, --quick   skip installed ports
                                     --exclude=*   exclude dependencies, comma separated
 
     redeps       <ports>   <arg>    find redundant dependencies
                                     -f, --fix     fix (remove) redundant port deps
 
-    cache                           (no args)   clean packages AND sources cache
-                                    -p, --pkg   clean packages cache only
-                                    -s, --src   clean sources cache only
+    cache                           (no args)     clean packages AND sources cache
+                                    -p, --pkg     clean packages cache only
+                                    -s, --src     clean sources cache only
 
     cat          <port>             print build.eme
     config                          print emerald config
@@ -954,7 +960,7 @@ EOF
     [ -n "$deps_out" ] || deps_out="None"
 
     # Check dependent (required by)
-    required_by="$(emerald_dependent "$1" | awk '{printf "%s ", $2;}')"
+    required_by=$(get_dependent "$1" | tr '\n' ' ')
     required_by_out=""
 
     [ -z "${required_by}" ] || {
