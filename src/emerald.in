@@ -1533,7 +1533,7 @@ emerald_purge() {
     [ "$needexit" ] && exit 1
     printf "Resolving dependencies...\n"
 
-    orphan=$(emerald_orphan "$PURGENAME")
+    orphan=$(emerald_orphan "$PURGENAME" | tr '\n' ' ')
 
     if [ "$PURGENAME" ]; then
         for purge in $PURGENAME; do
@@ -1541,12 +1541,11 @@ emerald_purge() {
             deplist "$purge"
 
             for ii in $DEP; do
-                case " $orphan " in
+                case " $orphan $PURGENAME " in
                     *" $ii "*) pkg="$pkg $ii" ;;
                 esac
             done
 
-            [ -z "$pkg" ] && printf "Cant purge '%s', it required by other package(s)...\n" "$purge"
             [ "$remove" ] && remove="$remove $pkg" || remove="$pkg"
         done
     else
