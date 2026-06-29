@@ -789,7 +789,7 @@ emerald_foreign() {
 }
 
 emerald_help() {
-    cat <<'EOF'
+    cat <<EOF
 Usage:
     emerald <options> [<arg>]
 
@@ -885,7 +885,7 @@ Options:
     purge        [ports]            remove installed ports and its orphan dependencies
 
     search       <pattern>          find ports in repo
-                                    -n, --name   search in port names only
+                                    -n, --name    search in port names only
 
     trigger      [ports]            run system trigger
     world        [ports]            print/add/remove world list
@@ -909,7 +909,7 @@ emerald_info() {
         return 1
     }
 
-    IFS='|' read -r version release commit desc maint homep <<EOF
+    IFS='|' read -r version release commit description maintainer homepage <<EOF
 $(awk '/^version=/ {
     sub(/version=/, "");
     gsub(/"/, "");
@@ -971,9 +971,9 @@ EOF
 
     [ -n "$required_by_out" ] || required_by_out="None"
 
-    printf '%b%s%b %s\n' "$COLOR5" "Description:" "$CRESET" "$desc"
-    printf '%b%s%b %s\n' "$COLOR5" "Maintainer:" "$CRESET" "$maint"
-    printf '%b%s%b %s\n' "$COLOR5" "Homepage:" "$CRESET" "$homep"
+    printf '%b%s%b %s\n' "$COLOR5" "Description:" "$CRESET" "$description"
+    printf '%b%s%b %s\n' "$COLOR5" "Maintainer:" "$CRESET" "$maintainer"
+    printf '%b%s%b %s\n' "$COLOR5" "Homepage:" "$CRESET" "$homepage"
     printf '%b%s%b %s\n' "$COLOR5" "Path:" "$CRESET" "$PPATH"
     printf '%b%s%b %b%s%b\n' "$COLOR5" "Name:" "$CRESET" "$COLOR2" "$1" "$CRESET"
     printf '%b%s%b %b%s%b\n' "$COLOR5" "Version:" "$CRESET" "$COLOR4" "$version" "$CRESET"
@@ -997,7 +997,7 @@ hook() {
     port="$3"
     hook_dir="."
 
-    if [ "$port" ]; then
+    if [ -n "$port" ]; then
         hook_dir="$(get_port_path "$port")" || return 1
     fi
 
