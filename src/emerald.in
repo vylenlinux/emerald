@@ -1555,20 +1555,18 @@ emerald_purge() {
 
     orphan=$(emerald_orphan "$PURGE_NAME" | tr '\n' ' ')
 
-    [ -z "$PURGE_NAME" ] || {
-        for purge in $PURGE_NAME; do
-            unset DEP pkg
-            deplist "$purge"
+    for purge in $PURGE_NAME; do
+        unset DEP pkg
+        deplist "$purge"
 
-            for ii in $DEP; do
-                case " $orphan $PURGE_NAME " in
-                    *" $ii "*) pkg="$pkg $ii" ;;
-                esac
-            done
-
-            [ -n "$remove" ] && remove="$remove $pkg" || remove="$pkg"
+        for ii in $DEP; do
+            case " $orphan $PURGE_NAME " in
+                *" $ii "*) pkg="$pkg $ii" ;;
+            esac
         done
-    }
+
+        [ -n "$remove" ] && remove="$remove $pkg" || remove="$pkg"
+    done
 
     [ -z "$remove" ] && {
         printf "No orphan packages found...\n"
