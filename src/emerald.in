@@ -1541,18 +1541,16 @@ emerald_purge() {
         shift
     done
 
-    if [ "$PURGE_NAME" ]; then
-        for i in $PURGE_NAME; do
-            emerald_is_installed "$i" || {
-                msg_port_not_installed "$i"
-                need_exit=1
-            }
-        done
-    fi
+    for i in $PURGE_NAME; do
+        emerald_is_installed "$i" || {
+            msg_port_not_installed "$i"
+            need_exit=1
+        }
+    done
 
     [ "$need_exit" ] && exit 1
-    printf "Resolving dependencies...\n"
 
+    printf "Resolving dependencies...\n"
     orphan=$(emerald_orphan "$PURGE_NAME" | tr '\n' ' ')
 
     for purge in $PURGE_NAME; do
