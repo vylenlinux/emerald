@@ -1530,6 +1530,7 @@ emerald_provide() {
 
 emerald_purge() {
     require_root "Purging package"
+    need_arg "$@"
 
     while [ "$1" ]; do
         case $1 in
@@ -1553,9 +1554,8 @@ emerald_purge() {
     printf "Resolving dependencies...\n"
 
     orphan=$(emerald_orphan "$PURGE_NAME" | tr '\n' ' ')
-    remove=$orphan
 
-    if [ "$PURGE_NAME" ]; then
+    [ -z "$PURGE_NAME" ] || {
         for purge in $PURGE_NAME; do
             unset DEP pkg
             deplist "$purge"
@@ -1566,9 +1566,9 @@ emerald_purge() {
                 esac
             done
 
-            [ "$remove" ] && remove="$remove $pkg" || remove="$pkg"
+            [ -n "$remove" ] && remove="$remove $pkg" || remove="$pkg"
         done
-    fi
+    }
 
     [ -z "$remove" ] && {
         printf "No orphan packages found...\n"
