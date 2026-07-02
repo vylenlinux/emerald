@@ -40,23 +40,23 @@ Usage:
   pkgadd [ <options> <package.epkg.tar.xz> ]
 
 Options:
-  -u, --upgrade              upgrade package
-  -r, --reinstall            reinstall package
-  -c, --ignore-conflict      ignore conflict when installing package
-  -v, --verbose              print files installed
-  -h, --help                 show this help message
-      --no-backup            skip backup when upgrading package
-      --print-db-dir         print package database path
-      --root=<path>          install to custom root directory
+  -u, --upgrade           upgrade package
+  -r, --reinstall         reinstall package
+  -c, --ignore-conflict   ignore conflict when installing package
+  -v, --verbose           print files installed
+  -h, --help              show this help message
+      --no-backup         skip backup when upgrading package
+      --print-db-dir      print package database path
+      --root=<path>       install to custom root directory
 
 EOF
 }
 
 parse_opts() {
-    if [ -z "$1" ]; then
+    [ -z "$1" ] && {
         SHOW_HELP=yes
-        return
-    fi
+        return 0
+    }
 
     while [ -n "$1" ]; do
         case $1 in
@@ -111,13 +111,13 @@ LOCK_FILE="$EMERALD_DIR/epkg.lock"
 
 ROOT_DIR="${ROOT_DIR%/}" # Remove trailing slash
 
-[ "$PRINT_DB_DIR" ] && {
+[ "$PRINT_DB_DIR" = "yes" ] && {
     printf '%s/%s\n' "$ROOT_DIR" "$PKGDB_DIR"
     exit 0
 }
 
 # Show help page
-if [ "$SHOW_HELP" ] || [ -z "$PKGNAME" ]; then
+if [ "$SHOW_HELP" = "yes" ] || [ -z "$PKGNAME" ]; then
     help
     exit 0
 fi
@@ -163,24 +163,24 @@ version=${noextname##*-}
 name=${noextname%-*}
 
 # Get package information if installed
-if [ -s "$ROOT_DIR/$PKGDB_DIR/$name" ]; then
+[ -s "$ROOT_DIR/$PKGDB_DIR/$name" ] && {
     read -r iversion irelease < "$ROOT_DIR/$PKGDB_DIR/$name" # read first line
     ALREADY_INSTALLED=yes
-fi
+}
 
-if [ "$ALREADY_INSTALLED" = "yes" ] && [ ! "$UPGRADE_PKG" ] && [ ! "$REINSTALL_PKG" ]; then
+if [ "$ALREADY_INSTALLED" = "yes" ] && [ "$UPGRADE_PKG" != "yes" ] && [ "$REINSTALL_PKG" != "yes" ]; then
     printf "Package '%s' already installed. (%s-%s)\n" "$name" "$iversion" "$irelease"
     ret 0
 fi
 
 # Can't reinstall if not installed and can't upgrade if up-to-date
-if [ "$UPGRADE_PKG" ] || [ "$REINSTALL_PKG" ]; then
-    if [ "$ALREADY_INSTALLED" != "yes" ]; then
+if [ "$UPGRADE_PKG" = "yes" ] || [ "$REINSTALL_PKG" = "yes" ]; then
+    [ "$ALREADY_INSTALLED" != "yes" ] && {
         msg_error "Package '$name' not installed."
         ret 1
-    fi
+    }
 
-    if [ "$UPGRADE_PKG" ] && [ "$version-$release" = "$iversion-$irelease" ]; then
+    if [ "$UPGRADE_PKG" = "yes" ] && [ "$version-$release" = "$iversion-$irelease" ]; then
         printf "Package '%s' is up-to-date. (%s-%s)\n" "$name" "$iversion" "$irelease"
         ret 0
     fi
@@ -198,12 +198,12 @@ tar -tvf "$PKGNAME" > "$TMP_PKGADD" 2>/dev/null || {
 
 # Set operation whether install/upgrade/reinstall
 opr=install
-[ "$UPGRADE_PKG" ] && opr=upgrade
-[ "$REINSTALL_PKG" ] && opr=reinstall
+[ "$UPGRADE_PKG" = "yes" ] && opr=upgrade
+[ "$REINSTALL_PKG" = "yes" ] && opr=reinstall
 printf "%s: %s-%s-%s...\n" "$opr" "$name" "$version" "$release"
 
 # Check for file conflict
-if [ -z "$IGNORE_CONFLICT" ]; then
+if [ "$IGNORE_CONFLICT" != "yes" ]; then
     # Determine if we need to exclude the current package (upgrade/reinstall)
     conflicts=0
 
@@ -216,7 +216,7 @@ if [ -z "$IGNORE_CONFLICT" ]; then
         # Check if file or symlink (including broken) exists in root
         if [ -e "$ROOT_DIR/$line" ] || [ -L "$ROOT_DIR/$line" ]; then
             # Skip if this file is already owned by the current package
-            if [ "$UPGRADE_PKG" ] || [ "$REINSTALL_PKG" ]; then
+            if [ "$UPGRADE_PKG" = "yes" ] || [ "$REINSTALL_PKG" = "yes" ]; then
                 if grep -Fxq "$line" "$ROOT_DIR/$PKGDB_DIR/$name" 2>/dev/null; then
                     continue  # belongs to this package, skip conflict
                 fi
@@ -231,7 +231,7 @@ if [ -z "$IGNORE_CONFLICT" ]; then
         fi
     # List package files (excluding directories ending in '/') to check for conflicts with awk command
     done <<EOF
-$(awk '!/\/$/{print $6}' "$TMP_PKGADD")
+$(awk '!/\/$/{print $6;}' "$TMP_PKGADD")
 EOF
 
     if [ "$conflicts" -eq 1 ]; then
@@ -249,19 +249,19 @@ tar -xvhpf "$PKGNAME" -C "$ROOT_DIR/" | while read -r line; do
             line="${line%.epkgnew}"
 
             # Handle epkgnew file in fresh install OR upgrade/reinstall when file is absent OR --no-backup is set
-            if [ ! "$UPGRADE_PKG" ] && [ ! "$REINSTALL_PKG" ] || [ ! -e "$ROOT_DIR/$line" ] || [ "$NO_BACKUP" = "yes" ]; then
+            if [ "$UPGRADE_PKG" != "yes" ] && [ "$REINSTALL_PKG" != "yes" ] || [ ! -e "$ROOT_DIR/$line" ] || [ "$NO_BACKUP" = "yes" ]; then
                 cp --reflink=auto "$ROOT_DIR/$line.epkgnew" "$ROOT_DIR/$line"
                 rm -f "$ROOT_DIR/$line.epkgnew"
             fi
         ;;
     esac
 
-    [ "$VERBOSE_INSTALL" ] && printf "extracted '%s'\n" "$line"
+    [ "$VERBOSE_INSTALL" = "yes" ] && printf "extracted '%s'\n" "$line"
     printf '%s\n' "$line" >> "$TMP_PKGINSTALL"
 done
 
 # Remove old files from old package that do not exist in new package
-if [ "$UPGRADE_PKG" ] || [ "$REINSTALL_PKG" ]; then
+if [ "$UPGRADE_PKG" = "yes" ] || [ "$REINSTALL_PKG" = "yes" ]; then
     # awk replacement for tail + tac (no POSIX)
     awk 'NR > 1 {
         lines[n++] = $0;
@@ -273,28 +273,20 @@ if [ "$UPGRADE_PKG" ] || [ "$REINSTALL_PKG" ]; then
 
             */)
                 # Directory removal logic
-                if grep "^$line$" "$ROOT_DIR/$PKGDB_DIR"/* "$TMP_PKGINSTALL" 2>/dev/null | grep -qv "$ROOT_DIR/$PKGDB_DIR/$name"; then
-                    : # Do nothing if directory is used by another package
-                else
+                grep "^$line$" "$ROOT_DIR/$PKGDB_DIR"/* "$TMP_PKGINSTALL" 2>/dev/null | grep -qv "$ROOT_DIR/$PKGDB_DIR/$name" || {
                     # Manual verbose printing, as 'rmdir -v' is not POSIX
-                    if [ "$VERBOSE_INSTALL" ]; then
-                        printf "removing directory '%s'\n" "$ROOT_DIR/$line";
-                    fi
-
+                    [ "$VERBOSE_INSTALL" = "yes" ] && printf "removing directory '%s'\n" "$ROOT_DIR/$line"
                     rmdir "$ROOT_DIR/$line" 2>/dev/null
-                fi
+                }
             ;;
 
             *)
                 # File removal logic
-                if ! grep -q "^$line$" "$TMP_PKGINSTALL"; then
+                grep -q "^$line$" "$TMP_PKGINSTALL" || {
                     # Manual verbose printing, as 'rm -v' is not POSIX
-                    if [ "$VERBOSE_INSTALL" ]; then
-                        printf "removing '%s'\n" "$ROOT_DIR/$line";
-                    fi
-
+                    [ "$VERBOSE_INSTALL" = "yes" ] && printf "removing '%s'\n" "$ROOT_DIR/$line"
                     rm -f "$ROOT_DIR/$line"
-                fi
+                }
             ;;
         esac
     done
@@ -305,8 +297,5 @@ printf '%s %s\n' "$version" "$release" > "$ROOT_DIR/$PKGDB_DIR/$name"
 cat "$TMP_PKGINSTALL" >> "$ROOT_DIR/$PKGDB_DIR/$name"
 
 # Running ldconfig
-if [ -x "$ROOT_DIR/sbin/ldconfig" ]; then
-    "$ROOT_DIR/sbin/ldconfig" -r "$ROOT_DIR/"
-fi
-
+[ -x "$ROOT_DIR/sbin/ldconfig" ] && "$ROOT_DIR/sbin/ldconfig" -r "$ROOT_DIR/"
 ret 0
