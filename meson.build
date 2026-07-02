@@ -15,6 +15,7 @@ conf_data.set('CACHE_DIR', get_option('cache_dir'))
 conf_data.set('STATE_DIR', get_option('state_dir'))
 conf_data.set('PROJECT_NAME', project_name)
 conf_data.set('PROJECT_VERSION', project_version)
+conf_data.set('BUILD_SCRIPT', get_option('build_script'))
 
 subdir('data')
 subdir('src')

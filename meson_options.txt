@@ -1,3 +1,4 @@
-option('ports_dir', type: 'string', value: '/usr/ports')
-option('cache_dir', type: 'string', value: '/var/cache/emerald')
-option('state_dir', type: 'string', value: '/var/lib/emerald')
+option('ports_dir',    type: 'string', value: '/usr/ports')
+option('cache_dir',    type: 'string', value: '/var/cache/emerald')
+option('state_dir',    type: 'string', value: '/var/lib/emerald')
+option('build_script', type: 'string', value: 'build.eme')

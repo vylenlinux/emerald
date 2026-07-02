@@ -1140,7 +1140,7 @@ trap "interrupted" 1 2 3 15
 export LC_ALL=C
 
 PKGBUILD_CONF="@SYSCONFDIR@/emerald.conf"
-PKGBUILD_BSCRIPT="build.eme"
+PKGBUILD_BSCRIPT="@BUILD_SCRIPT@"
 
 SOURCE_DIR="@CACHE_DIR@/sources"
 PACKAGE_DIR="@CACHE_DIR@/packages"
