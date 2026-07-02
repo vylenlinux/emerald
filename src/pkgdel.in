@@ -28,9 +28,9 @@ Usage:
   pkgdel [ <options> <package name> ]
 
 Options:
-  -h, --help            show this help message
-  -v, --verbose         print removed files
-      --root=<path>     remove package from custom root directory
+  -h, --help          show this help message
+  -v, --verbose       print removed files
+      --root=<path>   remove package from custom root directory
 
 EOF
 }
@@ -47,10 +47,10 @@ command -v pkgadd >/dev/null 2>&1 || {
 
 # Parse options directly; combined flags like -vh are not supported
 # (keeping it simple avoids a subshell and an extra pass over arguments)
-if [ -z "$1" ]; then
+[ -z "$1" ] && {
     help
     exit 0
-fi
+}
 
 while [ -n "$1" ]; do
     case $1 in
@@ -63,7 +63,7 @@ while [ -n "$1" ]; do
         --root=*) ROOT_DIR="${1#*=}" ;;
 
         -*)
-            msg_info "Invalid option: ($1)";
+            msg_info "Invalid option: ($1)"
             exit 1
         ;;
 
@@ -73,10 +73,10 @@ while [ -n "$1" ]; do
     shift
 done
 
-if [ -z "$RMNAME" ]; then
+[ -z "$RMNAME" ] && {
     help
     exit 0
-fi
+}
 
 PKGDB_DIR="$(pkgadd --print-db-dir)"
 PKGDB_DIR="${PKGDB_DIR##/}"
@@ -119,7 +119,7 @@ fi
 # Used later to detect directories still owned by other packages.
 tmpdb=$(mktemp)
 
-find "$ROOT_DIR/$PKGDB_DIR" -type f ! -name "$name" -exec cat {} + 2>/dev/null >"$tmpdb" || {
+find "$ROOT_DIR/$PKGDB_DIR" -type f ! -name "$name" -exec cat {} + 2>/dev/null > "$tmpdb" || {
     msg_error "Failed to build temporary DB file."
     rm -f "$tmpdb"
 
@@ -131,31 +131,25 @@ find "$ROOT_DIR/$PKGDB_DIR" -type f ! -name "$name" -exec cat {} + 2>/dev/null >
 _rm_files=$(mktemp)
 _rm_dirs=$(mktemp)
 
-awk -v rm_files="$_rm_files" -v rm_dirs="$_rm_dirs" 'NR == 1 {
-    next;
-} {
-    if (substr($0, length($0), 1) == "/") {
-        print > rm_dirs;
-    } else {
-        print > rm_files;
-    }
+awk -v rm_files="$_rm_files" -v rm_dirs="$_rm_dirs" 'NR > 1 {
+    print > ((substr($0, length($0), 1) == "/") ? rm_dirs : rm_files);
 }' "$ROOT_DIR/$PKGDB_DIR/$name"
 
 # Remove regular files in one xargs batch
-if [ -s "$_rm_files" ]; then
+[ -s "$_rm_files" ] && {
     [ "$VERBOSE_REMOVE" ] && sed "s|^|removing '${ROOT_DIR}/|;s|\$|'|" "$_rm_files"
     sed "s|^|${ROOT_DIR}/|" "$_rm_files" | xargs -r rm -f
-fi
+}
 
 # Remove directories deepest-first; skip any still referenced by another package
-if [ -s "$_rm_dirs" ]; then
+[ -s "$_rm_dirs" ] && {
     sort -r "$_rm_dirs" | while IFS= read -r d; do
-        if ! grep -Fxq "$d" "$tmpdb"; then
+        grep -Fxq "$d" "$tmpdb" || {
             [ "$VERBOSE_REMOVE" ] && printf "removing directory '%s'\n" "${ROOT_DIR}/${d}"
             rmdir "${ROOT_DIR}/${d}" 2>/dev/null
-        fi
+        }
     done
-fi
+}
 
 # Remove files, dirs, tmpdb and the package entry from the database
 rm -f "$_rm_files" "$_rm_dirs" "$tmpdb" "$ROOT_DIR/$PKGDB_DIR/$name"
