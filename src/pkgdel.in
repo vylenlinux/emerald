@@ -25,7 +25,7 @@ msg_error() {
 help() {
     cat <<'EOF'
 Usage:
-    pkgdel <options> <package name>
+    pkgdel <options> <portname>
 
 Options:
     -h, --help     show this help message

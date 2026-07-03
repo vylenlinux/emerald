@@ -41,7 +41,7 @@ bare_git() {
 usage() {
     cat <<'EOF'
 Usage:
-    portsync [options]
+    portsync <options>
 
 Options:
     -p, --prune	          prune local git repository
