@@ -438,7 +438,7 @@ pkg_fetch() {
             ;;
 
             *://*)
-                filepath="$SOURCE_DIR/${i##*/}";
+                filepath="$SOURCE_DIR/${i##*/}"
                 url="$i"
             ;;
 
@@ -973,7 +973,7 @@ parse_opts() {
             --workdir=*) CUSTOM_WORK_DIR="${1#*=}" ;;
 
             *)
-                msg_info "Invalid ${0##*/} option! ($1)";
+                msg_info "Invalid ${0##*/} option! ($1)"
                 exit 1
             ;;
         esac
@@ -985,30 +985,31 @@ parse_opts() {
 help() {
     cat <<'EOF'
 Usage:
-  pkgbuild [ <options> <arguments> ]
+    pkgbuild <options> [<arg>]
 
 Options:
-  -q  --quiet               show only status messages and errors
-  -i, --install             install package into system
-  -u, --upgrade             upgrade package
-  -r, --reinstall           reinstall package
-  -c, --ignore-conflict     ignore conflict when installing package
-  -v, --verbose             verbose install process
-  -f, --force-rebuild       rebuild package
-  -m, --skip-checksum       skip checksum checking
-  -g, --genchecksum         generate checksum
-  -o, --download            download only source file
-  -x, --extract             extract only source file
-  -p, --pkgfiles            generate list files in package
-  -w, --keep-work           keep working directory
-  -h, --help                show this help message
-  -C, --clean               remove downloaded sources and prebuilt packages
-      --config=<config>     use custom config file
-      --srcdir=<path>       override directory path for sources
-      --pkgdir=<path>       override directory path for compiled package
-      --workdir=<path>      override directory path for working dir
-      --no-backup           skip backup configuration file when upgrading package
+    -q  --quiet            show only status messages and errors
+    -i, --install          install package into system
+    -u, --upgrade          upgrade package
+    -r, --reinstall        reinstall package
+    -c, --ignore-conflict  ignore conflict when installing package
+    -v, --verbose          verbose install process
+    -f, --force-rebuild    rebuild package
+    -m, --skip-checksum    skip checksum checking
+    -g, --genchecksum      generate checksum
+    -o, --download         download only source file
+    -x, --extract          extract only source file
+    -p, --pkgfiles         generate list files in package
+    -w, --keep-work        keep working directory
+    -h, --help             show this help message
+    -C, --clean            remove downloaded sources and prebuilt packages
 
+Global options:
+    --config=<config>      use custom config file
+    --srcdir=<path>        override directory path for sources
+    --pkgdir=<path>        override directory path for compiled package
+    --workdir=<path>       override directory path for working dir
+    --no-backup            skip backup configuration file when upgrading package
 EOF
 }
 
@@ -1051,7 +1052,7 @@ main() {
         gz | bz2 | xz | lz4 | zstd) PKGNAME="$name-$version-$release.epkg.tar.$COMPRESSION_MODE" ;;
 
         *)
-            msg_error "Invalid compression mode: $COMPRESSION_MODE";
+            msg_error "Invalid compression mode: $COMPRESSION_MODE"
             exit 1
         ;;
     esac

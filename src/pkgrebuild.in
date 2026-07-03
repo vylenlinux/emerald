@@ -27,14 +27,13 @@ msg_error() {
 help() {
     cat <<'EOF'
 Usage:
-   pkgrebuild <options>
+    pkgrebuild <options>
 
 Options:
-  (no args)        rebuild toolchain AND base (default)
-  -t, --toolchain  rebuild toolchain only
-  -b, --base       rebuild base only
-  -h, --help       Show this help
-
+    (no args)        rebuild toolchain AND base (default)
+    -t, --toolchain  rebuild toolchain only
+    -b, --base       rebuild base only
+    -h, --help       Show this help
 EOF
 	  exit 0
 }

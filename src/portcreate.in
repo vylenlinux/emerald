@@ -9,21 +9,24 @@ msg_error() {
 
 usage() {
     cat <<'EOF'
-Usage: portcreate [-b builder] <portname>
+Usage:
+    portcreate [-b builder] <portname>
 
 Create a port template directory with @BUILD_SCRIPT@ file.
 
 Options:
-  -b <builder>  Specify build system (default: autotools)
-                Available: autotools, meson, cmake, go, python, rust
-  -h            Show this help message
+    -b <builder>  Specify build system (default: autotools)
+                  Available: autotools, meson, cmake, go, python, rust
+
+    -h            Show this help message
 
 Examples:
-  portcreate myport              # Creates autotools template
-  portcreate -b meson myport     # Creates meson template
-  portcreate -b cmake myport     # Creates cmake template
-  portcreate -b go myport        # Creates go template
-  portcreate -b python myport    # Creates python template
+    portcreate myport            # Creates autotools template
+    portcreate -b meson myport   # Creates meson template
+    portcreate -b cmake myport   # Creates cmake template
+    portcreate -b go myport      # Creates go template
+    portcreate -b python myport  # Creates python template
+    portcreate -b rust myport    # Creates rust template
 EOF
     exit 0
 }

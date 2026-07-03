@@ -25,28 +25,28 @@ help() {
     cat <<'EOF'
 
 Usage:
-  xchroot <chroot-dir> [command]
+    xchroot <chroot-dir> [command]
 
 If 'command' is unspecified, xchroot will launch /bin/sh.
 
 Arguments:
-  <chroot-dir>  Directory to use as new root filesystem
-  [command]     Command to execute inside chroot (optional)
+    <chroot-dir>  Directory to use as new root filesystem
+    [command]     Command to execute inside chroot (optional)
 
 Description:
-  This script mounts necessary filesystems and enters a chroot environment.
-  It automatically mounts: /dev, /proc, /sys, /run, /tmp, and /etc/resolv.conf
+    This script mounts necessary filesystems and enters a chroot environment.
+    It automatically mounts: /dev, /proc, /sys, /run, /tmp, and /etc/resolv.conf
 
 Examples:
-  xchroot /mnt/mysystem
-  xchroot /mnt/mysystem portsync
-  xchroot /mnt/mysystem emerald sysup -y
-  xchroot /mnt/mysystem /bin/bash
-  xchroot /mnt/mysystem /bin/mksh -c portsync
+    xchroot /mnt/mysystem
+    xchroot /mnt/mysystem portsync
+    xchroot /mnt/mysystem emerald sysup -y
+    xchroot /mnt/mysystem /bin/bash
+    xchroot /mnt/mysystem /bin/mksh -c portsync
 
 Notes:
-  - If you want to run a command using a specific shell, use: shell -c 'command'
-  - Arguments are passed directly to the command, preserving their structure
+    - If you want to run a command using a specific shell, use: shell -c 'command'
+    - Arguments are passed directly to the command, preserving their structure
 
 EOF
 }

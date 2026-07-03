@@ -25,13 +25,14 @@ msg_error() {
 help() {
     cat <<'EOF'
 Usage:
-  pkgdel [ <options> <package name> ]
+    pkgdel <options> <package name>
 
 Options:
-  -h, --help          show this help message
-  -v, --verbose       print removed files
-      --root=<path>   remove package from custom root directory
+    -h, --help     show this help message
+    -v, --verbose  print removed files
 
+Global options:
+    --root=<path>  remove package from custom root directory
 EOF
 }
 

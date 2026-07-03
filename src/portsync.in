@@ -41,19 +41,19 @@ bare_git() {
 usage() {
     cat <<'EOF'
 Usage:
-  portsync [options]
+    portsync [options]
 
 Options:
-  -p, --prune	        prune local git repository
-  -r, --reset	        reset git repositories
-  -s, --source <repos>  sync specific repos only (space-separated)
-  -h, --help	        show this help message
+    -p, --prune	          prune local git repository
+    -r, --reset	          reset git repositories
+    -s, --source <repos>  sync specific repos only (space-separated)
+    -h, --help	          show this help message
 
 Examples:
-  portsync                 sync all repos
-  portsync --source main   sync only 'main'
-  portsync -s main custom  sync 'main' and 'custom'
-  portsync -r -s main      reset and sync only 'main'
+    portsync                 sync all repos
+    portsync --source main   sync only 'main'
+    portsync -s main custom  sync 'main' and 'custom'
+    portsync -r -s main      reset and sync only 'main'
 EOF
 }
 

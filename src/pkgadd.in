@@ -37,18 +37,19 @@ msg_error() {
 help() {
     cat <<'EOF'
 Usage:
-  pkgadd [ <options> <package.epkg.tar.xz> ]
+    pkgadd <options> [<package.epkg.tar.xz>]
 
 Options:
-  -u, --upgrade           upgrade package
-  -r, --reinstall         reinstall package
-  -c, --ignore-conflict   ignore conflict when installing package
-  -v, --verbose           print files installed
-  -h, --help              show this help message
-      --no-backup         skip backup when upgrading package
-      --print-db-dir      print package database path
-      --root=<path>       install to custom root directory
+    -u, --upgrade          upgrade package
+    -r, --reinstall        reinstall package
+    -c, --ignore-conflict  ignore conflict when installing package
+    -v, --verbose          print files installed
+    -h, --help             show this help message
 
+Global options:
+    --no-backup            skip backup when upgrading package
+    --print-db-dir         print package database path
+    --root=<path>          install to custom root directory
 EOF
 }
 

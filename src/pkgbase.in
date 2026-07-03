@@ -26,22 +26,21 @@ parse_opts() {
 help() {
     cat <<'EOF'
 Usage:
-  pkgbase [options] [packages]
+    pkgbase [options] [packages]
 
 Options:
-  -n, --dryrun  dry-run (show what would be removed without doing it)
-  -y, --yes     don't ask user confirmation
-  -h, --help    print this help message
+    -n, --dryrun  dry-run (show what would be removed without doing it)
+    -y, --yes     don't ask user confirmation
+    -h, --help    print this help message
 
 Description:
-  Removes all packages except base and specified packages.
-  Keeps all dependencies of base and specified packages.
+    Removes all packages except base and specified packages.
+    Keeps all dependencies of base and specified packages.
 
 Examples:
-  pkgbase -n vim git        # dry-run: show what would be removed
-  pkgbase -y                # remove to base without confirmation
-  pkgbase vim git curl      # keep vim, git, curl and their dependencies
-
+    pkgbase -n vim git    # dry-run: show what would be removed
+    pkgbase -y            # remove to base without confirmation
+    pkgbase vim git curl  # keep vim, git, curl and their dependencies
 EOF
 }
 
