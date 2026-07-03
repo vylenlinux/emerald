@@ -313,11 +313,10 @@ emerald_build() {
             set_term_title "Building $pkg..."
 
             # Run pkgbuild and capture the result
-            if [ "$LOG" ]; then
-                pkgbuild $OPTS | tee "/var/log/$pkg-$(get_version "$pkg")-build-$(date +%Y%m%d-%H%M).log"
-            else
-                pkgbuild $OPTS
-            fi
+            case "$LOG" in
+                1) pkgbuild $OPTS | tee "/var/log/$pkg-$(get_version "$pkg")-build-$(date +%Y%m%d-%H%M).log" ;;
+                *) pkgbuild $OPTS ;;
+            esac
 
             _build_ret=$?
 
