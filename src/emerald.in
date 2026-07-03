@@ -1668,7 +1668,7 @@ emerald_remove() {
         count=$(( count + 1 ))
         set_term_title "[ $count/$pkgcount ] Removing $pkg..."
 
-        hook "pre" "remove" "$pkg"
+        hook pre remove "$pkg"
         printf "remove: %s %s...\n" "$pkg" "$(get_iversion "$pkg")"
 
         pkgdel "$pkg" $OPTS || {
@@ -1677,7 +1677,7 @@ emerald_remove() {
         }
 
         world_del "$pkg"
-        hook "post" "remove" "$pkg"
+        hook post remove "$pkg"
     done
 
     set_term_title "$pkgcount package(s) removed."
