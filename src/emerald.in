@@ -1587,12 +1587,12 @@ emerald_redeps() {
         done
     fi
 
-    PPATH=$(get_port_path $pkg) || {
-        msg_port_not_found $pkg
-        return 1
-    }
-
     for i in $pkg; do
+        PPATH=$(get_port_path "$i") || {
+            msg_port_not_found "$i"
+            return 1
+        }
+
         deps_i=$(get_depends "$i")
         [ "$deps_i" ] || continue
 
@@ -1600,7 +1600,7 @@ emerald_redeps() {
             for dd in $deps_i; do
                 [ "$dd" = "$d" ] && continue
 
-                emerald_deplist "$d" | awk '{print $2;}' | grep -x "$dd" && {
+                emerald_deplist "$d" | awk '{print $2;}' | grep -qx "$dd" && {
                     printf "[%s] %s (already pulled from %s)\n" "$i" "$dd" "$d"
 
                     [ "$fix" = "yes" ] && {
@@ -1608,7 +1608,7 @@ emerald_redeps() {
                         [ -f "$CBUILD_DIR/$i.dep" ] && deps_file="$CBUILD_DIR/$i.dep"
 
                         sed -i "/^$dd$/d" "$deps_file"
-                        msg_info " $dd removed from $i $(basename "$deps_file")"
+                        msg_info "$dd removed from $i $(basename "$deps_file")"
                     }
                 }
             done
