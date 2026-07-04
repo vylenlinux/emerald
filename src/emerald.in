@@ -426,12 +426,13 @@ emerald_cache() {
 
     case "${1:-}" in
         "") : ;;  # default: clean both
+
         -p | --pkg) clean_src=0 ;;
         -s | --src) clean_pkg=0 ;;
 
         -h | --help)
             cat <<'EOF'
-Usage: @PROJECT_NAME@ cache [pkg|src]
+Usage: @PROJECT_NAME@ cache <arg>
 
   (no args)   clean packages AND sources cache
   -p, --pkg   clean packages cache only
