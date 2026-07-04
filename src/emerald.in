@@ -1608,7 +1608,7 @@ emerald_redeps() {
                         [ -f "$CBUILD_DIR/$i.dep" ] && deps_file="$CBUILD_DIR/$i.dep"
 
                         sed -i "/^$dd$/d" "$deps_file"
-                        msg_info "$dd removed from $i $(basename "$deps_file")"
+                        msg_info "$dd removed from $i ${deps_file##*/}"
                     }
                 }
             done
