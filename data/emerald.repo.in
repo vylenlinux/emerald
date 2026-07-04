@@ -6,5 +6,5 @@
 #
 
 @PORTS_DIR@/core        https://gitlab.com/vylen/ports/core
-#@PORTS_DIR@/main       https://gitlab.com/vylen/ports/main
+#@PORTS_DIR@/extra      https://gitlab.com/vylen/ports/extra
 #@PORTS_DIR@/community  https://gitlab.com/vylen/ports/community
