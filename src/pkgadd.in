@@ -209,6 +209,8 @@ if [ "$IGNORE_CONFLICT" != "yes" ]; then
     conflicts=0
 
     while IFS= read -r line; do
+        [ -n "$line" ] || continue
+
         # Remove .epkgnew suffix if present
         case "$line" in
             *.epkgnew) line="${line%.epkgnew}" ;;
