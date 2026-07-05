@@ -47,7 +47,6 @@ Examples:
 Notes:
     - If you want to run a command using a specific shell, use: shell -c 'command'
     - Arguments are passed directly to the command, preserving their structure
-
 EOF
 }
 
