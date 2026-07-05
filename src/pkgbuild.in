@@ -553,16 +553,14 @@ pkg_build() {
     msg_info "Build start: $name-$version-$release"
 
     cd "$SRC" >/dev/null || abort 1
-        if [ "$QUIET" ]; then
+        if [ "$QUIET" = "yes" ]; then
             (set -e; build) 2>/dev/null
         else
             (set -e -x; build 2>&1)
-        fi
-
-        if [ $? -ne 0 ]; then
+        fi || {
             msg_error "Build failed: $name-$version-$release"
             abort 1
-        fi
+        }
 
         msg_info "Build success: $name-$version-$release"
     cd - >/dev/null || return 1
@@ -699,7 +697,7 @@ pkg_package() {
             mv "$FILE" "$FILE.epkgnew"
         done
 
-        [ "$FORCE_REBUILD" ] && rm -f "$PACKAGE_DIR/$PKGNAME"
+        [ "$FORCE_REBUILD" = "yes" ] && rm -f "$PACKAGE_DIR/$PKGNAME"
 
         case "$COMPRESSION_MODE" in
             xz) COMPRESS="xz -T0" ;;
@@ -782,7 +780,7 @@ pkg_clean() {
 
 check_buildscript() {
     # check the required field in buildscript
-    [ "$name" ] || {
+    [ -z "$name" ] && {
         msg_error "'name' is empty!"
         exit 1
     }
@@ -799,12 +797,12 @@ check_buildscript() {
         exit 1
     }
 
-    [ "$version" ] || {
+    [ -z "$version" ] && {
         msg_error "'version' is empty!"
         exit 1
     }
 
-    [ "$release" ] || {
+    [ -z "$release" ] && {
         msg_error "'release' is empty!"
         exit 1
     }
@@ -833,7 +831,7 @@ check_buildscript() {
         exit 1
     fi
 
-    [ "$description" ] || {
+    [ -z "$description" ] && {
         msg_error "'description' is empty!"
         exit 1
     }
@@ -904,7 +902,7 @@ cbuild_options() {
 }
 
 pkg_cleanup() {
-    if [ ! "$KEEP_WORK" ] && [ "$name" ]; then
+    if [ "$KEEP_WORK" != "yes" ] && [ -n "$name" ]; then
         # shellcheck disable=SC2115
         rm -rf "$WORK_DIR/$name"
     fi
@@ -958,7 +956,7 @@ parse_opts() {
             -v | --verbose) OPTS="$OPTS $1" ;;
             -f | --force-rebuild) FORCE_REBUILD=yes ;;
             -m | --skip-checksum) IGNORE_CHECKSUM=yes ;;
-            -g | --genchecksum) UPDATE_CHECKSUM=yes ;;
+            -g | --gen-checksum) UPDATE_CHECKSUM=yes ;;
             -o | --download) DOWNLOAD_ONLY=yes ;;
             -x | --extract) EXTRACT_ONLY=yes ;;
             -w | --keep-work) KEEP_WORK=yes ;;
@@ -996,7 +994,7 @@ Options:
     -v, --verbose          verbose install process
     -f, --force-rebuild    rebuild package
     -m, --skip-checksum    skip checksum checking
-    -g, --genchecksum      generate checksum
+    -g, --gen-checksum     generate checksum
     -o, --download         download only source file
     -x, --extract          extract only source file
     -p, --pkgfiles         generate list files in package
@@ -1024,9 +1022,9 @@ main() {
     # shellcheck source=@SYSCONFDIR@/emerald.conf
     . "$PKGBUILD_CONF"
 
-    [ "$CUSTOM_SOURCE_DIR" ] && SOURCE_DIR="$CUSTOM_SOURCE_DIR"
-    [ "$CUSTOM_PACKAGE_DIR" ] && PACKAGE_DIR="$CUSTOM_PACKAGE_DIR"
-    [ "$CUSTOM_WORK_DIR" ] && WORK_DIR="$CUSTOM_WORK_DIR"
+    [ -z "$CUSTOM_SOURCE_DIR" ] || SOURCE_DIR="$CUSTOM_SOURCE_DIR"
+    [ -z "$CUSTOM_PACKAGE_DIR" ] || PACKAGE_DIR="$CUSTOM_PACKAGE_DIR"
+    [ -z "$CUSTOM_WORK_DIR" ] || WORK_DIR="$CUSTOM_WORK_DIR"
 
     # Ensure cbuild directory exists; non-fatal if it cannot be created
     [ -d "$CBUILD_DIR" ] || mkdir -p "$CBUILD_DIR" 2>/dev/null
@@ -1034,7 +1032,7 @@ main() {
     check_dir "$SOURCE_DIR" "$PACKAGE_DIR" "$WORK_DIR"
 
     # show usage
-    [ "$SHOW_HELP" ] && {
+    [ "$SHOW_HELP" = "yes" ] && {
         help
         exit 0
     }
@@ -1058,31 +1056,31 @@ main() {
     esac
 
     # generate .pkgfiles
-    [ "$GEN_PKGFILES" ] && {
+    [ "$GEN_PKGFILES" = "yes" ] && {
         pkg_gen_pkgfiles
         exit 0
     }
 
     # download source only
-    [ "$DOWNLOAD_ONLY" ] && {
+    [ "$DOWNLOAD_ONLY" = "yes" ] && {
         pkg_fetch
         exit 0
     }
 
     # extract source only
-    [ "$EXTRACT_ONLY" ] && {
+    [ "$EXTRACT_ONLY" = "yes" ] && {
         pkg_unpack
         exit 0
     }
 
     # update checksum
-    [ "$UPDATE_CHECKSUM" ] && {
+    [ "$UPDATE_CHECKSUM" = "yes" ] && {
         pkg_gen_checksums
         exit 0
     }
 
     # remove source and package
-    [ "$CLEANUP" ] && {
+    [ "$CLEANUP" = "yes" ] && {
         pkg_clean
         exit 0
     }
@@ -1104,15 +1102,15 @@ main() {
     }
 
     # build package
-    if [ -f "$PACKAGE_DIR/$PKGNAME" ] && [ ! "$FORCE_REBUILD" ]; then
-        if [ ! "$INSTALL_PKG" ] && [ ! "$REINSTALL_PKG" ] && [ ! "$UPGRADE_PKG" ]; then
+    if [ -f "$PACKAGE_DIR/$PKGNAME" ] && [ "$FORCE_REBUILD" != "yes" ]; then
+        if [ "$INSTALL_PKG" != "yes" ] && [ "$REINSTALL_PKG" != "yes" ] && [ "$UPGRADE_PKG" != "yes" ]; then
             msg_info "Package is up-to-date: $PKGNAME"
             abort 0
         fi
     else
         msg_info "Building: $name-$version-$release"
 
-        if [ "$QUIET" ]; then
+        if [ "$QUIET" = "yes" ]; then
             pkg_fetch 2>/dev/null
             pkg_checksum >/dev/null
             pkg_unpack >/dev/null
@@ -1130,7 +1128,7 @@ main() {
     fi
 
     # install package
-    if [ "$INSTALL_PKG" ] || [ "$REINSTALL_PKG" ] || [ "$UPGRADE_PKG" ]; then
+    if [ "$INSTALL_PKG" = "yes" ] || [ "$REINSTALL_PKG" = "yes" ] || [ "$UPGRADE_PKG" = "yes" ]; then
         pkgadd "$PACKAGE_DIR/$PKGNAME" $OPTS || abort 1
     fi
 
