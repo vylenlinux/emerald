@@ -787,112 +787,112 @@ Usage:
     @PROJECT_NAME@ <options> [<arg>]
 
 Options:
-    sync                   <arg>    update ports database (use portsync arg)
-                                    -p, --prune   prune local git repository
-                                    -r, --reset   reset git repositories
+    sync                   <arg>   update ports database (use portsync arg)
+                                   -p, --prune  prune local git repository
+                                   -r, --reset  reset git repositories
 
-    build        <ports>   <arg>    build ports (use pkgbuild arg, except '-i', '-u', '-r', '-g', & '-p')
-                                    -f            force rebuild package
-                                    -k            keep going building next package on error
-                                    -m            skip checksum checking
-                                    -o            fetch sources only
-                                    -q, --quiet   show only status messages and errors
-                                    -w            keep working directory
-                                    -y            skip ask user confirmation
-                                    -C, --clean   remove downloaded sources and prebuilt packages
-                                    --log         log build process (/var/log/name-version-release-date.log)
+    build        <ports>   <arg>   build ports (use pkgbuild arg, except '-i', '-u', '-r', '-g', & '-p')
+                                   -f           force rebuild package
+                                   -k           keep going building next package on error
+                                   -m           skip checksum checking
+                                   -o           fetch sources only
+                                   -q, --quiet  show only status messages and errors
+                                   -w           keep working directory
+                                   -y           skip ask user confirmation
+                                   -C, --clean  remove downloaded sources and prebuilt packages
+                                   --log        log build process (/var/log/name-version-release-date.log)
 
-    install      <ports>   <arg>    install ports (use pkgbuild arg, except '-i' & '-u')
-                                    -c            ignore conflict when installing package
-                                    -f            force rebuild package
-                                    -k            keep going installing next package on error
-                                    -m            skip checksum checking
-                                    -n            skip dependencies
-                                    -o            fetch sources only
-                                    -q, --quiet   show only status messages and errors
-                                    -r            reinstall
-                                    -w            keep working directory
-                                    -y, --yes     skip ask user confirmation
-                                    --exclude=*   exclude dependencies, comma separated
-                                    --no-backup   skip backup when reinstalling package
+    install      <ports>   <arg>   install ports (use pkgbuild arg, except '-i' & '-u')
+                                   -c           ignore conflict when installing package
+                                   -f           force rebuild package
+                                   -k           keep going installing next package on error
+                                   -m           skip checksum checking
+                                   -n           skip dependencies
+                                   -o           fetch sources only
+                                   -q, --quiet  show only status messages and errors
+                                   -r           reinstall
+                                   -w           keep working directory
+                                   -y, --yes    skip ask user confirmation
+                                   --exclude=*  exclude dependencies, comma separated
+                                   --no-backup  skip backup when reinstalling package
 
-    upgrade      <ports>   <arg>    upgrade ports (use pkgbuild arg, except '-i' & '-r')
-                                    -c            ignore conflict when installing package
-                                    -f            force rebuild package
-                                    -k            keep going upgrading next package on error
-                                    -m            skip checksum checking
-                                    -n            skip dependencies
-                                    -o            fetch sources only
-                                    -q, --quiet   show only status messages and errors
-                                    -w            keep working directory
-                                    -y, --yes     skip ask user confirmation
-                                    --exclude=*   exclude dependencies, comma separated
-                                    --no-backup   skip backup when upgrading package
+    upgrade      <ports>   <arg>   upgrade ports (use pkgbuild arg, except '-i' & '-r')
+                                   -c           ignore conflict when installing package
+                                   -f           force rebuild package
+                                   -k           keep going upgrading next package on error
+                                   -m           skip checksum checking
+                                   -n           skip dependencies
+                                   -o           fetch sources only
+                                   -q, --quiet  show only status messages and errors
+                                   -w           keep working directory
+                                   -y, --yes    skip ask user confirmation
+                                   --exclude=*  exclude dependencies, comma separated
+                                   --no-backup  skip backup when upgrading package
 
-    sysup                  <arg>    full system upgrade (use pkgbuild arg, except '-i', '-r'  & '-u')
-                                    -c            ignore conflict when installing package
-                                    -f            force rebuild package
-                                    -k            keep going upgrading next package on error
-                                    -m            skip checksum checking
-                                    -n            skip dependencies
-                                    -o            fetch sources only
-                                    -q, --quiet   show only status messages and errors
-                                    -w            keep working directory
-                                    -y, --yes     skip ask user confirmation
-                                    --exclude=*   exclude dependencies, comma separated
-                                    --no-backup   skip backup when upgrading package
+    sysup                  <arg>   full system upgrade (use pkgbuild arg, except '-i', '-r'  & '-u')
+                                   -c           ignore conflict when installing package
+                                   -f           force rebuild package
+                                   -k           keep going upgrading next package on error
+                                   -m           skip checksum checking
+                                   -n           skip dependencies
+                                   -o           fetch sources only
+                                   -q, --quiet  show only status messages and errors
+                                   -w           keep working directory
+                                   -y, --yes    skip ask user confirmation
+                                   --exclude=*  exclude dependencies, comma separated
+                                   --no-backup  skip backup when upgrading package
 
-    remove       <ports>   <arg>    remove installed ports (use pkgdel arg)
-                                    -y, --yes     skip ask user confirmation
+    remove       <ports>   <arg>   remove installed ports (use pkgdel arg)
+                                   -y, --yes    skip ask user confirmation
 
-    deplist      <ports>            print all dependencies for ports
-                                    -q, --quick   skip installed ports
-                                    --exclude=*   exclude dependencies, comma separated
+    deplist      <ports>           print all dependencies for ports
+                                   -q, --quick  skip installed ports
+                                   --exclude=*  exclude dependencies, comma separated
 
-    redeps       <ports>   <arg>    find redundant dependencies
-                                    -f, --fix     fix (remove) redundant port deps
+    redeps       <ports>   <arg>   find redundant dependencies
+                                   -f, --fix    fix (remove) redundant port deps
 
-    cache                           (no args)     clean packages AND sources cache
-                                    -p, --pkg     clean packages cache only
-                                    -s, --src     clean sources cache only
+    cache                          (no args)    clean packages AND sources cache
+                                   -p, --pkg    clean packages cache only
+                                   -s, --src    clean sources cache only
 
-    cat          <port>             print $BUILD_SCRIPT
-    config                          print @PROJECT_NAME@ config
-    dependent    <port>             print reverse dependencies
-    depends      <port>             print dependencies
-    dup                             print duplicate ports
-    files        <port>             print files installed
-    foreign                         print foreign ports
-    help                            print this help
-    hook  <stage> <action> <port>   run port hook on demand (run '@PROJECT_NAME@ hook' for help)
-    info         <port>             print information
-    installed                       print all installed ports
-    integrity                       check installed port integrity
-    is-installed  <port>            check whether port is installed (status 0=installed, 1=not installed)
-    locate       <file>             print location of file in ports repo
-    missing-deps                    print missing dependencies
-    orphan                          print orphan installed ports
-    outdated                        print outdated ports
-    path         <port>             print path in repo
-    provide      <file>             print ports provided file
-    purge        [ports]            remove installed ports and its orphan dependencies
+    cat          <port>            print $BUILD_SCRIPT
+    config                         print @PROJECT_NAME@ config
+    dependent    <port>            print reverse dependencies
+    depends      <port>            print dependencies
+    dup                            print duplicate ports
+    files        <port>            print files installed
+    foreign                        print foreign ports
+    help                           print this help
+    hook  <stage> <action> <port>  run port hook on demand (run '@PROJECT_NAME@ hook' for help)
+    info         <port>            print information
+    installed                      print all installed ports
+    integrity                      check installed port integrity
+    is-installed  <port>           check whether port is installed (status 0=installed, 1=not installed)
+    locate       <file>            print location of file in ports repo
+    missing-deps                   print missing dependencies
+    orphan                         print orphan installed ports
+    outdated                       print outdated ports
+    path         <port>            print path in repo
+    provide      <file>            print ports provided file
+    purge        [ports]           remove installed ports and its orphan dependencies
 
-    search       <pattern>          find ports in repo
-                                    -n, --name    search in port names only
+    search       <pattern>         find ports in repo
+                                   -n, --name   search in port names only
 
-    trigger      [ports]            run system trigger
-    world        [ports]            print/add/remove world list
-    list                            print all available ports
-    version                         print version information and exit
+    trigger      [ports]           run system trigger
+    world        [ports]           print/add/remove world list
+    list                           print all available ports
+    version                        print version information and exit
 
 Global options:
-    --append-repo=<repo path>       append custom local repo path (can use multiple times)
-    --prepend-repo=<repo path>      prepend custom local repo path (can use multiple times)
-    --override-repo=<repo path>     override repo in $REPO_FILE with custom local repo (can use multiple times)
-    --repo-file=<repo file>         use custom repo file (default: $REPO_FILE)
-    --config-file=<config file>     use custom config file (default: $CONFIG_FILE)
-    --alias-file=<alias file>       use custom alias file (default: $ALIAS_FILE)
-    --mask-file=<mask file>         use custom mask file (default: $MASK_FILE)
+    --append-repo=<repo path>      append custom local repo path (can use multiple times)
+    --prepend-repo=<repo path>     prepend custom local repo path (can use multiple times)
+    --override-repo=<repo path>    override repo in $REPO_FILE with custom local repo (can use multiple times)
+    --repo-file=<repo file>        use custom repo file (default: $REPO_FILE)
+    --config-file=<config file>    use custom config file (default: $CONFIG_FILE)
+    --alias-file=<alias file>      use custom alias file (default: $ALIAS_FILE)
+    --mask-file=<mask file>        use custom mask file (default: $MASK_FILE)
 EOF
 }
 
