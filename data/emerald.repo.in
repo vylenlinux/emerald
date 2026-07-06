@@ -8,4 +8,3 @@
 @PORTS_DIR@/core        https://gitlab.com/vylen/ports/core
 #@PORTS_DIR@/extra      https://gitlab.com/vylen/ports/extra
 #@PORTS_DIR@/community  https://gitlab.com/vylen/ports/community
-#@PORTS_DIR@/multilib   https://gitlab.com/vylen/ports/multilib
