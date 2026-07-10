@@ -22,7 +22,9 @@ if [ "$1" = "--check-file" ]; then
 
             case "$ldd_out" in
                 *"not found"*)
-                    LIB_NAME=$(printf '%s\n' "$ldd_out" | awk '/not found/ && !seen[$1]++{print $1}')
+                    LIB_NAME=$(printf '%s\n' "$ldd_out" | awk '/not found/ && !seen[$1]++ {
+                        print $1;
+                    }')
 
                     # Filter excluded libs (passed via environment)
                     filtered=""
@@ -42,7 +44,9 @@ if [ "$1" = "--check-file" ]; then
                     pkg_name=${pkg_path##*/}
 
                     # Check NEEDED entries to confirm the library is truly required
-                    REQ_LIB=$(objdump -p "$line" 2>/dev/null | awk '/NEEDED/{printf "%s ", $2}')
+                    REQ_LIB=$(objdump -p "$line" 2>/dev/null | awk '/NEEDED/ {
+                        printf "%s ", $2;
+                    }')
 
                     for i in $filtered; do
                         # PRINT_ALL=1 (-a): emit every ldd hit regardless of NEEDED
@@ -106,8 +110,6 @@ confirm() {
             printf '%s\n' "$2"
             exit 2
         ;;
-
-        *) : ;;
     esac
 }
 
@@ -187,7 +189,9 @@ parse_opts() {
 
 rebuild() {
     # Preserve topological order from emerald deplist, keeping only broken packages.
-    for all_pkg in $(emerald deplist $ALL_PKG | awk '!seen[$2]++ {print $2}'); do
+    for all_pkg in $(emerald deplist $ALL_PKG | awk '!seen[$2]++ {
+        print $2;
+    }'); do
         case " $ALL_PKG " in
             *" $all_pkg "*) order="${order:+$order }$all_pkg" ;;
         esac
@@ -302,7 +306,7 @@ check_python_modules() {
         [ -d "$i" ] || continue
         [ "$i" = "$python_lib_path" ] && continue
 
-        brokenpkg="$brokenpkg $(emerald provide "$i/" | awk '{print $1}')"
+        brokenpkg="$brokenpkg $(emerald provide "$i/" | awk '{print $1;}')"
     done
 }
 
@@ -316,7 +320,7 @@ check_perl_modules() {
         [ "$perl_path" = "$i" ] && continue
         [ -d "$i" ] || continue
 
-        brokenpkg="$brokenpkg $(emerald provide "$i/" | awk '{print $1}')"
+        brokenpkg="$brokenpkg $(emerald provide "$i/" | awk '{print $1;}')"
     done
 }
 
@@ -326,7 +330,7 @@ check_ruby_gem() {
 
     for i in "${gem_path%/*}"/*; do
         [ "$gem_path" = "$i" ] && continue
-        brokenpkg="$brokenpkg $(emerald provide "$i/" | awk '{print $1}')"
+        brokenpkg="$brokenpkg $(emerald provide "$i/" | awk '{print $1;}')"
     done
 }
 
@@ -375,7 +379,7 @@ if [ "$(id -u)" -ne 0 ] && [ "$REBUILD" -eq 1 ]; then
 fi
 
 # Verify package is installed
-if [ "$PKG" ] && [ ! -f "$PKGDB_DIR/$PKG" ]; then
+if [ -n "$PKG" ] && [ ! -f "$PKGDB_DIR/$PKG" ]; then
     printf "ERROR: Package '%s' not installed\n" "$PKG" >&2
     cleanup
 
@@ -447,7 +451,7 @@ done
 printf '\n'
 
 # Build file list to check
-if [ "$PKG" ]; then
+if [ -n "$PKG" ]; then
     # Build grep patterns for target directories
     for D in $TARGET_SEARCH_DIRS; do
         gx="$gx -e ^$D"
@@ -465,10 +469,15 @@ else
     printf 'Find all files... '
 
     # shellcheck disable=SC2086
-    find $SEARCH_DIRS $EXCLUDED_DIRS $EXCLUDED_FILES -type f \( -perm /+u+x -o -name '*.so' -o -name '*.so.*' \) -print 2> /dev/null | sort -u > "$FILE_LIST"
+    find $SEARCH_DIRS $EXCLUDED_DIRS $EXCLUDED_FILES -type f \( \
+        -perm /+u+x -o \
+        \
+        -name '*.so' -o \
+        -name '*.so.*' \
+    \) -print 2> /dev/null | sort -u > "$FILE_LIST"
 fi
 
-total=$(wc -l "$FILE_LIST" | awk '{print $1}')
+total=$(wc -l "$FILE_LIST" | awk '{print $1;}')
 printf '%s files found\n' "$total"
 
 if [ "$total" -eq 0 ]; then
@@ -480,7 +489,7 @@ fi
 
 printf 'Checking for broken linkage...\n'
 
-if [ "$PKG" ]; then
+if [ -n "$PKG" ]; then
     # Single-package mode: sequential, with progress indicator
     count=0
 
@@ -497,7 +506,9 @@ if [ "$PKG" ]; then
 
                 case "$ldd_out" in
                     *"not found"*)
-                        LIB_NAME=$(printf '%s\n' "$ldd_out" | awk '/not found/ && !seen[$1]++{print $1}')
+                        LIB_NAME=$(printf '%s\n' "$ldd_out" | awk '/not found/ && !seen[$1]++ {
+                            print $1;
+                        }')
 
                         # filter excluded libraries
                         for l in $LIB_NAME; do
@@ -507,7 +518,7 @@ if [ "$PKG" ]; then
                             esac
                         done
 
-                        [ "$NEW_LIB_NAME" ] || continue
+                        [ -n "$NEW_LIB_NAME" ] || continue
                         LIB_NAME=$NEW_LIB_NAME
 
                         # Use the known package name directly
@@ -518,7 +529,9 @@ if [ "$PKG" ]; then
                         esac
 
                         # Get required libraries
-                        REQ_LIB=$(objdump -p "$line" 2>/dev/null | awk '/NEEDED/{printf "%s ", $2}')
+                        REQ_LIB=$(objdump -p "$line" 2>/dev/null | awk '/NEEDED/ {
+                            printf "%s ", $2;
+                        }')
 
                         for i in $LIB_NAME; do
                             [ "$PRINT_ALL" -eq 1 ] && printf ' %s -> %s (requires %s)\n' "$PKG_NAME" "$line" "$i"
@@ -575,7 +588,7 @@ if [ -z "$PKG" ]; then
 fi
 
 # Consolidate broken packages
-if [ "$brokenpkg" ]; then
+if [ -n "$brokenpkg" ]; then
     for i in $brokenpkg; do
         case " $expkg " in
             *" $i "*) continue ;;
@@ -596,7 +609,7 @@ if [ -z "$ALL_PKG" ]; then
 fi
 
 printf '\nBroken package(s):\n'
-LIST_ALL_PKG=$(printf ' %s\n' $ALL_PKG | awk '!seen[$0]++') # remove duplicates, preserve order
+LIST_ALL_PKG=$(printf ' %s\n' $ALL_PKG | awk '!seen[$0]++;') # remove duplicates, preserve order
 printf '%s\n' "$LIST_ALL_PKG"
 
 if [ "$REBUILD" -eq 1 ]; then
