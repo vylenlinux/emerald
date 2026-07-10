@@ -412,6 +412,7 @@ TARGET_SEARCH_DIRS="$SEARCH_DIRS $EXTRA_SEARCH_DIRS"
 SEARCH_DIRS=""
 
 printf 'SEARCH DIRS:\n'
+
 for d in $TARGET_SEARCH_DIRS; do
     if [ -d "$d" ]; then
         SEARCH_DIRS="$SEARCH_DIRS $d"
@@ -419,20 +420,30 @@ for d in $TARGET_SEARCH_DIRS; do
     fi
 done
 
-printf '\nEXCLUDED DIRS:\n'
-for dd in $EXCLUDE_DIRS; do
-    printf '  - %s\n' "$dd"
-done
+[ -z "$EXCLUDE_DIRS" ] || {
+    printf '\nEXCLUDED DIRS:\n'
 
-printf '\nEXCLUDED FILES:\n'
-for ff in $EXCLUDE_FILES; do
-    printf '  - %s\n' "$ff"
-done
+    for dd in $EXCLUDE_DIRS; do
+        printf '  - %s\n' "$dd"
+    done
+}
 
-printf '\nEXCLUDED LIBS:\n'
-for ll in $EXCLUDED_LIBS; do
-    printf '  - %s\n' "$ll"
-done
+[ -z "$EXCLUDE_FILES" ] || {
+    printf '\nEXCLUDED FILES:\n'
+
+    for ff in $EXCLUDE_FILES; do
+        printf '  - %s\n' "$ff"
+    done
+}
+
+[ -z "$EXCLUDED_LIBS" ] || {
+    printf '\nEXCLUDED LIBS:\n'
+
+    for ll in $EXCLUDED_LIBS; do
+        printf '  - %s\n' "$ll"
+    done
+}
+
 printf '\n'
 
 # Build file list to check
