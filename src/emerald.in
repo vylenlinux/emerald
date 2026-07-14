@@ -515,7 +515,6 @@ EOF
         return 0
     fi
 
-    # Confirm deletion
     if confirm "Remove old caches?" "Old caches are kept."; then
         # delete in parallel
         [ -n "$to_remove_pkg" ] && printf '%s' "$to_remove_pkg" | tr '|' '\n' | xargs -P "$(nproc)" -I{} rm -f "$PACKAGE_DIR/{}"
@@ -663,6 +662,7 @@ deplist() {
 
 emerald_deplist() {
     need_arg "${@}"
+
     # parse arguments
     OLDIFS=$IFS
     IFS=,
@@ -1740,9 +1740,9 @@ emerald_search() {
         [ -n "$_sr_out" ] || continue
         _sr_found=1
 
-        printf '%s\n' "$_sr_out" | while IFS='|' read -r name version release desc; do
+        printf '%s\n' "$_sr_out" | while IFS='|' read -r name version release description; do
             emerald_is_installed "$name" && ins=$(printf "[%bi%b]" "$COLOR2" "$CRESET") || ins="[ ]"
-            printf "%b %b(%s)%b %b%s%b %b%s-%s%b %s\n" "$ins" "$COLOR5" "${repo##*/}" "$CRESET" "$COLOR2" "$name" "$CRESET" "$COLOR4" "$version" "$release" "$CRESET" "$desc"
+            printf "%b %b(%s)%b %b%s%b %b%s-%s%b %s\n" "$ins" "$COLOR5" "${repo##*/}" "$CRESET" "$COLOR2" "$name" "$CRESET" "$COLOR4" "$version" "$release" "$CRESET" "$description"
         done
     done
 
