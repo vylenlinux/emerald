@@ -1424,7 +1424,7 @@ version_compare() {
 
     # - If sorted (exit code 0): $1 <= $2, but we know $1 != $2, so $1 < $2 → return 1
     # - If not sorted (exit code 1): $1 > $2 → return 2
-    printf '%s\n%s\n' "$1" "$2" | sort -VC && return 1 || return 2
+    printf '%s\n%s\n' "$1" "$2" | LC_ALL=C sort -VC && return 1 || return 2
 }
 
 check_outdated() {
