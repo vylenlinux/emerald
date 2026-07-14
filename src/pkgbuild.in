@@ -702,7 +702,7 @@ pkg_package() {
         case "$COMPRESSION_MODE" in
             xz) COMPRESS="xz -T0" ;;
             gz) COMPRESS="gzip -9" ;;
-            bz2) COMPRESS="bz2" ;;
+            bz2) COMPRESS="bzip2" ;;
             lz4) COMPRESS="lz4" ;;
             zstd) COMPRESS="zstd -19 -T0" ;;
         esac
