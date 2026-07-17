@@ -282,7 +282,7 @@ emerald_build() {
     need_arg "${@}"
     failed_builds=""
 
-    while [ "$1" ]; do
+    while [ -n "$1" ]; do
         case $1 in
             -i | -u | -r | -g | -p) ;;
             --log) LOG=1 ;;
@@ -667,7 +667,7 @@ emerald_deplist() {
     OLDIFS=$IFS
     IFS=,
 
-    while [ "$1" ]; do
+    while [ -n "$1" ]; do
         case $1 in
             -q | --quick) quick=1 ;;
 
@@ -910,7 +910,7 @@ emerald_version() {
 emerald_info() {
     need_arg "$@"
 
-    while [ "$1" ]; do
+    while [ -n "$1" ]; do
         case $1 in
             --field=*) FIELD="${1#*=}" ;;
             *) PKGNAME="$1" ;;
@@ -1092,7 +1092,7 @@ emerald_install() {
     failed_installs=""
     skipped_installs=""
 
-    while [ "$1" ]; do
+    while [ -n "$1" ]; do
         case $1 in
             -i | -u) ;;
             -r) REINSTALL=1 ;;
@@ -1563,7 +1563,7 @@ emerald_purge() {
     require_root "Purging package"
     need_arg "$@"
 
-    while [ "$1" ]; do
+    while [ -n "$1" ]; do
         case $1 in
             -*) PURGE_OPTS="$PURGE_OPTS $1" ;;
             *) PURGE_NAME="$PURGE_NAME $1" ;;
@@ -1608,7 +1608,7 @@ emerald_purge() {
 emerald_redeps() {
     need_arg "$@"
 
-    while [ "$1" ]; do
+    while [ -n "$1" ]; do
         case $1 in
             --fix | -f) fix="yes" ;;
             --help | -h) emerald_help ;;
@@ -1621,7 +1621,7 @@ emerald_redeps() {
     for i in $pkg; do
         PPATH=$(get_port_path "$i") || {
             msg_port_not_found "$i"
-            return 1
+            continue
         }
 
         deps_i=$(get_depends "$i")
@@ -1651,7 +1651,7 @@ emerald_remove() {
     require_root "Removing package"
     need_arg "${@}"
 
-    while [ "$1" ]; do
+    while [ -n "$1" ]; do
         case $1 in
             -y | --yes) NOCONFIRM=1 ;;
             -*) OPTS="$OPTS $1" ;;
@@ -1717,7 +1717,7 @@ emerald_search() {
     NAME_ONLY=0
     PATTERN=""
 
-    while [ "$1" ]; do
+    while [ -n "$1" ]; do
         case $1 in
             -n | --name) NAME_ONLY=1 ;;
 
@@ -1788,7 +1788,7 @@ emerald_sysup() {
     require_root "Upgrading package"
     failed_upgrades=""
 
-    while [ "$1" ]; do
+    while [ -n "$1" ]; do
         case $1 in
             -i | -u | -r ) ;;
 
@@ -2109,7 +2109,7 @@ emerald_upgrade() {
 
     failed_upgrades=""
 
-    while [ "$1" ]; do
+    while [ -n "$1" ]; do
         case $1 in
             -i | -r) ;;
             -y | --yes) NOCONFIRM=1 ;;
@@ -2309,7 +2309,7 @@ emerald_world() {
     require_root
     touch "$WORLD_FILE"
 
-    while [ "$1" ]; do
+    while [ -n "$1" ]; do
         grep -qx "$1" "$WORLD_FILE" || {
             world_add "$1" && printf "world: '%s' added to world\n" "$1"
 
