@@ -216,7 +216,7 @@ confirm() {
 }
 
 need_arg() {
-    [ "$*" ] || {
+    [ -z "$*" ] && {
         printf "This operation required an arguments!\n"
         exit 1
     }
@@ -701,7 +701,7 @@ emerald_deplist() {
         deplist "$p"
     done
 
-    [ "$DEP" ] || return 0
+    [ -n "$DEP" ] || return 0
 
     if [ "$quick" = 1 ]; then
         printf "%s\n" $DEP
@@ -710,7 +710,7 @@ emerald_deplist() {
 
     msg_deps_status $DEP
 
-    if [ "$MISSINGDEP" ]; then
+    if [ -n "$MISSINGDEP" ]; then
         for m in $MISSINGDEP; do
             printf "Missing deps: %s\n" "$m" | sed 's/(/ (/'
         done
@@ -910,8 +910,17 @@ emerald_version() {
 emerald_info() {
     need_arg "$@"
 
-    PPATH=$(get_port_path "$1") || {
-        msg_port_not_found "$1"
+    while [ "$1" ]; do
+        case $1 in
+            --field=*) FIELD="${1#*=}" ;;
+            *) PKGNAME="$1" ;;
+        esac
+
+        shift
+    done
+
+    PPATH=$(get_port_path "$PKGNAME") || {
+        msg_port_not_found "$PKGNAME"
         return 1
     }
 
@@ -950,11 +959,11 @@ $(awk '/^version=/ {
 EOF
 
     # Read installed version
-    iver="$(get_iversion "$1")"
+    iver="$(get_iversion "$PKGNAME")"
     [ -z "$iver" ] && iver="Not installed"
 
     # Read depends file
-    deps=$(get_depends "$1" | tr '\n' ' ')
+    deps=$(get_depends "$PKGNAME" | tr '\n' ' ')
     deps_out=""
 
     [ -z "$deps" ] || {
@@ -966,7 +975,7 @@ EOF
     [ -n "$deps_out" ] || deps_out="None"
 
     # Check dependent (required by)
-    required_by=$(get_dependent "$1" | tr '\n' ' ')
+    required_by=$(get_dependent "$PKGNAME" | tr '\n' ' ')
     required_by_out=""
 
     [ -z "${required_by}" ] || {
@@ -977,14 +986,37 @@ EOF
 
     [ -n "$required_by_out" ] || required_by_out="None"
 
+    [ -z "$FIELD" ] || {
+        case "$FIELD" in
+            description) printf '%s\n' "$description" ;;
+            maintainer) printf '%s\n' "$maintainer" ;;
+            homepage) printf '%s\n' "$homepage" ;;
+            path) printf '%s\n' "$PPATH" ;;
+            name) printf '%s\n' "$PKGNAME" ;;
+            version) printf '%s\n' "$version" ;;
+            release) printf '%s\n' "$release" ;;
+            commit) printf '%s\n' "$commit" ;;
+            installed) printf '%s\n' "$iver" ;;
+            depends) printf '%s\n' "$deps_out" ;;
+            required-by) printf '%s\n' "$required_by_out" ;;
+
+            *)
+                printf 'Unknown field: %s\n' "$3" >&2
+                return 1
+            ;;
+        esac
+
+        return 0
+    }
+
     printf '%b%s%b %s\n' "$COLOR5" "Description:" "$CRESET" "$description"
     printf '%b%s%b %s\n' "$COLOR5" "Maintainer:" "$CRESET" "$maintainer"
     printf '%b%s%b %s\n' "$COLOR5" "Homepage:" "$CRESET" "$homepage"
     printf '%b%s%b %s\n' "$COLOR5" "Path:" "$CRESET" "$PPATH"
-    printf '%b%s%b %b%s%b\n' "$COLOR5" "Name:" "$CRESET" "$COLOR2" "$1" "$CRESET"
+    printf '%b%s%b %b%s%b\n' "$COLOR5" "Name:" "$CRESET" "$COLOR2" "$PKGNAME" "$CRESET"
     printf '%b%s%b %b%s%b\n' "$COLOR5" "Version:" "$CRESET" "$COLOR4" "$version" "$CRESET"
     printf '%b%s%b %b%s%b\n' "$COLOR5" "Release:" "$CRESET" "$COLOR4" "$release" "$CRESET"
-    [ "$commit" ] && printf '%b%s%b %s\n' "$COLOR5" "Commit:" "$CRESET" "$commit"
+    [ -z "$commit" ] || printf '%b%s%b %s\n' "$COLOR5" "Commit:" "$CRESET" "$commit"
     printf '%b%s%b %b%s%b\n' "$COLOR5" "Installed:" "$CRESET" "$COLOR2" "$iver" "$CRESET"
     printf '%b%s%b %s\n' "$COLOR5" "Depends:" "$CRESET" "$deps_out"
     printf '%b%s%b %s\n' "$COLOR5" "Required by:" "$CRESET" "$required_by_out"
@@ -996,7 +1028,7 @@ hook() {
     [ "$DOWNLOAD_ONLY" = 1 ] && return 0
 
     # silent sanity check
-    [ "$1" ] && [ "$2" ] || return 0
+    [ -n "$1" ] && [ -n "$2" ] || return 0
 
     hook_stage="$1"
     hook_action="$2"
@@ -1130,7 +1162,7 @@ emerald_install() {
             cd - >/dev/null || return 1
         done
 
-        [ "$done_pkg" ] && emerald_trigger "$done_pkg"
+        [ -n "$done_pkg" ] && emerald_trigger "$done_pkg"
 
         # Show error summary if exist
         FAILED_PKGS="$failed_installs"
@@ -1188,7 +1220,7 @@ emerald_install() {
             cd - >/dev/null || return 1
         done
 
-        [ "$done_pkg" ] && emerald_trigger "$done_pkg"
+        [ -n "$done_pkg" ] && emerald_trigger "$done_pkg"
 
         # Show error summary if exist
         FAILED_PKGS="$failed_installs"
@@ -1214,12 +1246,12 @@ emerald_install() {
         IPKG="$IPKG $i"
     done
 
-    [ "$IPKG" ] || return 0
+    [ -n "$IPKG" ] || return 0
 
     printf "Resolving dependencies...\n"
     INST="$(emerald_deplist -q "$IPKG" "$EXOPT")"
 
-    if [ "$INST" ]; then
+    if [ -n "$INST" ]; then
         printf "\n"
 
         pkgcount=0
@@ -1282,7 +1314,7 @@ emerald_install() {
             cd - >/dev/null || return 1
         done
 
-        [ "$done_pkg" ] && emerald_trigger "$done_pkg"
+        [ -n "$done_pkg" ] && emerald_trigger "$done_pkg"
 
         # Show error summary if exist
         FAILED_PKGS="$failed_installs"
@@ -1305,7 +1337,7 @@ emerald_installed() {
 emerald_integrity() {
     require_root
 
-    if [ "$1" ]; then
+    if [ -n "$1" ]; then
         pkg="$1"
         printf "Checking '%s' integrity...\n" "$pkg"
 
@@ -1547,7 +1579,7 @@ emerald_purge() {
         }
     done
 
-    [ "$need_exit" ] && exit 1
+    [ "$need_exit" = 1 ] && exit 1
 
     printf "Resolving dependencies...\n"
     orphan=$(emerald_orphan "$PURGE_NAME" | tr '\n' ' ')
@@ -1576,17 +1608,15 @@ emerald_purge() {
 emerald_redeps() {
     need_arg "$@"
 
-    if [ "$1" ]; then
-        while [ "$1" ]; do
-            case $1 in
-                --fix | -f) fix="yes" ;;
-                --help | -h) emerald_help ;;
-                *) pkg="$pkg $1" ;;
-            esac
+    while [ "$1" ]; do
+        case $1 in
+            --fix | -f) fix="yes" ;;
+            --help | -h) emerald_help ;;
+            *) pkg="$pkg $1" ;;
+        esac
 
-            shift
-        done
-    fi
+        shift
+    done
 
     for i in $pkg; do
         PPATH=$(get_port_path "$i") || {
@@ -1595,7 +1625,7 @@ emerald_redeps() {
         }
 
         deps_i=$(get_depends "$i")
-        [ "$deps_i" ] || continue
+        [ -n "$deps_i" ] || continue
 
         for d in $deps_i; do
             for dd in $deps_i; do
@@ -1640,7 +1670,7 @@ emerald_remove() {
         IPKG="$IPKG $i"
     done
 
-    [ "$IPKG" ] || return 0
+    [ -n "$IPKG" ] || return 0
     printf "Removing packages...\n\n"
 
     pkgcount=0
@@ -1922,7 +1952,7 @@ emerald_sysup() {
         cd - >/dev/null || return 1
     done
 
-    [ "$done_pkg" ] && emerald_trigger "$done_pkg"
+    [ -n "$done_pkg" ] && emerald_trigger "$done_pkg"
 
     # Show error summary if exist
     FAILED_PKGS="$failed_upgrades"
@@ -2130,7 +2160,7 @@ emerald_upgrade() {
         upkg="$upkg $pkg"
     done
 
-    [ "$upkg" ] || return 0
+    [ -n "$upkg" ] || return 0
 
     UPGPKG=0
     NEWPKG=0
@@ -2241,7 +2271,7 @@ emerald_upgrade() {
         cd - >/dev/null || return 1
     done
 
-    [ "$done_pkg" ] && emerald_trigger "$done_pkg"
+    [ -n "$done_pkg" ] && emerald_trigger "$done_pkg"
 
     # Show error summary if exist
     FAILED_PKGS="$failed_upgrades"
@@ -2350,7 +2380,7 @@ done
     done
 }
 
-[ "$OVERRIDEREPO" ] && PORT_REPO="$OVERRIDEREPO" || PORT_REPO="$PREPENDREPO $PORT_REPO $APPENDREPO"
+[ -z "$OVERRIDEREPO" ] && PORT_REPO="$PREPENDREPO $PORT_REPO $APPENDREPO" || PORT_REPO="$OVERRIDEREPO"
 
 for f in "${REPO_FILE}" "${ALIAS_FILE}" "${MASK_FILE}" "${CONFIG_FILE}"; do
     [ -f "$f" ] || {
