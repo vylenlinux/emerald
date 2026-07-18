@@ -48,7 +48,7 @@ require_root() {
 
 # Parse command line options, build toolchain and base by default
 parse_opts() {
-    while [ "$1" ]; do
+    while [ -n "$1" ]; do
         case "$1" in
             "") : ;;  # default: rebuild toolchain and base
             -t | --toolchain) BASE_REBUILD=0 ;;
