@@ -59,7 +59,7 @@ EOF
 
 # Parse command line options
 parse_opts() {
-    while [ "$1" ]; do
+    while [ -n "$1" ]; do
         case $1 in
             -p | --prune) PRUNE=1 ;;
             -r | --reset) RESET=1 ;;
@@ -68,7 +68,7 @@ parse_opts() {
             -s | --source)
                 shift
 
-                while [ "$1" ]; do
+                while [ -n "$1" ]; do
                     case $1 in
                         -*) break ;;
                         *) SYNC_REPOS="$SYNC_REPOS $1" ;;
