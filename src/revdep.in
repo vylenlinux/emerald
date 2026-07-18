@@ -114,7 +114,7 @@ confirm() {
 }
 
 parse_opts() {
-    while [ "$1" ]; do
+    while [ -n "$1" ]; do
         # shellcheck disable=SC2086
         case $1 in
             -[!-]?*)
@@ -152,7 +152,7 @@ parse_opts() {
             -f | --no-filter) NO_FILTER=1 ;;
 
             -e | --exclude)
-                while [ "$2" ]; do
+                while [ -n "$2" ]; do
                     case $2 in
                         -*) break ;;
                         *) [ -z "$expkg" ] && expkg="$2" || expkg="$expkg $2" ;;
