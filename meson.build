@@ -1,9 +1,8 @@
 project('emerald', 'c', version: '20260705')
 
-PREFIX = get_option('prefix')
-SYSCONFDIR = join_paths(PREFIX, get_option('sysconfdir'))
-BINDIR = join_paths(PREFIX, get_option('bindir'))
-LOCALSTATEDIR = join_paths(PREFIX, get_option('localstatedir'))
+SYSCONFDIR = get_option('sysconfdir')
+BINDIR = join_paths(get_option('prefix'), get_option('bindir'))
+LOCALSTATEDIR = get_option('localstatedir')
 
 project_name = meson.project_name()
 project_version = meson.project_version()
