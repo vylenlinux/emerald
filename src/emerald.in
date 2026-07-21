@@ -357,7 +357,7 @@ human_size() {
         i = 1;
         val = b;
 
-        while ((val >= 1024) && i < 6) {
+        while ((val >= 1024) && (i < 6)) {
             val /= 1024;
             i++;
         }
@@ -432,11 +432,13 @@ emerald_cache() {
 
         -h | --help)
             cat <<'EOF'
-Usage: @PROJECT_NAME@ cache <arg>
+Usage:
+    @PROJECT_NAME@ cache <arg>
 
-  (no args)   clean packages AND sources cache
-  -p, --pkg   clean packages cache only
-  -s, --src   clean sources cache only
+Options:
+    (no args)  clean packages AND sources cache
+    -p, --pkg  clean packages cache only
+    -s, --src  clean sources cache only
 EOF
             return 0
         ;;
