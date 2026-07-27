@@ -110,7 +110,7 @@ base_rebuild() {
     for pkg in $(emerald deplist "$BASE" | awk '{print $2;}'); do
         # Skip toolchain packages - these are handled by toolchain_rebuild()
         case "$pkg" in
-            linux-api-headers | glibc | binutils | gcc | libtool | libxcrypt | libmpc | elfutils | libmpfr) continue ;;
+            linux-api-headers | glibc | glibc-32 | binutils | gcc | libtool | libxcrypt | libmpc | elfutils | libmpfr) continue ;;
         esac
 
         # Skip if package already rebuilt (recorded in tracking list)
@@ -130,7 +130,7 @@ base_rebuild() {
 }
 
 # Define toolchain build order:
-TOOLCHAIN="linux-api-headers glibc-pass1 binutils-pass1 gcc-pass1 glibc binutils gcc libtool libxcrypt libmpc elfutils libmpfr"
+TOOLCHAIN="linux-api-headers glibc-pass1 glibc-32-pass1 binutils-pass1 gcc-pass1 glibc glibc-32 binutils gcc libtool libxcrypt libmpc elfutils libmpfr"
 
 # Parse command line arguments
 parse_opts "$@"
