@@ -109,8 +109,8 @@ base_rebuild() {
     # Get dependency list for base package and process each dependency
     for pkg in $(emerald deplist "$BASE" | awk '{print $2;}'); do
         # Skip toolchain packages - these are handled by toolchain_rebuild()
-        case "$pkg" in
-            linux-api-headers | glibc | glibc-32 | binutils | gcc | libtool | libxcrypt | libmpc | elfutils | libmpfr) continue ;;
+        case " $TOOLCHAIN " in
+            *" $pkg "*) continue ;;
         esac
 
         # Skip if package already rebuilt (recorded in tracking list)
