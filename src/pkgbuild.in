@@ -462,9 +462,10 @@ pkg_fetch() {
         fi
 
         msg_info "Fetching: $i"
+        [ "$QUIET" != "yes" ] || _curl_quiet="-sS"
 
         # shellcheck disable=SC2086
-        curl ${COPT} -L --fail --retry 3 --retry-delay 3 -o "$filepath.partial" ${CURL_OPTS} "$url" || {
+        curl ${COPT} ${_curl_quiet} -L --fail --retry 3 --retry-delay 3 -o "$filepath.partial" ${CURL_OPTS} "$url" || {
             msg_error "Fetching failed: $i"
             rm -f "$filepath.partial"
 
@@ -554,7 +555,7 @@ pkg_build() {
 
     cd "$SRC" >/dev/null || abort 1
         if [ "$QUIET" = "yes" ]; then
-            (set -e; build) 2>/dev/null
+            (set -e; build) >/dev/null 2>&1
         else
             (set -e -x; build 2>&1)
         fi || {
@@ -717,7 +718,7 @@ pkg_package() {
 
         # Capture listing once; reuse for display and pkgfiles (avoids re-reading the archive)
         _tar_list=$(tar -tvf "$PACKAGE_DIR/$PKGNAME")
-        printf '%s\n' "$_tar_list" | sort -k 6
+        [ "$QUIET" != "yes" ] && printf '%s\n' "$_tar_list" | sort -k 6
 
         msg_info "Packaging success: $PKGNAME ($(ls -lh "$PACKAGE_DIR/$PKGNAME" | awk '{print $5}'))"
     cd - >/dev/null || return 1
@@ -1110,21 +1111,12 @@ main() {
     else
         msg_info "Building: $name-$version-$release"
 
-        if [ "$QUIET" = "yes" ]; then
-            pkg_fetch 2>/dev/null
-            pkg_checksum >/dev/null
-            pkg_unpack >/dev/null
-            pkg_build >/dev/null
-            pkg_package >/dev/null
-            pkg_cleanup
-        else
-            pkg_fetch
-            pkg_checksum
-            pkg_unpack
-            pkg_build
-            pkg_package
-            pkg_cleanup
-        fi
+        pkg_fetch
+        pkg_checksum
+        pkg_unpack
+        pkg_build
+        pkg_package
+        pkg_cleanup
     fi
 
     # install package
