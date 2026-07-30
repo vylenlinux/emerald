@@ -151,11 +151,7 @@ get_filepath() {
                 _prefix="${i%::*}"
                 _proto="${i#*::}"
 
-                if is_git_source "$_proto"; then
-                    printf '%s\n' "$SOURCE_DIR/$_prefix"
-                else
-                    printf '%s\n' "$SOURCE_DIR/$_prefix"
-                fi
+                printf '%s\n' "$SOURCE_DIR/$_prefix"
             ;;
 
             git+*)
@@ -462,10 +458,10 @@ pkg_fetch() {
         fi
 
         msg_info "Fetching: $i"
-        [ "$QUIET" != "yes" ] || _curl_quiet="-sS"
+        [ "$QUIET" != "yes" ] || _curl_quiet="--silent"
 
         # shellcheck disable=SC2086
-        curl ${COPT} ${_curl_quiet} -L --fail --retry 3 --retry-delay 3 -o "$filepath.partial" ${CURL_OPTS} "$url" || {
+        curl ${COPT} "${_curl_quiet}" -L --fail --retry 3 --retry-delay 3 -o "$filepath.partial" ${CURL_OPTS} "$url" || {
             msg_error "Fetching failed: $i"
             rm -f "$filepath.partial"
 
@@ -779,7 +775,7 @@ pkg_clean() {
     done
 }
 
-check_buildscript() {
+check_build_script() {
     # check the required field in buildscript
     [ -z "$name" ] && {
         msg_error "'name' is empty!"
@@ -1045,7 +1041,7 @@ main() {
 
     # shellcheck source=$PKGBUILD_BSCRIPT
     . ./"$PKGBUILD_BSCRIPT"
-    check_buildscript
+    check_build_script
 
     case "$COMPRESSION_MODE" in
         gz | bz2 | xz | lz4 | zstd) PKGNAME="$name-$version-$release.epkg.tar.$COMPRESSION_MODE" ;;
@@ -1142,7 +1138,7 @@ COMPRESSION_MODE="xz"
 NO_STRIP="no"
 IGNORE_CHECKSUM="no"
 KEEP_LIBTOOL="no"
-KEEP_LOCALE="no"
+KEEP_LOCALE="yes"
 KEEP_DOC="no"
 KEEP_MAN="no"
 
