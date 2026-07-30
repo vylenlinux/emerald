@@ -461,7 +461,7 @@ pkg_fetch() {
         [ "$QUIET" != "yes" ] || _curl_quiet="--silent"
 
         # shellcheck disable=SC2086
-        curl ${COPT} "${_curl_quiet}" -L --fail --retry 3 --retry-delay 3 -o "$filepath.partial" ${CURL_OPTS} "$url" || {
+        curl ${COPT} ${_curl_quiet} -L --fail --retry 3 --retry-delay 3 -o "$filepath.partial" ${CURL_OPTS} "$url" || {
             msg_error "Fetching failed: $i"
             rm -f "$filepath.partial"
 
