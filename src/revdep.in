@@ -346,7 +346,7 @@ case "$0" in
     */*) SELF="$(cd "${0%/*}" && pwd)/${0##*/}" ;;
 
     *)
-        SELF=$(command -v "$0" 2>/dev/null) || SELF=$(which "$0" 2>/dev/null) || {
+        SELF=$(command -v "$0" 2>/dev/null || which "$0" 2>/dev/null) || {
             printf "Cannot locate %s in PATH\n" "$0" >&2
             exit 1
         }
