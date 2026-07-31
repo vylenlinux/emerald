@@ -1037,15 +1037,17 @@ hook() {
     port="$3"
     hook_dir="."
 
-    if [ -n "$port" ]; then
+    [ -n "$port" ] && {
         hook_dir="$(get_port_path "$port")" || return 1
-    fi
+    } || {
+        port="${PWD##*/}"
+    }
 
     hook="$hook_dir/$hook_stage-$hook_action"
 
     # hook are optional
     if [ -f "$hook" ]; then
-        msg_info "hook $hook_stage-$hook_action"
+        msg_info "${port}: hook $hook_stage-$hook_action"
         sh "$hook"
     fi
 }
