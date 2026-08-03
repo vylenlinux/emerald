@@ -1843,7 +1843,7 @@ do_upgrade_install() {
     printf "( %s upgrade, %s new install )\n" "$UPGPKG" "$NEWPKG"
     printf "\n"
 
-    [ "$NOCONFIRM" != 0 ] && {
+    [ "$NOCONFIRM" != 1 ] && {
         confirm "Continue upgrade/install these package(s)?" "Package upgrade cancelled." || exit $?
         printf "\n"
     }
