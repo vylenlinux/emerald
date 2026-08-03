@@ -1788,75 +1788,24 @@ emerald_sync() {
     portsync "$@"
 }
 
-emerald_sysup() {
-    require_root "Upgrading package"
-    failed_upgrades=""
-
-    while [ -n "$1" ]; do
-        case $1 in
-            -i | -u | -r ) ;;
-
-            -o)
-                DOWNLOAD_ONLY=1
-                OPTS="$OPTS $1"
-            ;;
-
-            -y | --yes) NOCONFIRM=1 ;;
-            -n) NO_DEP=1 ;;
-            -k) KEEP_GOING_LOCAL=1 ;;
-            --exclude=*) EXOPT=$1 ;;
-            -*) OPTS="$OPTS $1" ;;
-        esac
-
-        shift
-    done
-
-    printf "Checking for outdated packages...\n"
-    PKGOUTDATE=$(check_outdated)
-
-    # filter out masked (format: name#ivr#pvr#newer_installed#masked)
-    for i in $PKGOUTDATE; do
-        case $i in
-            *#1) continue ;; # masked: skip, example: 'glib#2.87.0-1#2.88.1-1#1#1'
-            *) ii="$ii ${i%%#*}" ;;
-        esac
-    done
-
-    EXPKG=${EXOPT#*=}
-
-    for i in $ii; do
-        # Wrap list and item with commas so first/last entries are always surrounded by delimiters.
-        case ",$EXPKG," in
-            *",$i,"*) ;;
-            *) PKG="$PKG $i" ;;
-        esac
-    done
-
-    [ -z "$PKG" ] && {
-        printf "All packages are up to date.\n"
-        return 0
-    }
-
-    case " $PKG " in
-        *" @PROJECT_NAME@ "*)
-            printf "\n"
-            msg_warning "Please upgrade '@PROJECT_NAME@' first."
-
-            msg_info "Run '@PROJECT_NAME@ upgrade @PROJECT_NAME@' as root."
-            return 1
-        ;;
-    esac
+# do_upgrade_install - resolve deps for $1, confirm, install/upgrade set
+# and run trigger + summary. Shared by 'emerald_sysup' and 'emerald_upgrade'.
+# Args: $1  space separated list of target ports to upgrade/install
+# Reads (set by caller): $NO_DEP, $EXOPT, $NOCONFIRM, $OPTS, $failed_upgrades
+# Returns: 0 on success, 1 if any package failed (unless keep_going)
+do_upgrade_install() {
+    targets="$1"
+    install_msg="ACTION#PORTNAME#VERSION#INSTALLED"
 
     UPGPKG=0
     NEWPKG=0
-    install_msg="ACTION#PORTNAME#VERSION#INSTALLED"
 
     case "$NO_DEP" in
         1)
             printf "\n"
 
-            for dd in $PKG; do
-                printf "[%bu%b] %s  " "$COLOR2" "$CRESET" "$dd"
+            for dd in $targets; do
+                install_msg="$install_msg upgrade#$dd#$(get_version "$dd")#$(get_iversion "$dd")"
 
                 WILL_INSTALL="$WILL_INSTALL $dd"
                 UPGPKG=$(( UPGPKG + 1 ))
@@ -1865,10 +1814,10 @@ emerald_sysup() {
 
         *)
             printf "Resolving dependencies...\n\n"
-            DEP=$(emerald_deplist "$PKG" "$EXOPT" | awk '{print $2;}')
+            DEP=$(emerald_deplist "$targets" "$EXOPT" | awk '{print $2;}')
 
             for d in $DEP; do
-                case " $PKG " in
+                case " $targets " in
                     *" $d "*)
                         install_msg="$install_msg upgrade#$d#$(get_version "$d")#$(get_iversion "$d")"
 
@@ -1894,7 +1843,7 @@ emerald_sysup() {
     printf "( %s upgrade, %s new install )\n" "$UPGPKG" "$NEWPKG"
     printf "\n"
 
-    [ "$NOCONFIRM" != 1 ] && {
+    [ "$NOCONFIRM" != 0 ] && {
         confirm "Continue upgrade/install these package(s)?" "Package upgrade cancelled." || exit $?
         printf "\n"
     }
@@ -1966,6 +1915,68 @@ emerald_sysup() {
     summary_title "$error" "$done_pkg" "$count" "$total" "upgraded"
 
     return "$error"
+}
+
+emerald_sysup() {
+    require_root "Upgrading package"
+    failed_upgrades=""
+
+    while [ -n "$1" ]; do
+        case $1 in
+            -i | -u | -r ) ;;
+
+            -o)
+                DOWNLOAD_ONLY=1
+                OPTS="$OPTS $1"
+            ;;
+
+            -y | --yes) NOCONFIRM=1 ;;
+            -n) NO_DEP=1 ;;
+            -k) KEEP_GOING_LOCAL=1 ;;
+            --exclude=*) EXOPT=$1 ;;
+            -*) OPTS="$OPTS $1" ;;
+        esac
+
+        shift
+    done
+
+    printf "Checking for outdated packages...\n"
+    PKG_OUTDATE=$(check_outdated)
+
+    # filter out masked (format: name#ivr#pvr#newer_installed#masked)
+    for i in $PKG_OUTDATE; do
+        case $i in
+            *#1) continue ;; # masked: skip, example: 'glib#2.87.0-1#2.88.1-1#1#1'
+            *) ii="$ii ${i%%#*}" ;;
+        esac
+    done
+
+    EXPKG=${EXOPT#*=}
+
+    for i in $ii; do
+        # Wrap list and item with commas so first/last entries are always surrounded by delimiters.
+        case ",$EXPKG," in
+            *",$i,"*) ;;
+            *) PKG="$PKG $i" ;;
+        esac
+    done
+
+    [ -z "$PKG" ] && {
+        printf "All packages are up to date.\n"
+        return 0
+    }
+
+    case " $PKG " in
+        *" @PROJECT_NAME@ "*)
+            printf "\n"
+            msg_warning "Please upgrade '@PROJECT_NAME@' first."
+
+            msg_info "Run '@PROJECT_NAME@ upgrade @PROJECT_NAME@' as root."
+            return 1
+        ;;
+    esac
+
+    do_upgrade_install "$PKG"
 }
 
 trigger_fc_cache() {
@@ -2165,126 +2176,7 @@ emerald_upgrade() {
     done
 
     [ -n "$upkg" ] || return 0
-
-    UPGPKG=0
-    NEWPKG=0
-    install_msg="ACTION#PORTNAME#VERSION#INSTALLED"
-
-    case "$NO_DEP" in
-        1)
-            printf "\n"
-
-            for dd in $upkg; do
-                install_msg="$install_msg upgrade#$dd#$(get_version "$dd")#$(get_iversion "$dd")"
-
-                WILL_INSTALL="$WILL_INSTALL $dd"
-                UPGPKG=$(( UPGPKG + 1 ))
-            done
-        ;;
-
-        *)
-            printf "Resolving dependencies...\n\n"
-            DEP=$(emerald_deplist "$upkg" "$EXOPT" | awk '{print $2;}')
-
-            for d in $DEP; do
-                case " $upkg " in
-                    *" $d "*)
-                        install_msg="$install_msg upgrade#$d#$(get_version "$d")#$(get_iversion "$d")"
-
-                        WILL_INSTALL="$WILL_INSTALL $d"
-                        UPGPKG=$(( UPGPKG + 1 ))
-                    ;;
-
-                    *)
-                        if ! emerald_is_installed "$d" && get_port_path "$d" >/dev/null 2>&1; then
-                            install_msg="$install_msg install#$d#$(get_version "$d")#$(get_iversion "$d")"
-
-                            WILL_INSTALL="$WILL_INSTALL $d"
-                            NEWPKG=$(( NEWPKG + 1 ))
-                        fi
-                    ;;
-                esac
-            done
-        ;;
-    esac
-
-    printf "%s\n" "$install_msg" | tr ' ' '\n' | tr '#' ' ' | column -t
-    printf "\n"
-    printf "( %s upgrade, %s new install )\n" "$UPGPKG" "$NEWPKG"
-    printf "\n"
-
-    [ "$NOCONFIRM" != 1 ] && {
-        confirm "Continue upgrade/install these package(s)?" "Package upgrade cancelled." || exit $?
-        printf "\n"
-    }
-
-    error=0
-    count=0
-    total=$(printf "%s\n" "$WILL_INSTALL" | wc -w)
-
-    for inst in $WILL_INSTALL; do # install all required dependencies and target packages itself
-        count=$(( count + 1 ))
-
-        cd "$(get_port_path "$inst")" || return 1
-            hook pre install
-
-            emerald_is_installed "$inst" || {
-                set_term_title "[ $count/$total ] Installing $inst..."
-
-                pkgbuild -i $OPTS || {
-                    error=1
-
-                    if keep_going; then
-                        msg_warning "Install failed for '$inst', continuing with next package..."
-                        failed_upgrades="$failed_upgrades $inst"
-
-                        cd - >/dev/null || return 1
-                        continue
-                    fi
-
-                    cd - >/dev/null || return 1
-                    break
-                }
-
-                hook post install
-                done_pkg="$done_pkg $inst"
-
-                cd - >/dev/null || return 1
-                continue
-            }
-
-            set_term_title "[ $count/$total ] Upgrading $inst..."
-
-            pkgbuild -u $OPTS || {
-                error=1
-
-                if keep_going; then
-                    msg_warning "Upgrade failed for '$inst', continuing with next package..."
-                    failed_upgrades="$failed_upgrades $inst"
-
-                    cd - >/dev/null || return 1
-                    continue
-                fi
-
-                cd - >/dev/null || return 1
-                break
-            }
-
-            hook post install
-            done_pkg="$done_pkg $inst"
-        cd - >/dev/null || return 1
-    done
-
-    [ -n "$done_pkg" ] && emerald_trigger "$done_pkg"
-
-    # Show error summary if exist
-    FAILED_PKGS="$failed_upgrades"
-    SKIPPED_PKGS=""
-
-    summary_show "$FAILED_PKGS" "$SKIPPED_PKGS" "upgrade"
-    summary_title "$error" "$done_pkg" "$count" "$total" "upgraded"
-
-    return "$error"
+    do_upgrade_install "$upkg"
 }
 
 world_add() {
