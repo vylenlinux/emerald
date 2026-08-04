@@ -586,17 +586,19 @@ pkg_lint() {
 }
 
 strip_files() {
-    # check skip files
+    # nostrip uses EREs, so match with grep -E.
+    # Build the pattern once to avoid extra grep calls when $nostrip is unset.
+    if [ -n "$nostrip" ]; then
+        nostrip_ere=""
+
+        for _np in $nostrip; do
+            nostrip_ere="${nostrip_ere:+$nostrip_ere|}$_np"
+        done
+    fi
+
     should_skip() {
         [ -z "$nostrip" ] && return 1
-
-        for pattern in $nostrip; do
-            case "$1" in
-                *"$pattern"*) return 0 ;;
-            esac
-        done
-
-        return 1
+        printf '%s\n' "$1" | grep -Eq "$nostrip_ere"
     }
 
     find . -type f -printf '%P\n' 2>/dev/null | while read -r binary; do
