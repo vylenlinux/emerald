@@ -1404,7 +1404,7 @@ emerald_locate() {
     need_arg "$@"
 
     for repo in $PORT_REPO; do
-        grep -Ri "$@" "$repo"/*/.pkgfiles 2>/dev/null | sed 's/:/ /;s/\/\.pkgfiles//' | awk '{printf "%s %s\n" $1, $4;}'
+        grep -Ri "$1" "$repo"/*/.pkgfiles 2>/dev/null | sed 's/:/ /;s/\/\.pkgfiles//' | awk '{printf "%s %s\n" $1, $4;}'
     done
 }
 
