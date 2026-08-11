@@ -764,7 +764,7 @@ emerald_files() {
         return 0
     }
 
-    cat "$PKGDB_DIR/$1"
+    tail -n +2 "$PKGDB_DIR/$1"
 }
 
 emerald_foreign() {
