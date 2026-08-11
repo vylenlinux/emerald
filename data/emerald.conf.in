@@ -22,5 +22,6 @@ export LDFLAGS="-Wl,-O1 -Wl,--as-needed -Wl,-z,pack-relative-relocs"
 # KEEP_LIBTOOL="no"
 # KEEP_LOCALE="yes"
 # KEEP_MAN="no"
+# KEEP_INFO="no"
 # NOCOLOR="no"
 # THEME="vylen"   # variants: 'dracula', 'nord', 'vylen' (default)

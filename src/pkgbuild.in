@@ -675,15 +675,19 @@ pkg_package() {
         esac
 
         case "$KEEP_LOCALE" in
-            0 | no) rm -fr usr/share/locale usr/locale usr/lib/locale ;;
+            0 | no) rm -rf usr/share/locale usr/locale usr/lib/locale ;;
         esac
 
         case "$KEEP_DOC" in
-            0 | no) rm -fr usr/share/doc usr/share/gtk-doc usr/doc usr/gtk-doc ;;
+            0 | no) rm -rf usr/share/doc usr/share/gtk-doc usr/doc usr/gtk-doc ;;
         esac
 
         case "$KEEP_MAN" in
-            0 | no) rm -fr usr/man usr/share/man ;;
+            0 | no) rm -rf usr/man usr/share/man ;;
+        esac
+
+        case "$KEEP_INFO" in
+            0 | no) rm -rf usr/info usr/share/info ;;
         esac
 
         case "$NO_STRIP" in
@@ -1143,5 +1147,6 @@ KEEP_LIBTOOL="no"
 KEEP_LOCALE="yes"
 KEEP_DOC="no"
 KEEP_MAN="no"
+KEEP_INFO="no"
 
 main "$@"
