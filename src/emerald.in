@@ -665,6 +665,11 @@ deplist() {
 emerald_deplist() {
     need_arg "${@}"
 
+    # reset accumulators
+    PKG=""
+    quick=""
+    exclude=""
+
     # parse arguments
     OLDIFS=$IFS
     IFS=,
