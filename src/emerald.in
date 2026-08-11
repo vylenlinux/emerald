@@ -1469,7 +1469,7 @@ check_outdated() {
     # Build port version map in memory (first-repo-wins via dedup).
     _vmap=$(for _repo in $PORT_REPO; do
         awk 'FNR == 1 {
-            if (name != "") printf "%s %s-%s\n", name, (ver?ver:0), (rel?rel:0);
+            if (name != "") printf "%s %s-%s\n", name, (ver ? ver : 0), (rel ? rel : 0);
             name = ver = rel = "";
         } /^name=/ {
             sub(/^name=/, "");
@@ -1487,7 +1487,7 @@ check_outdated() {
 
             rel = $0;
         } END {
-            if (name != "") printf "%s %s-%s\n", name, (ver?ver:0), (rel?rel:0);
+            if (name != "") printf "%s %s-%s\n", name, (ver ? ver : 0), (rel ? rel : 0);
         }' "$_repo"/*/"$BUILD_SCRIPT" 2>/dev/null
     done | awk '!seen[$1]++;')
 
