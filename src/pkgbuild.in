@@ -972,6 +972,7 @@ parse_opts() {
             --srcdir=*) CUSTOM_SOURCE_DIR="${1#*=}" ;;
             --pkgdir=*) CUSTOM_PACKAGE_DIR="${1#*=}" ;;
             --workdir=*) CUSTOM_WORK_DIR="${1#*=}" ;;
+            --jobs=*) CUSTOM_JOBS="${1#*=}" ;;
 
             *)
                 msg_info "Invalid ${0##*/} option! ($1)"
@@ -1010,6 +1011,7 @@ Global options:
     --srcdir=<path>        override directory path for sources
     --pkgdir=<path>        override directory path for compiled package
     --workdir=<path>       override directory path for working dir
+    --jobs=<N>             override parallel build jobs (default: JOBS in config, or nproc)
     --no-backup            skip backup configuration file when upgrading package
 EOF
 }
@@ -1028,6 +1030,23 @@ main() {
     [ -z "$CUSTOM_SOURCE_DIR" ] || SOURCE_DIR="$CUSTOM_SOURCE_DIR"
     [ -z "$CUSTOM_PACKAGE_DIR" ] || PACKAGE_DIR="$CUSTOM_PACKAGE_DIR"
     [ -z "$CUSTOM_WORK_DIR" ] || WORK_DIR="$CUSTOM_WORK_DIR"
+
+    # Parallel build jobs
+    [ -z "$CUSTOM_JOBS" ] && CBUILD_JOBS="$MAKEFLAGS" || CBUILD_JOBS="$CUSTOM_JOBS" # from emerald.conf
+
+    # Fallback to nproc if CBUILD_JOBS wasn't set in config or via --jobs, or is not numeric
+    case "$CBUILD_JOBS" in
+        '' | *[!0-9]*) CBUILD_JOBS=$(nproc 2>/dev/null) || CBUILD_JOBS=1 ;;
+    esac
+
+    [ "$CBUILD_JOBS" -ge 1 ] 2>/dev/null || CBUILD_JOBS=1
+
+    # Reassign parallelism for every build helper from the single $CBUILD_JOBS value.
+    export MAKEFLAGS="-j$CBUILD_JOBS"
+    export CMAKE_BUILD_PARALLEL_LEVEL="$CBUILD_JOBS"
+    export CARGO_BUILD_JOBS="$CBUILD_JOBS"
+    export GOFLAGS="${GOFLAGS:+$GOFLAGS }-p=$CBUILD_JOBS"
+    export CBUILD_JOBS
 
     # Ensure cbuild directory exists; non-fatal if it cannot be created
     [ -d "$CBUILD_DIR" ] || mkdir -p "$CBUILD_DIR" 2>/dev/null

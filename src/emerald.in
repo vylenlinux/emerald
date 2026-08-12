@@ -808,6 +808,7 @@ Options:
                                    -y           skip ask user confirmation
                                    -C, --clean  remove downloaded sources and prebuilt packages
                                    --log        log build process (/var/log/name-version-release-date.log)
+                                   --jobs=<N>   override parallel build jobs (default: JOBS in config, or nproc)
 
     install      <ports>   <arg>   install ports (use pkgbuild arg, except '-i' & '-u')
                                    -c           ignore conflict when installing package
@@ -822,6 +823,7 @@ Options:
                                    -y, --yes    skip ask user confirmation
                                    --exclude=*  exclude dependencies, comma separated
                                    --no-backup  skip backup when reinstalling package
+                                   --jobs=<N>   override parallel build jobs (default: JOBS in config, or nproc)
 
     upgrade      <ports>   <arg>   upgrade ports (use pkgbuild arg, except '-i' & '-r')
                                    -c           ignore conflict when installing package
@@ -835,6 +837,7 @@ Options:
                                    -y, --yes    skip ask user confirmation
                                    --exclude=*  exclude dependencies, comma separated
                                    --no-backup  skip backup when upgrading package
+                                   --jobs=<N>   override parallel build jobs (default: JOBS in config, or nproc)
 
     sysup                  <arg>   full system upgrade (use pkgbuild arg, except '-i', '-r'  & '-u')
                                    -c           ignore conflict when installing package
@@ -848,6 +851,7 @@ Options:
                                    -y, --yes    skip ask user confirmation
                                    --exclude=*  exclude dependencies, comma separated
                                    --no-backup  skip backup when upgrading package
+                                   --jobs=<N>   override parallel build jobs (default: JOBS in config, or nproc)
 
     remove       <ports>   <arg>   remove installed ports (use pkgdel arg)
                                    -y, --yes    skip ask user confirmation
