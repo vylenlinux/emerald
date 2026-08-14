@@ -1615,6 +1615,7 @@ emerald_purge() {
         return 0
     }
 
+    remove=$(printf '%s\n' $remove | awk '!seen[$0]++;') # remove duplicate shared dependencies
     emerald_remove $remove $PURGE_OPTS
 }
 
