@@ -1,11 +1,11 @@
 #!/bin/sh
 
 #
-# updateconf - Manage .epkgnew configuration files
+# updateconf - Manage .@EPKGNEW_EXT@ configuration files
 #
 # Description:
 #   This script helps system administrators merge new configuration files
-#   (with .epkgnew extension) with existing ones after package updates.
+#   (with .@EPKGNEW_EXT@ extension) with existing ones after package updates.
 #
 
 # Set default editor if not already set
@@ -23,22 +23,22 @@ command -v "$EDITOR" >/dev/null 2>&1 || {
     exit 1
 }
 
-# Find all .epkgnew files in /etc
+# Find all .@EPKGNEW_EXT@ files in /etc
 # Note: -regextype is GNU-specific, but commonly available
-epkgnew=$(find /etc -regextype posix-extended -regex ".+\.epkgnew" 2>/dev/null)
+epkgnew=$(find /etc -regextype posix-extended -regex ".+\.@EPKGNEW_EXT@" 2>/dev/null)
 
-# Exit if no .epkgnew files found
+# Exit if no .@EPKGNEW_EXT@ files found
 [ -z "$epkgnew" ] && {
     printf "Nothing to do. Exiting...\n"
     exit 0
 }
 
-# Process each .epkgnew file
+# Process each .@EPKGNEW_EXT@ file
 for file in $epkgnew; do
-    # Remove .epkgnew extension to get original filename
+    # Remove .@EPKGNEW_EXT@ extension to get original filename
     current_file=${file%.*}
 
-    # If original file doesn't exist, remove the .epkgnew file
+    # If original file doesn't exist, remove the .@EPKGNEW_EXT@ file
     [ -e "$current_file" ] || {
         printf "Remove '%s', '%s' not exist.\n" "$file" "$current_file"
         rm -f "$file"
@@ -56,7 +56,7 @@ for file in $epkgnew; do
         diff -u "$current_file" "$file" --color=always 2>/dev/null || diff -u "$current_file" "$file"
         diff_result=$?
 
-        # If files are identical, remove .epkgnew and continue
+        # If files are identical, remove .@EPKGNEW_EXT@ and continue
         if [ "$diff_result" -eq 0 ]; then
             printf "Remove '%s', no diff found.\n" "$file"
             rm -f "$file"

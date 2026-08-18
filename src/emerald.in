@@ -488,9 +488,9 @@ EOF
             keep_pkg="${keep_pkg}${keep_pkg:+|}$pkgname"
         fi
 
-        # Keep sources - read from .checksums file
+        # Keep sources - read from @CHECKSUMS_FILE@ file
         if [ "$clean_src" -eq 1 ]; then
-            checksums_file="$PPATH/.checksums"
+            checksums_file="$PPATH/@CHECKSUMS_FILE@"
 
             if [ -f "$checksums_file" ]; then
                 # Read checksum and filename directly (space-separated)
@@ -1413,7 +1413,7 @@ emerald_locate() {
     need_arg "$@"
 
     for repo in $PORT_REPO; do
-        grep -Ri "$1" "$repo"/*/.pkgfiles 2>/dev/null | sed 's/:/ /;s/\/\.pkgfiles//' | awk '{printf "%s %s\n" $1, $4;}'
+        grep -Ri "$1" "$repo"/*/@PKGFILES_FILE@ 2>/dev/null | sed 's/:/ /;s|/@PKGFILES_FILE@||' | awk '{printf "%s %s\n", $1, $4;}'
     done
 }
 

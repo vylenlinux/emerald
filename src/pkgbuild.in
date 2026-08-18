@@ -177,8 +177,12 @@ pkg_gen_checksums() {
         }
     done
 
-    generate_checksum > .checksums
-    msg_info ".checksums updated"
+    generate_checksum > @CHECKSUMS_FILE@ || {
+        msg_error "Failed to write @CHECKSUMS_FILE@"
+        abort 1
+    }
+
+    msg_info "@CHECKSUMS_FILE@ updated"
 }
 
 generate_checksum() {
@@ -191,7 +195,7 @@ generate_checksum() {
 }
 
 pkg_checksum() {
-    [ -f .checksums ] || {
+    [ -f @CHECKSUMS_FILE@ ] || {
         pkg_gen_checksums
         return 0
     }
@@ -206,13 +210,24 @@ pkg_checksum() {
             DIFF_CHECKSUM="$WORK_DIR/checksumsdiff.$$"
 
             msg_info "Checking checksums..."
-            generate_checksum > "$TMP_CHECKSUM"
 
-            diff -U 0 .checksums "$TMP_CHECKSUM" | sed \
+            generate_checksum > "$TMP_CHECKSUM" || {
+                msg_error "Failed to write temporary checksum file: $TMP_CHECKSUM"
+                rm -f "$TMP_CHECKSUM" "$DIFF_CHECKSUM"
+
+                abort 1
+            }
+
+            diff -U 0 @CHECKSUMS_FILE@ "$TMP_CHECKSUM" | sed \
                 -e '/---/d;/+++/d;/@@/d' \
                 -e 's/^+/ new    : /' \
                 -e 's/^-/ missing: /' \
-            > "$DIFF_CHECKSUM"
+            > "$DIFF_CHECKSUM" || {
+                msg_error "Failed to write checksum diff file: $DIFF_CHECKSUM"
+                rm -f "$TMP_CHECKSUM" "$DIFF_CHECKSUM"
+
+                abort 1
+            }
 
             if [ -s "$DIFF_CHECKSUM" ]; then
                 cat "$DIFF_CHECKSUM"
@@ -468,7 +483,12 @@ pkg_fetch() {
             abort 1
         }
 
-        mv "$filepath.partial" "$filepath"
+        mv "$filepath.partial" "$filepath" || {
+            msg_error "Failed to move downloaded file: $filepath"
+            rm -f "$filepath.partial"
+
+            abort 1
+        }
     done
 }
 
@@ -697,7 +717,10 @@ pkg_package() {
         compress_info_man_pages
 
         for FILE in $backup; do
-            mv "$FILE" "$FILE.epkgnew"
+            mv "$FILE" "$FILE.@EPKGNEW_EXT@" || {
+                msg_error "Failed to backup file: $FILE"
+                abort 1
+            }
         done
 
         [ "$FORCE_REBUILD" = "yes" ] && rm -f "$PACKAGE_DIR/$PKGNAME"
@@ -725,7 +748,7 @@ pkg_package() {
         msg_info "Packaging success: $PKGNAME ($(ls -lh "$PACKAGE_DIR/$PKGNAME" | awk '{print $5}'))"
     cd - >/dev/null || return 1
 
-    if [ ! -f .pkgfiles ] || [ "$(head -n1 .pkgfiles)" != "$name-$version-$release" ]; then
+    if [ ! -f @PKGFILES_FILE@ ] || [ "$(head -n1 @PKGFILES_FILE@)" != "$name-$version-$release" ]; then
         pkg_gen_pkgfiles "$_tar_list"
     fi
 }
@@ -736,7 +759,10 @@ pkg_gen_pkgfiles() {
         exit 1
     }
 
-    printf '%s\n' "$name-$version-$release" > .pkgfiles
+    printf '%s\n' "$name-$version-$release" > @PKGFILES_FILE@ || {
+        msgerr "Failed to write @PKGFILES_FILE@"
+        exit 1
+    }
 
     # If a pre-captured listing is passed as $1, use it; otherwise read the archive
     if [ -n "$1" ]; then
@@ -746,9 +772,12 @@ pkg_gen_pkgfiles() {
     fi | awk '{
         $3 = $4 = $5 = "";
         print $0;
-    }' | sort -k 3 >> .pkgfiles
+    }' | sort -k 3 >> @PKGFILES_FILE@ || {
+        msg_error "Failed to write @PKGFILES_FILE@"
+        exit 1
+    }
 
-    msg_info ".pkgfiles updated"
+    msg_info "@PKGFILES_FILE@ updated"
 }
 
 pkg_clean() {
@@ -1048,16 +1077,15 @@ main() {
     export GOFLAGS="${GOFLAGS:+$GOFLAGS }-p=$CBUILD_JOBS"
     export CBUILD_JOBS
 
-    # Ensure cbuild directory exists; non-fatal if it cannot be created
-    [ -d "$CBUILD_DIR" ] || mkdir -p "$CBUILD_DIR" 2>/dev/null
-
-    check_dir "$SOURCE_DIR" "$PACKAGE_DIR" "$WORK_DIR"
-
     # show usage
     [ "$SHOW_HELP" = "yes" ] && {
         help
         exit 0
     }
+
+    # Ensure cbuild directory exists; non-fatal if it cannot be created
+    [ -d "$CBUILD_DIR" ] || mkdir -p "$CBUILD_DIR" 2>/dev/null
+    check_dir "$SOURCE_DIR" "$PACKAGE_DIR" "$WORK_DIR"
 
     [ -f "$PKGBUILD_BSCRIPT" ] || {
         msg_error "'$PKGBUILD_BSCRIPT' file not found."
@@ -1077,7 +1105,7 @@ main() {
         ;;
     esac
 
-    # generate .pkgfiles
+    # generate @PKGFILES_FILE@
     [ "$GEN_PKGFILES" = "yes" ] && {
         pkg_gen_pkgfiles
         exit 0
@@ -1086,6 +1114,8 @@ main() {
     # download source only
     [ "$DOWNLOAD_ONLY" = "yes" ] && {
         pkg_fetch
+        [ -f @CHECKSUMS_FILE@ ] || pkg_gen_checksums
+
         exit 0
     }
 

@@ -211,9 +211,9 @@ if [ "$IGNORE_CONFLICT" != "yes" ]; then
     while IFS= read -r line; do
         [ -n "$line" ] || continue
 
-        # Remove .epkgnew suffix if present
+        # Remove .@EPKGNEW_EXT@ suffix if present
         case "$line" in
-            *.epkgnew) line="${line%.epkgnew}" ;;
+            *.@EPKGNEW_EXT@) line="${line%.@EPKGNEW_EXT@}" ;;
         esac
 
         # Check if file or symlink (including broken) exists in root
@@ -248,13 +248,13 @@ rm -f "$TMP_PKGINSTALL"
 # Extract package into ROOT_DIR
 tar -xvhpf "$PKGNAME" -C "$ROOT_DIR/" | while read -r line; do
     case "$line" in
-        *.epkgnew)
-            line="${line%.epkgnew}"
+        *.@EPKGNEW_EXT@)
+            line="${line%.@EPKGNEW_EXT@}"
 
-            # Handle epkgnew file in fresh install OR upgrade/reinstall when file is absent OR --no-backup is set
+            # Handle @EPKGNEW_EXT@ file in fresh install OR upgrade/reinstall when file is absent OR --no-backup is set
             if [ "$UPGRADE_PKG" != "yes" ] && [ "$REINSTALL_PKG" != "yes" ] || [ ! -e "$ROOT_DIR/$line" ] || [ "$NO_BACKUP" = "yes" ]; then
-                cp --reflink=auto "$ROOT_DIR/$line.epkgnew" "$ROOT_DIR/$line"
-                rm -f "$ROOT_DIR/$line.epkgnew"
+                cp --reflink=auto "$ROOT_DIR/$line.@EPKGNEW_EXT@" "$ROOT_DIR/$line"
+                rm -f "$ROOT_DIR/$line.@EPKGNEW_EXT@"
             fi
         ;;
     esac
