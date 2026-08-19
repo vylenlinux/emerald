@@ -12,9 +12,6 @@ MASK_FILE="${MASK_FILE:-@SYSCONFDIR@/emerald.mask}"
 CONFIG_FILE="${CONFIG_FILE:-@SYSCONFDIR@/emerald.conf}"
 ALIAS_FILE="${ALIAS_FILE:-@SYSCONFDIR@/emerald.alias}"
 
-# check alias port
-grep -qEv '^(#|[[:space:]]*$)' "$ALIAS_FILE" 2>/dev/null && ALIAS_PORT="yes" || ALIAS_PORT="no"
-
 # default value from pkgbuild
 SOURCE_DIR="@CACHE_DIR@/sources"
 PACKAGE_DIR="@CACHE_DIR@/packages"
@@ -29,10 +26,6 @@ KEEP_LOCALE="yes"
 KEEP_MAN="no"
 NOCOLOR="no"
 THEME="vylen"
-
-# apply emerald.conf
-# shellcheck source=@SYSCONFDIR@/emerald.conf
-. "${CONFIG_FILE}"
 
 # color themes
 colors_dracula() {
@@ -79,9 +72,6 @@ load_colors() {
         *) colors_vylen ;;
     esac
 }
-
-# apply color theme
-load_colors
 
 msg_info() {
     printf "%b==>%b %s\n" "$COLOR2" "$CRESET" "$1"
@@ -2261,6 +2251,7 @@ for opt in "$@"; do
         --repo-file=*) REPO_FILE="${opt#*=}" ;;
         --alias-file=*) ALIAS_FILE="${opt#*=}" ;;
         --config-file=*) CONFIG_FILE="${opt#*=}" ;;
+        --mask-file=*) MASK_FILE="${opt#*=}" ;;
         --*) MAINOPTS="$MAINOPTS $opt" ;;
 
         -[!-]?*)
@@ -2269,6 +2260,7 @@ for opt in "$@"; do
             while [ -n "$_rest" ]; do
                 _chr="${_rest%"${_rest#?}"}"
                 MAINOPTS="$MAINOPTS -$_chr"
+
                 _rest=${_rest#?}
             done
         ;;
@@ -2281,7 +2273,9 @@ done
 
 [ -f "$REPO_FILE" ] && {
     # shellcheck disable=SC2013
-    for repo_dir in $(awk '!/^[[:space:]]*$/ && !/^#/ {print $1;}' "$REPO_FILE"); do
+    for repo_dir in $(awk '!/^[[:space:]]*$/ && !/^#/ {
+        print $1;
+    }' "$REPO_FILE"); do
         PORT_REPO="$PORT_REPO $repo_dir"
     done
 }
@@ -2294,6 +2288,16 @@ for f in "${REPO_FILE}" "${ALIAS_FILE}" "${MASK_FILE}" "${CONFIG_FILE}"; do
         exit 3
     }
 done
+
+# check alias port
+grep -qEv '^(#|[[:space:]]*$)' "$ALIAS_FILE" 2>/dev/null && ALIAS_PORT="yes" || ALIAS_PORT="no"
+
+# apply emerald.conf
+# shellcheck source=@SYSCONFDIR@/emerald.conf
+. "${CONFIG_FILE}"
+
+# apply color theme
+load_colors
 
 "emerald_$func" $MAINOPTS
 exit $?
