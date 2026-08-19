@@ -760,7 +760,7 @@ pkg_gen_pkgfiles() {
     }
 
     printf '%s\n' "$name-$version-$release" > @PKGFILES_FILE@ || {
-        msgerr "Failed to write @PKGFILES_FILE@"
+        msg_error "Failed to write @PKGFILES_FILE@"
         exit 1
     }
 
