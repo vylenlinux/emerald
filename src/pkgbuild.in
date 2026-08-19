@@ -1072,6 +1072,7 @@ main() {
 
     # Reassign parallelism for every build helper from the single $CBUILD_JOBS value.
     export MAKEFLAGS="-j$CBUILD_JOBS"
+    export NINJAFLAGS="-j$CBUILD_JOBS"
     export CMAKE_BUILD_PARALLEL_LEVEL="$CBUILD_JOBS"
     export CARGO_BUILD_JOBS="$CBUILD_JOBS"
     export GOFLAGS="${GOFLAGS:+$GOFLAGS }-p=$CBUILD_JOBS"
