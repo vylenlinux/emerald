@@ -1197,6 +1197,6 @@ KEEP_LIBTOOL="no"
 KEEP_LOCALE="yes"
 KEEP_DOC="yes"
 KEEP_MAN="yes"
-KEEP_INFO="no"
+KEEP_INFO="yes"
 
 main "$@"
