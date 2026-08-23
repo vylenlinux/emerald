@@ -56,17 +56,13 @@ PKGDB_DIR="$(pkgadd --print-db-dir)"
 # Parse command line options
 parse_opts "$@"
 
-# Find base package 
-printf "Searching for base package...\n"
-BASE=$(find "$PKGDB_DIR" -type f -name 'base' -exec basename {} \;)
-
-if [ -z "$BASE" ]; then
-    printf "Error: base package not found in %s\n" "$PKGDB_DIR" >&2
+emerald is-installed base || {
+    printf "Error: base package is not installed\n" >&2
     exit 1
-fi
+}
 
 printf "Calculate packages to keep...\n"
-keep=$(emerald deplist "$BASE" $pkg | awk '{print $2}')
+keep=$(emerald deplist base $pkg | awk '{print $2;}')
 
 if [ -z "$keep" ]; then
     printf "Warning: no packages marked to keep\n" >&2
