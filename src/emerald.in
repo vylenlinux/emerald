@@ -23,7 +23,7 @@ KEEP_DOC="yes"
 KEEP_GOING="no"
 KEEP_LIBTOOL="no"
 KEEP_LOCALE="yes"
-KEEP_MAN="no"
+KEEP_MAN="yes"
 NOCOLOR="no"
 THEME="vylen"
 
