@@ -2348,7 +2348,7 @@ emerald_alias() {
             msg_info "alias: '$2' removed"
         ;;
 
-        help | -h | --help)
+        help)
             cat <<'EOF'
 Usage:
     @PROJECT_NAME@ alias <command> [args]
@@ -2420,7 +2420,7 @@ emerald_mask() {
             msg_info "mask: '$2' removed"
         ;;
 
-        help | -h | --help)
+        help)
             cat <<'EOF'
 Usage:
     @PROJECT_NAME@ mask <command> [args]
