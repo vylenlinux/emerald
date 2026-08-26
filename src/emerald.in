@@ -532,6 +532,7 @@ emerald_config() {
     printf '%bMAINOPTS:%b %s\n' "$COLOR5" "$CRESET" "$MAINOPTS"
     printf '%bREPO_FILE:%b %s\n' "$COLOR5" "$CRESET" "$REPO_FILE"
     printf '%bMASK_FILE:%b %s\n' "$COLOR5" "$CRESET" "$MASK_FILE"
+    printf '%bALIAS_FILE:%b %s\n' "$COLOR5" "$CRESET" "$ALIAS_FILE"
     printf '%bCONFIG_FILE:%b %s\n' "$COLOR5" "$CRESET" "$CONFIG_FILE"
     printf '%bCFLAGS:%b %b%s%b\n' "$COLOR5" "$CRESET" "$COLOR2" "$CFLAGS" "$CRESET"
     printf '%bCXXFLAGS:%b %b%s%b\n' "$COLOR5" "$CRESET" "$COLOR2" "$CXXFLAGS" "$CRESET"
@@ -557,6 +558,26 @@ emerald_config() {
     for i in $PORT_REPO; do
         printf '  - %s\n' "${i}"
     done
+
+    _cfg_aliased=$(list_show "$ALIAS_FILE")
+
+    if [ -n "$_cfg_aliased" ]; then
+        printf '\n%bALIASED PORTS:%b\n' "$COLOR5" "$CRESET"
+
+        printf '%s\n' "$_cfg_aliased" | while read -r _cfg_real _cfg_al _cfg_rest; do
+            printf '  - %s -> %s\n' "$_cfg_real" "$_cfg_al"
+        done
+    fi
+
+    _cfg_masked=$(list_show "$MASK_FILE")
+
+    if [ -n "$_cfg_masked" ]; then
+        printf '\n%bMASKED PORTS:%b\n' "$COLOR5" "$CRESET"
+
+        printf '%s\n' "$_cfg_masked" | while IFS= read -r _cfg_m; do
+            printf '  - %s\n' "$_cfg_m"
+        done
+    fi
 
     return 0
 }
@@ -873,6 +894,8 @@ Options:
     integrity                      check installed port integrity
     is-installed  <port>           check whether port is installed (status 0=installed, 1=not installed)
     locate       <file>            print location of file in ports repo
+    alias        <arg>             manage aliased ports (run '@PROJECT_NAME@ alias help' for usage)
+    mask         <arg>             manage masked ports (run '@PROJECT_NAME@ mask help' for usage)
     missing-deps                   print missing dependencies
     orphan                         print orphan installed ports
     outdated                       print outdated ports
@@ -1012,6 +1035,28 @@ EOF
         return 0
     }
 
+    # Check alias: the queried port can appear as either the 'real' name
+    # (1st field) or the 'alias' name (2nd field) in $ALIAS_FILE, e.g. for
+    # a line "rust rust-lang", both '@PROJECT_NAME@ info rust' and '@PROJECT_NAME@ info rust-lang'
+    # must report the relationship.
+    port_alias=$(awk -v pkg="$PKGNAME" '!/^[[:space:]]*$/ && !/^#/ {
+        if ($1 == pkg) {
+            print $2;
+            exit;
+        }
+
+        if ($2 == pkg) {
+            print $1;
+            exit;
+        }
+    }' "$ALIAS_FILE")
+
+    [ -z "$port_alias" ] && port_alias="None"
+
+    # Check masked (exact first-field match, '-' is not a word char so grep -w won't do)
+    masked="No"
+    grep -qE "^$PKGNAME([[:space:]]|$)" "$MASK_FILE" 2>/dev/null && masked="Yes"
+
     printf '%bDescription:%b %s\n' "$COLOR5" "$CRESET" "$description"
     printf '%bMaintainer:%b %s\n' "$COLOR5" "$CRESET" "$maintainer"
     printf '%bHomepage:%b %s\n' "$COLOR5" "$CRESET" "$homepage"
@@ -1021,6 +1066,8 @@ EOF
     printf '%bRelease:%b %b%s%b\n' "$COLOR5" "$CRESET" "$COLOR4" "$release" "$CRESET"
     [ -z "$commit" ] || printf '%bCommit:%b %s\n' "$COLOR5" "$CRESET" "$commit"
     printf '%bInstalled:%b %b%s%b\n' "$COLOR5" "$CRESET" "$COLOR2" "$iver" "$CRESET"
+    printf "%bAliased:%b %s\n" "$COLOR5" "$CRESET" "$port_alias"
+    printf "%bMasked:%b %s\n" "$COLOR5" "$CRESET" "$masked"
     printf '%bDepends:%b %s\n' "$COLOR5" "$CRESET" "$deps_out"
     printf '%bRequired by:%b %s\n' "$COLOR5" "$CRESET" "$required_by_out"
 }
@@ -2181,6 +2228,44 @@ emerald_upgrade() {
     do_upgrade_install "$upkg"
 }
 
+# Generic flat-file list manager, shared by 'alias' and 'mask' commands.
+# Entries are matched/replaced by their first whitespace-separated field only,
+# so 'mask' (1 field: "port") and 'alias' (2 fields: "real alias") both work.
+# grep -w is NOT used here: '-' is not a word character, so it would fail to
+# treat e.g. "foo-bar" as a distinct key from "foo". An explicit anchored ERE
+# is used instead for exact first-field matching.
+list_show() {
+    # $1 = file to list
+    awk '!/^[[:space:]]*$/ && !/^#/' "$1"
+}
+
+list_add() {
+    # $1 = file to update
+    # $2.. = fields of the new entry (joined with a space)
+    _la_file="$1"
+    shift
+
+    _la_entry="$*"
+    [ -n "$_la_entry" ] || return 1
+
+    _la_key=$(printf '%s' "$_la_entry" | awk '{print $1;}')
+    # drop any existing entry for this key first, so add == "add or update"
+    grep -qE "^$_la_key([[:space:]]|$)" "$_la_file" 2>/dev/null && sed -i "/^$_la_key\([[:space:]]\|\$\)/d" "$_la_file"
+
+    printf "%s\n" "$_la_entry" >> "$_la_file"
+    sort -u "$_la_file" -o "$_la_file"
+}
+
+list_del() {
+    # $1 = file to update
+    # $2 = key (first field) to remove
+    _ld_file="$1"
+    _ld_key="$2"
+
+    grep -qE "^$_ld_key([[:space:]]|$)" "$_ld_file" 2>/dev/null || return 1
+    sed -i "/^$_ld_key\([[:space:]]\|\$\)/d" "$_ld_file"
+}
+
 world_add() {
     grep -qx "$1" "$WORLD_FILE" && return
 
@@ -2220,6 +2305,141 @@ emerald_world() {
 
         shift
     done
+}
+
+emerald_alias() {
+    case "$1" in
+        list)
+            _al_out=$(list_show "$ALIAS_FILE")
+
+            [ -z "$al_out" ] && {
+                msg_info "No aliased ports found!"
+                return 0
+            }
+
+            printf '%s\n' "$_al_out"
+        ;;
+
+        add)
+            require_root
+
+            [ -n "$2" ] && [ -n "$3" ] || {
+                msg_error "Usage: @PROJECT_NAME@ alias add <real> <alias>"
+                return 1
+            }
+
+            list_add "$ALIAS_FILE" "$2" "$3"
+            msg_info "alias: '$2' -> '$3' added"
+        ;;
+
+        remove)
+            require_root
+
+            [ -n "$2" ] || {
+                msg_error "Usage: @PROJECT_NAME@ alias rm <real>"
+                return 1
+            }
+
+            list_del "$ALIAS_FILE" "$2" || {
+                msg_error "alias: '$2' not found"
+                return 1
+            }
+
+            msg_info "alias: '$2' removed"
+        ;;
+
+        help | -h | --help)
+            cat <<'EOF'
+Usage:
+    @PROJECT_NAME@ alias <command> [args]
+
+Commands:
+    list                list aliased ports
+    add <real> <alias>  add/update alias: <real> is a dep of <alias> (installed port)
+    remove <real>       remove alias for <real>
+    help                show this help
+EOF
+        ;;
+
+        *)
+            msg_error "Invalid alias command: $1"
+            printf "Run '@PROJECT_NAME@ alias help' to see available options.\n"
+
+            return 1
+        ;;
+    esac
+}
+
+emerald_mask() {
+    case "$1" in
+        list)
+            _ma_out=$(list_show "$MASK_FILE")
+
+            [ -z "$_ma_out" ] && {
+                msg_info "No masked ports found!"
+                return 0
+            }
+
+            printf '%s\n' "$_ma_out" | while IFS= read -r _ma_pkg; do
+                _ma_ver=$(get_iversion "$_ma_pkg")
+
+                [ -z "$_ma_ver" ] && {
+                    printf '%s\n' "$_ma_pkg"
+                    return 0
+                }
+
+                printf '%s == %s\n' "$_ma_pkg" "$_ma_ver"
+            done
+        ;;
+
+        add)
+            require_root
+
+            [ -n "$2" ] || {
+                msg_error "Usage: @PROJECT_NAME@ mask add <port>"
+                return 1
+            }
+
+            list_add "$MASK_FILE" "$2"
+            msg_info "mask: '$2' added"
+        ;;
+
+        remove)
+            require_root
+
+            [ -n "$2" ] || {
+                msg_error "Usage: @PROJECT_NAME@ mask rm <port>"
+                return 1
+            }
+
+            list_del "$MASK_FILE" "$2" || {
+                msg_error "mask: '$2' not found"
+                return 1
+            }
+
+            msg_info "mask: '$2' removed"
+        ;;
+
+        help | -h | --help)
+            cat <<'EOF'
+Usage:
+    @PROJECT_NAME@ mask <command> [args]
+
+Commands:
+    list           list masked ports (excluded from '@PROJECT_NAME@ sysup')
+    add <port>     add port to mask
+    remove <port>  remove port from mask
+    help           show this help
+EOF
+        ;;
+
+        *)
+            msg_error "Invalid mask command: $1"
+            printf "Run '@PROJECT_NAME@ mask help' to see available options.\n"
+
+            return 1
+        ;;
+    esac
 }
 
 # check for 'pkgadd', required for package database path
