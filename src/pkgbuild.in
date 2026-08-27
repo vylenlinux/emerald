@@ -498,6 +498,7 @@ pkg_unpack() {
 
     umask 022
 
+    # shellcheck disable=SC2115
     rm -rf "$WORK_DIR/$name"
     mkdir -p "$SRC" "$PKG"
 
@@ -508,6 +509,9 @@ pkg_unpack() {
             msg_error "Failed to copy files directory"
             abort 1
         }
+
+        # shellcheck disable=SC2034
+        FILES="$WORK_DIR/$name/src/files"
     fi
 
     for i in $(get_filepath); do
