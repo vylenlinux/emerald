@@ -569,13 +569,14 @@ emerald_config() {
         done
     fi
 
-    _cfg_masked=$(emerald_mask list)
+    _cfg_masked=$(list_show "$MASK_FILE")
 
     if [ -n "$_cfg_masked" ]; then
         printf '\n%bMASKED PORTS:%b\n' "$COLOR5" "$CRESET"
 
         printf '%s\n' "$_cfg_masked" | while IFS= read -r _cfg_m; do
-            printf '  - %s\n' "$_cfg_m"
+            _mk_ver=$(get_iversion "$_cfg_m")
+            printf '  - %s == %s\n' "$_cfg_m" "$_mk_ver"
         done
     fi
 
@@ -2336,7 +2337,7 @@ emerald_alias() {
             require_root
 
             [ -n "$2" ] || {
-                msg_error "Usage: @PROJECT_NAME@ alias rm <real>"
+                msg_error "Usage: @PROJECT_NAME@ alias remove <real>"
                 return 1
             }
 
@@ -2394,30 +2395,36 @@ emerald_mask() {
 
         add)
             require_root
+            shift
 
-            [ -n "$2" ] || {
-                msg_error "Usage: @PROJECT_NAME@ mask add <port>"
+            [ -n "$1" ] || {
+                msg_error "Usage: @PROJECT_NAME@ mask add <port1> <port2>..."
                 return 1
             }
 
-            list_add "$MASK_FILE" "$2"
-            msg_info "mask: '$2' added"
+            for _mk_port in "$@"; do
+            		list_add "$MASK_FILE" "$_mk_port"
+            		msg_info "mask: '$_mk_port' added"
+            done
         ;;
 
         remove)
             require_root
+            shift
 
-            [ -n "$2" ] || {
-                msg_error "Usage: @PROJECT_NAME@ mask rm <port>"
+            [ -n "$1" ] || {
+                msg_error "Usage: @PROJECT_NAME@ mask remove <port1> <port2>..."
                 return 1
             }
 
-            list_del "$MASK_FILE" "$2" || {
-                msg_error "mask: '$2' not found"
-                return 1
-            }
+            for _mk_port in "$@"; do
+                list_del "$MASK_FILE" "$_mk_port" || {
+                    msg_error "mask: '$_mk_port' not found"
+                    continue
+                }
 
-            msg_info "mask: '$2' removed"
+            		msg_info "mask: '$_mk_port' removed"
+            done
         ;;
 
         help)
@@ -2426,10 +2433,10 @@ Usage:
     @PROJECT_NAME@ mask <command> [args]
 
 Commands:
-    list           list masked ports (excluded from '@PROJECT_NAME@ sysup')
-    add <port>     add port to mask
-    remove <port>  remove port from mask
-    help           show this help
+    list            list masked ports (excluded from '@PROJECT_NAME@ sysup')
+    add    <ports>  add ports to mask
+    remove <ports>  remove ports from mask
+    help            show this help
 EOF
         ;;
 
