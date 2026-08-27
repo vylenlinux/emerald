@@ -808,6 +808,9 @@ Usage:
     @PROJECT_NAME@ <options> [<arg>]
 
 Options:
+    search       <pattern>         find ports in repo
+                                   -n, --name   search in port names only
+
     sync                   <arg>   update ports database (use portsync arg)
                                    -p, --prune  prune local git repository
                                    -r, --reset  reset git repositories
@@ -903,10 +906,6 @@ Options:
     path         <port>            print path in repo
     provide      <file>            print ports provided file
     purge        [ports]           remove installed ports and its orphan dependencies
-
-    search       <pattern>         find ports in repo
-                                   -n, --name   search in port names only
-
     trigger      [ports]           run system trigger
     world        [ports]           print/add/remove world list
     list                           print all available ports
