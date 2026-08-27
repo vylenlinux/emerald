@@ -569,7 +569,7 @@ emerald_config() {
         done
     fi
 
-    _cfg_masked=$(list_show "$MASK_FILE")
+    _cfg_masked=$(emerald_mask list)
 
     if [ -n "$_cfg_masked" ]; then
         printf '\n%bMASKED PORTS:%b\n' "$COLOR5" "$CRESET"
