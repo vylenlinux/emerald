@@ -130,10 +130,14 @@ msg_info "Mounting filesystems for chroot environment..."
 # Mount all required filesystems using a loop with break pattern
 # Benefits: single exit point, automatic cleanup via trap, less code repetition
 # Pattern: while-true loop acts as POSIX "try-catch" mechanism
+mount_failed=0
+
 while true; do
     # Mount /dev - required for device access
     mount -o bind /dev "$TARGET/dev" || {
         msg_error "Failed to mount /dev"
+        mount_failed=1
+
         break
     }
 
@@ -141,6 +145,8 @@ while true; do
     # gid=5 typically corresponds to 'tty' group
     mount -t devpts devpts -o gid=5,mode=620 "$TARGET/dev/pts" || {
         msg_error "Failed to mount /dev/pts"
+        mount_failed=1
+
         break
     }
 
@@ -148,6 +154,8 @@ while true; do
     # nosuid,nodev for security
     mount -t tmpfs tmpfs -o nosuid,nodev "$TARGET/dev/shm" || {
         msg_error "Failed to mount /dev/shm"
+        mount_failed=1
+
         break
     }
 
@@ -155,6 +163,8 @@ while true; do
     # Critical for most system tools
     mount -t proc proc "$TARGET/proc" || {
         msg_error "Failed to mount /proc"
+        mount_failed=1
+
         break
     }
 
@@ -162,6 +172,8 @@ while true; do
     # Required for socket files, PIDs, etc.
     mount -t tmpfs tmpfs "$TARGET/run" || {
         msg_error "Failed to mount /run"
+        mount_failed=1
+
         break
     }
 
@@ -169,6 +181,8 @@ while true; do
     # Critical for hardware interaction
     mount -t sysfs sysfs "$TARGET/sys" || {
         msg_error "Failed to mount /sys"
+        mount_failed=1
+
         break
     }
 
@@ -180,6 +194,8 @@ while true; do
     # mode=1777 = rwxrwxrwt (sticky bit for multi-user safety)
     mount -t tmpfs tmpfs -o mode=1777,nosuid,nodev "$TARGET/tmp" || {
         msg_error "Failed to mount /tmp"
+        mount_failed=1
+
         break
     }
 
@@ -189,8 +205,7 @@ while true; do
 done
 
 # Post-loop verification: check if any mount failed
-# $? contains exit status of last command (last mount or break)
-if [ $? -ne 0 ]; then
+if [ "$mount_failed" -ne 0 ]; then
     msg_error "Mount sequence failed, cleaning up..."
     exit 1
 fi
