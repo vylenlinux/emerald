@@ -2338,10 +2338,10 @@ emerald_alias() {
         add)
             require_root
 
-            [ -n "$2" ] && [ -n "$3" ] || {
+            if [ -z "$2" ] || [ -z "$3" ]; then
                 msg_error "Usage: @PROJECT_NAME@ alias add <real> <alias>"
                 return 1
-            }
+            fi
 
             list_add "$ALIAS_FILE" "$2" "$3"
             msg_info "alias: '$2' -> '$3' added"
