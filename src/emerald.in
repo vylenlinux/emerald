@@ -2327,7 +2327,7 @@ emerald_alias() {
         list)
             _al_out=$(list_show "$ALIAS_FILE")
 
-            [ -z "$al_out" ] && {
+            [ -z "$_al_out" ] && {
                 msg_info "No aliased ports found!"
                 return 0
             }
