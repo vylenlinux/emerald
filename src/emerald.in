@@ -1411,8 +1411,12 @@ emerald_integrity() {
             done
         } < "$PKGDB_DIR/$pkg"
 
-        [ "$found" -eq 0 ] && msg_info "'$pkg' integrity is OK!"
-        return 0
+        [ "$found" -eq 0 ] && {
+            msg_info "'$pkg' integrity is OK!"
+            return 0
+        }
+
+        return 1
     fi
 
     printf "Checking ports integrity...\n"
