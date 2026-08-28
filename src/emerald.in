@@ -1575,10 +1575,10 @@ check_outdated() {
 
         if [ "$pversion" != "$iversion" ]; then
             version_compare "$pversion" "$iversion"
-            [ $? -eq 1 ] && NEW_INSTALLED=1
+            [ "$?" -eq 1 ] && NEW_INSTALLED=1
         elif [ "$prelease" != "$irelease" ]; then
             version_compare "$prelease" "$irelease"
-            [ $? -eq 1 ] && NEW_INSTALLED=1
+            [ "$?" -eq 1 ] && NEW_INSTALLED=1
         fi
 
         MASKED=0
