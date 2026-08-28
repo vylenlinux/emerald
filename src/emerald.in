@@ -1573,10 +1573,14 @@ check_outdated() {
         iversion=${ivr%-*}
         irelease=${ivr#*-}
 
-        [ "$pversion" != "$iversion" ] && version_compare "$pversion" "$iversion"
-        [ "$prelease" != "$irelease" ] && version_compare "$prelease" "$irelease"
+        if [ "$pversion" != "$iversion" ]; then
+            version_compare "$pversion" "$iversion"
+            [ $? -eq 1 ] && NEW_INSTALLED=1
+        elif [ "$prelease" != "$irelease" ]; then
+            version_compare "$prelease" "$irelease"
+            [ $? -eq 1 ] && NEW_INSTALLED=1
+        fi
 
-        [ $? -eq 1 ] && NEW_INSTALLED=1
         MASKED=0
 
         case " $_MASKED_LIST " in
