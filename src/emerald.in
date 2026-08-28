@@ -1444,8 +1444,15 @@ emerald_integrity() {
         } < "$db"
     ' _ {} "$PKGDB_DIR" "$interr"
 
-    [ -s "$interr" ] || msg_info "No integrity issues found!"
+    status=1
+
+    [ -s "$interr" ] || {
+        msg_info "No integrity issues found!"
+        status=0
+    }
+
     rm -f "$interr"
+    return "$status"
 }
 
 emerald_is_installed() {
