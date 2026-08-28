@@ -11,8 +11,17 @@ export LC_ALL=C
 
 # Resolve a file path to its absolute physical path without using external 'realpath'
 get_realpath() {
-    _dir=${1%/*}
-    _file=${1##*/}
+    case "$1" in
+        */*)
+            _dir=${1%/*}
+            _file=${1##*/}
+        ;;
+
+        *)
+            _dir=.
+            _file=$1
+        ;;
+    esac
 
     # Use a subshell to avoid changing the current directory permanently
     (
