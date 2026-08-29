@@ -2417,8 +2417,8 @@ emerald_mask() {
             }
 
             for _mk_port in "$@"; do
-            		list_add "$MASK_FILE" "$_mk_port"
-            		msg_info "mask: '$_mk_port' added"
+                list_add "$MASK_FILE" "$_mk_port"
+                msg_info "mask: '$_mk_port' added"
             done
         ;;
 
@@ -2437,7 +2437,7 @@ emerald_mask() {
                     continue
                 }
 
-            		msg_info "mask: '$_mk_port' removed"
+                msg_info "mask: '$_mk_port' removed"
             done
         ;;
 
