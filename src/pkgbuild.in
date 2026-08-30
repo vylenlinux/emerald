@@ -779,7 +779,7 @@ pkg_package() {
         msg_info "Packaging success: $PKGNAME ($(ls -lh "$PACKAGE_DIR/$PKGNAME" | awk '{print $5;}'))"
     cd - >/dev/null || return 1
 
-    [ -f "${PKGFILES_FILE}" ] || pkg_gen_pkgfiles "$_tar_list" # убрать ли условие?
+    [ -f "${PKGFILES_FILE}" ] || pkg_gen_pkgfiles "$_tar_list"
 }
 
 pkg_gen_pkgfiles() {
