@@ -779,7 +779,7 @@ pkg_package() {
         msg_info "Packaging success: $PKGNAME ($(ls -lh "$PACKAGE_DIR/$PKGNAME" | awk '{print $5;}'))"
     cd - >/dev/null || return 1
 
-    [ -f "${PKGFILES_FILE}" ] || pkg_gen_pkgfiles "$_tar_list"
+    [ -f "${PKGFILES_FILE}" ] || pkg_gen_pkgfiles "$_tar_list" # убрать ли условие?
 }
 
 pkg_gen_pkgfiles() {
@@ -796,7 +796,7 @@ pkg_gen_pkgfiles() {
     fi | awk '{
         $3 = $4 = $5 = "";
         print $0;
-    }' | sort -k 3 >> "${PKGFILES_FILE}" || {
+    }' | sort -k 3 > "${PKGFILES_FILE}" || {
         msg_error "Failed to write ${PKGFILES_FILE}"
         exit 1
     }
