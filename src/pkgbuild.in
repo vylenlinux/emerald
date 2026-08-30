@@ -177,12 +177,12 @@ pkg_gen_checksums() {
         }
     done
 
-    generate_checksum > @CHECKSUMS_FILE@ || {
-        msg_error "Failed to write @CHECKSUMS_FILE@"
+    generate_checksum > "${CHECKSUMS_FILE}" || {
+        msg_error "Failed to write ${CHECKSUMS_FILE}"
         abort 1
     }
 
-    msg_info "@CHECKSUMS_FILE@ updated"
+    msg_info "${CHECKSUMS_FILE} updated"
 }
 
 generate_checksum() {
@@ -195,7 +195,7 @@ generate_checksum() {
 }
 
 pkg_checksum() {
-    [ -f @CHECKSUMS_FILE@ ] || {
+    [ -f "${CHECKSUMS_FILE}" ] || {
         pkg_gen_checksums
         return 0
     }
@@ -218,7 +218,7 @@ pkg_checksum() {
                 abort 1
             }
 
-            diff -U 0 @CHECKSUMS_FILE@ "$TMP_CHECKSUM" | sed \
+            diff -U 0 "${CHECKSUMS_FILE}" "$TMP_CHECKSUM" | sed \
                 -e '/---/d;/+++/d;/@@/d' \
                 -e 's/^+/ new    : /' \
                 -e 's/^-/ missing: /' \
@@ -766,22 +766,15 @@ pkg_package() {
         _tar_list=$(tar -tvf "$PACKAGE_DIR/$PKGNAME")
         [ "$QUIET" != "yes" ] && printf '%s\n' "$_tar_list" | sort -k 6
 
-        msg_info "Packaging success: $PKGNAME ($(ls -lh "$PACKAGE_DIR/$PKGNAME" | awk '{print $5}'))"
+        msg_info "Packaging success: $PKGNAME ($(ls -lh "$PACKAGE_DIR/$PKGNAME" | awk '{print $5;}'))"
     cd - >/dev/null || return 1
 
-    if [ ! -f @PKGFILES_FILE@ ] || [ "$(head -n1 @PKGFILES_FILE@)" != "$name-$version-$release" ]; then
-        pkg_gen_pkgfiles "$_tar_list"
-    fi
+    [ -f "${PKGFILES_FILE}" ] || pkg_gen_pkgfiles "$_tar_list"
 }
 
 pkg_gen_pkgfiles() {
     [ -f "$PACKAGE_DIR/$PKGNAME" ] || {
         msg_error "Package not found: $PKGNAME"
-        exit 1
-    }
-
-    printf '%s\n' "$name-$version-$release" > @PKGFILES_FILE@ || {
-        msg_error "Failed to write @PKGFILES_FILE@"
         exit 1
     }
 
@@ -793,12 +786,12 @@ pkg_gen_pkgfiles() {
     fi | awk '{
         $3 = $4 = $5 = "";
         print $0;
-    }' | sort -k 3 >> @PKGFILES_FILE@ || {
-        msg_error "Failed to write @PKGFILES_FILE@"
+    }' | sort -k 3 >> "${PKGFILES_FILE}" || {
+        msg_error "Failed to write ${PKGFILES_FILE}"
         exit 1
     }
 
-    msg_info "@PKGFILES_FILE@ updated"
+    msg_info "${PKGFILES_FILE} updated"
 }
 
 pkg_clean() {
@@ -1114,7 +1107,7 @@ main() {
         exit 1
     }
 
-    # shellcheck source=$PKGBUILD_BSCRIPT
+    # shellcheck source=@BUILD_SCRIPT@
     . ./"$PKGBUILD_BSCRIPT"
     check_build_script
 
@@ -1136,7 +1129,7 @@ main() {
     # download source only
     [ "$DOWNLOAD_ONLY" = "yes" ] && {
         pkg_fetch
-        [ -f @CHECKSUMS_FILE@ ] || pkg_gen_checksums
+        [ -f "${CHECKSUMS_FILE}" ] || pkg_gen_checksums
 
         exit 0
     }
@@ -1205,6 +1198,8 @@ export LC_ALL=C
 
 PKGBUILD_CONF="@SYSCONFDIR@/emerald.conf"
 PKGBUILD_BSCRIPT="@BUILD_SCRIPT@"
+CHECKSUMS_FILE="@CHECKSUMS_FILE@"
+PKGFILES_FILE="@PKGFILES_FILE@"
 
 SOURCE_DIR="@CACHE_DIR@/sources"
 PACKAGE_DIR="@CACHE_DIR@/packages"
