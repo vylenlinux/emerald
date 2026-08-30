@@ -587,6 +587,21 @@ pkg_build() {
     cd - >/dev/null || return 1
 }
 
+auto_backup_confd() {
+    [ -d "$PKG/etc/conf.d" ] || return 0
+
+    for _conf_file in "$PKG/etc/conf.d"/*; do
+        [ -f "$_conf_file" ] || continue
+        _conf_path="${_conf_file#"$PKG"/}"
+
+        case " $backup " in
+            *" $_conf_path "*) continue ;;
+        esac
+
+        backup="${backup:+$backup }$_conf_path"
+    done
+}
+
 pkg_lint() {
     lint_error=0
 
@@ -680,6 +695,8 @@ compress_info_man_pages() {
 }
 
 pkg_package() {
+    auto_backup_confd
+
     # lint $PKG before packaging
     pkg_lint
 
