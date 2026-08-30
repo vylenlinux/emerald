@@ -255,7 +255,7 @@ fi
 rm -f "$TMP_PKGINSTALL"
 
 # Extract package into ROOT_DIR
-tar -xvhpf "$PKGNAME" -C "$ROOT_DIR/" > "$TMP_PKGINSTALL" | while IFS= read -r line; do
+tar -xvhpf "$PKGNAME" -C "$ROOT_DIR/" | while read -r line; do
     case "$line" in
         *.@EPKGNEW_EXT@)
             line="${line%.@EPKGNEW_EXT@}"
