@@ -255,14 +255,7 @@ fi
 rm -f "$TMP_PKGINSTALL"
 
 # Extract package into ROOT_DIR
-tar -xvhpf "$PKGNAME" -C "$ROOT_DIR/" > "$TMP_PKGINSTALL" || {
-    msg_error "Failed to extract package '$BASEPKGNAME'."
-    rm -f "$TMP_PKGINSTALL"
-
-    ret 1
-}
-
-while IFS= read -r line; do
+tar -xvhpf "$PKGNAME" -C "$ROOT_DIR/" > "$TMP_PKGINSTALL" | while IFS= read -r line; do
     case "$line" in
         *.@EPKGNEW_EXT@)
             line="${line%.@EPKGNEW_EXT@}"
@@ -276,7 +269,8 @@ while IFS= read -r line; do
     esac
 
     [ "$VERBOSE_INSTALL" = "yes" ] && printf "extracted '%s'\n" "$line"
-done < "$TMP_PKGINSTALL"
+    printf '%s\n' "$line" >> "$TMP_PKGINSTALL"
+done
 
 # Remove old files from old package that do not exist in new package
 if [ "$UPGRADE_PKG" = "yes" ] || [ "$REINSTALL_PKG" = "yes" ]; then
