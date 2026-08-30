@@ -575,9 +575,19 @@ pkg_build() {
 
     cd "$SRC" >/dev/null || abort 1
         if [ "$QUIET" = "yes" ]; then
-            (set -e; build) >/dev/null 2>&1
+            (
+                set -e
+                command -v prepare >/dev/null 2>&1 && prepare
+
+                build
+            ) >/dev/null 2>&1
         else
-            (set -e -x; build 2>&1)
+            (
+                set -e -x
+                command -v prepare >/dev/null 2>&1 && prepare
+
+                build
+            ) 2>&1
         fi || {
             msg_error "Build failed: $name-$version-$release"
             abort 1
