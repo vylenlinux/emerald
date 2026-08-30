@@ -654,7 +654,7 @@ deplist() {
         esac
 
         get_port_path "$dep" >/dev/null 2>&1 || {
-            MISSINGDEP="$MISSINGDEP $dep($pkg) "
+            MISSING_DEP="$MISSING_DEP $dep($pkg) "
             continue
         }
 
@@ -731,8 +731,8 @@ emerald_deplist() {
 
     msg_deps_status $DEP
 
-    if [ -n "$MISSINGDEP" ]; then
-        for m in $MISSINGDEP; do
+    if [ -n "$MISSING_DEP" ]; then
+        for m in $MISSING_DEP; do
             printf "Missing deps: %s\n" "$m" | sed 's/(/ (/'
         done
     fi
