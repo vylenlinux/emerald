@@ -1490,8 +1490,12 @@ emerald_missing_deps() {
 $(all_installed)
 EOF
 
-    [ "$found" -eq 0 ] && msg_info "No ports missing deps found!"
-    return 0
+    [ "$found" -eq 0 ] && {
+        msg_info "No ports missing deps found!"
+        return 0
+    }
+
+    return 1
 }
 
 emerald_orphan() {
