@@ -741,6 +741,10 @@ pkg_package() {
             0 | no) rm -rf usr/info usr/share/info ;;
         esac
 
+        case "$KEEP_HELP" in
+            0 | no) rm -rf usr/help usr/share/help ;;
+        esac
+
         case "$NO_STRIP" in
             0 | no) strip_files ;;
         esac
@@ -1224,5 +1228,6 @@ KEEP_LOCALE="yes"
 KEEP_DOC="no"
 KEEP_MAN="yes"
 KEEP_INFO="yes"
+KEEP_HELP="no"
 
 main "$@"
