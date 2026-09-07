@@ -1,0 +1,24 @@
+.TH EMERALD.ALIAS 5 "2026-09-07" "emerald" "File Formats"
+.SH NAME
+emerald.alias \- package alias database
+.SH DESCRIPTION
+.I @SYSCONFDIR@/emerald.alias
+maps a real package name to an installed alias name. Emerald uses aliases while resolving dependencies, allowing a compatible provider to satisfy dependencies on another package.
+.SH FORMAT
+Each non-empty, non-comment line contains two whitespace-separated fields:
+.PP
+.EX
+REAL-PACKAGE ALIAS-PACKAGE
+.EE
+.PP
+The first field is the real package (the dependency provider); the second is the installed alias. Lines beginning with \fB#\fR and blank lines are ignored.
+.SH EXAMPLE
+.EX
+openssl libressl
+.EE
+.PP
+This declares that \fBlibressl\fR is the installed alias/provider for dependencies referring to \fBopenssl\fR, subject to Emerald's dependency resolution rules.
+.SH MANAGEMENT
+Use \fBemerald alias list\fR, \fBemerald alias add REAL ALIAS\fR, and \fBemerald alias remove REAL\fR rather than editing the file manually. Changes require root privileges.
+.SH SEE ALSO
+.BR emerald (1)

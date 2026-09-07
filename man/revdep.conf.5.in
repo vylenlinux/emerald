@@ -1,0 +1,28 @@
+.TH REVDEP.CONF 5 "2026-09-07" "emerald" "File Formats"
+.SH NAME
+revdep.conf \- reverse-dependency scan exclusions
+.SH DESCRIPTION
+.I @SYSCONFDIR@/revdep.conf
+contains paths and library names that \fBrevdep\fR must ignore during its scan. Additional files may be placed in \fB@SYSCONFDIR@/revdep.d/\fR with a \fB.conf\fR suffix.
+.SH FORMAT
+One exclusion per line. Blank lines and lines beginning with \fB#\fR are ignored.
+.TP
+.B Directory
+An absolute path ending in \fB/\fR. Everything below it is excluded.
+.TP
+.B File
+An absolute path to a binary or library file.
+.TP
+.B Library
+A library name. Files or binaries depending on that library are ignored.
+.SH EXAMPLE
+.EX
+# generated or vendor trees
+/opt/vendor/
+/usr/local/lib/legacy.so
+libexample.so
+.EE
+.SH FILTERING
+The exclusions apply by default. Pass \fBrevdep --no-filter\fR to ignore this file and scan without exclusions.
+.SH SEE ALSO
+.BR revdep (1)

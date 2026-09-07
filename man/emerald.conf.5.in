@@ -1,0 +1,59 @@
+.TH EMERALD.CONF 5 "2026-09-07" "emerald" "File Formats"
+.SH NAME
+emerald.conf \- Emerald build and runtime configuration
+.SH DESCRIPTION
+.I @SYSCONFDIR@/emerald.conf
+is sourced as a POSIX shell file by Emerald. Assignments may override build flags, cache locations, package handling, output theme, and cleanup behavior. Values are commonly written as shell strings such as \fByes\fR or \fBno\fR.
+.SH VARIABLES
+.TP
+.B SOURCE_DIR
+Source cache directory. Default is the configured cache directory followed by \fBsources\fR.
+.TP
+.B PACKAGE_DIR
+Built-package cache directory. Default is the configured cache directory followed by \fBpackages\fR.
+.TP
+.B WORK_DIR
+Temporary build directory. Default is the configured cache directory followed by \fBwork\fR.
+.TP
+.B CBUILD_DIR
+Directory for saved C build state. Default is the configured state directory followed by \fBcbuild\fR.
+.TP
+.B CURL_OPTS
+Additional options passed to curl when fetching sources.
+.TP
+.B COMPRESSION_MODE
+Package compression method, normally \fBxz\fR.
+.TP
+.B NO_STRIP
+Set to \fByes\fR to disable stripping binaries.
+.TP
+.B IGNORE_CHECKSUM
+Set to \fByes\fR to skip source checksum verification.
+.TP
+.B KEEP_DOC, KEEP_LIBTOOL, KEEP_LOCALE, KEEP_MAN, KEEP_INFO, KEEP_HELP
+Set to \fByes\fR to retain the corresponding files during packaging. The default policy is defined by the installed template.
+.TP
+.B KEEP_GOING
+Set to \fByes\fR to continue after recoverable failures where supported.
+.TP
+.B NOCOLOR
+Set to \fByes\fR to disable colored output.
+.TP
+.B THEME
+Output color theme: \fBvylen\fR (default), \fBdracula\fR, or \fBnord\fR.
+.TP
+.B CFLAGS, CXXFLAGS, FCFLAGS, FFLAGS, LDFLAGS, MAKEFLAGS
+Compiler, linker, and parallel-build settings exported to build scripts.
+.SH EXAMPLE
+.nf
+COMPRESSION_MODE="xz"
+KEEP_DOC="yes"
+KEEP_MAN="yes"
+NOCOLOR="yes"
+THEME="nord"
+.fi
+.SH SECURITY
+This file is executed by the shell. Only trusted administrators should edit it; do not place untrusted input in assignments or command substitutions.
+.SH SEE ALSO
+.BR emerald (1),
+.BR pkgbuild (1)

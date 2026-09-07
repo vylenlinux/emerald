@@ -1,0 +1,41 @@
+.TH REVDEP 1 "2026-09-07" "emerald" "User Commands"
+.SH NAME
+revdep \- scan for broken reverse dependencies
+.SH SYNOPSIS
+.B revdep
+.RI [ options ]
+.RI [ argument ]
+.SH DESCRIPTION
+.B revdep
+scans installed binaries, libraries, and language modules for unresolved dependencies. Exclusions are read from \fBrevdep.conf\fR and the files in \fBrevdep.d\fR unless filtering is disabled.
+.SH OPTIONS
+.TP
+.B -a, --all
+Print all affected files, rather than a summary.
+.TP
+.B -r, --rebuild
+Rebuild and reinstall the package associated with a broken dependency.
+.TP
+.B -p, --package PKG
+Check only the specified package.
+.TP
+.B -f, --no-filter
+Ignore configured excluded directories, files, and libraries.
+.TP
+.B -e, --exclude PKG...
+Exclude packages from a rebuild operation. Use with \fB-r\fR.
+.TP
+.B -y, --yes
+Do not ask for confirmation before rebuilding. Use with \fB-r\fR.
+.TP
+.B -h, --help
+Show help.
+.SH FILES
+.I @SYSCONFDIR@/revdep.conf
+.br
+.I @SYSCONFDIR@/revdep.d/*.conf
+.SH EXIT STATUS
+Zero when no problem is found or the requested operation succeeds; non-zero when broken dependencies are found or the operation fails.
+.SH SEE ALSO
+.BR revdep.conf (5),
+.BR pkgbuild (1)

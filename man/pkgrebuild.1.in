@@ -1,0 +1,24 @@
+.TH PKGREBUILD 1 "2026-09-07" "emerald" "User Commands"
+.SH NAME
+pkgrebuild \- rebuild the toolchain and base packages
+.SH SYNOPSIS
+.B pkgrebuild
+.RI [ options ]
+.SH DESCRIPTION
+.B pkgrebuild
+rebuilds packages in dependency order. With no option it rebuilds both the toolchain and base packages. The operation installs rebuilt packages and requires root privileges.
+.SH OPTIONS
+.TP
+.B -t, --toolchain
+Rebuild the toolchain only.
+.TP
+.B -b, --base
+Rebuild the base set only.
+.TP
+.B -h, --help
+Show help.
+.SH EXIT STATUS
+Zero on successful rebuild; non-zero on permission, build, or installation failure.
+.SH SEE ALSO
+.BR pkgbuild (1),
+.BR emerald (1)

@@ -20,6 +20,7 @@ conf_data.set('PKGFILES_FILE', get_option('pkgfiles_file'))
 conf_data.set('EPKGNEW_EXT', get_option('epkgnew_ext'))
 
 subdir('data')
+subdir('man')
 subdir('src')
 
 empty_dirs = [

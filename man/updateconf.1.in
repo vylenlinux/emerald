@@ -1,0 +1,32 @@
+.TH UPDATECONF 1 "2026-09-07" "emerald" "User Commands"
+.SH NAME
+updateconf \- merge new package configuration files
+.SH SYNOPSIS
+.B updateconf
+.SH DESCRIPTION
+.B updateconf
+finds configuration files below \fB/etc\fR with the configured new-file suffix (normally \fB.@EPKGNEW_EXT@\fR), displays a unified diff against the current file, and interactively lets the administrator update, discard, edit, or keep both files. It requires root privileges.
+.PP
+If the current file does not exist, the new file is removed. Identical files are also removed automatically.
+.SH INTERACTIVE ACTIONS
+.TP
+.B U
+Replace the current file with the new file.
+.TP
+.B D
+Discard the new file.
+.TP
+.B E
+Edit the current file using \fBEDITOR\fR.
+.TP
+.B K
+Keep both files.
+.SH ENVIRONMENT
+.TP
+.B EDITOR
+Editor used by the \fBE\fR action; defaults to \fBvim\fR.
+.SH EXIT STATUS
+Zero on completion or when no new files are present; non-zero if root access or the selected editor is unavailable.
+.SH SEE ALSO
+.BR pkgadd (1),
+.BR emerald.conf (5)

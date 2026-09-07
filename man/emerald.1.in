@@ -1,0 +1,175 @@
+.TH EMERALD 1 "2026-09-07" "emerald" "User Commands"
+.SH NAME
+emerald \- package and ports manager
+.SH SYNOPSIS
+.B emerald
+.RI [ options ]
+.I command
+.RI [ arguments ]
+.SH DESCRIPTION
+.B emerald
+manages ports, package installation, upgrades, removal, dependency inspection, repositories, and system updates. It uses the configured ports repositories and package database and must be run as root for operations that change the system.
+.PP
+The command name is followed by a subcommand. Use \fBemerald help\fR for the complete built-in list.
+.SH COMMANDS
+.TP
+.B build PORT
+Build a package from a port.
+.TP
+.B cache [clean|list]
+Inspect or clean cached sources and packages.
+.TP
+.B cat PORT
+Print the port's build script (normally \fB@BUILD_SCRIPT@\fR).
+.TP
+.B config
+Print the effective configuration and configured aliases/masks.
+.TP
+.B dependent PORT
+List packages depending on PORT.
+.TP
+.B depends PORT
+List direct dependencies of PORT.
+.TP
+.B deplist PORT...
+Print dependency lists.
+.TP
+.B dup
+Report duplicate installed packages.
+.TP
+.B files PORT
+List files belonging to an installed package.
+.TP
+.B foreign
+List installed packages not provided by configured ports.
+.TP
+.B help
+Show built-in help.
+.TP
+.B info PORT...
+Show package/port metadata; package names may also be added to the world list as implemented by the command.
+.TP
+.B install PORT...
+Build and install ports.
+.TP
+.B installed
+List installed packages.
+.TP
+.B integrity
+Check installed package integrity.
+.TP
+.B list
+List available ports.
+.TP
+.B locate PATTERN
+Locate files in package file lists.
+.TP
+.B missing-deps
+Report missing dependencies.
+.TP
+.B orphan
+List orphaned packages.
+.TP
+.B outdated
+List installed packages with newer port versions.
+.TP
+.B path PORT
+Print a port directory path.
+.TP
+.B provide FILE
+Find packages providing FILE.
+.TP
+.B purge
+Remove packages no longer needed.
+.TP
+.B redeps PORT...
+Reinstall or rebuild dependencies as required.
+.TP
+.B remove PORT...
+Remove packages.
+.TP
+.B search PATTERN
+Search ports and package metadata.
+.TP
+.B sync
+Synchronize configured repositories.
+.TP
+.B sysup
+Upgrade the system while respecting masks.
+.TP
+.B trigger
+Run package-manager post-install triggers.
+.TP
+.B upgrade PORT...
+Upgrade packages.
+.TP
+.B world [add|remove|list] PORT...
+Manage the explicitly requested package set.
+.TP
+.B alias {list|add REAL ALIAS|remove REAL}
+Manage package aliases. Adding and removing aliases requires root.
+.TP
+.B mask {list|add PORT...|remove PORT...}
+Manage ports excluded from \fBsysup\fR. Adding and removing masks requires root.
+.TP
+.B version
+Print the Emerald version.
+.SH OPTIONS
+.TP
+.B -h, --help
+Show help.
+.TP
+.B -v, --verbose
+Print additional information where supported.
+.TP
+.B -y, --yes
+Answer yes to confirmations where supported.
+.TP
+.B -k, --keep-going
+Continue after a build or operation failure where supported.
+.TP
+.B --append-repo=PATH
+Append a local repository to the search path. May be repeated.
+.TP
+.B --prepend-repo=PATH
+Prepend a local repository to the search path. May be repeated.
+.TP
+.B --override-repo=PATH
+Use a local repository instead of the corresponding configured repository. May be repeated.
+.TP
+.B --repo=PATH
+Add a repository path for this invocation. May be repeated.
+.TP
+.B --repo-file=FILE
+Use FILE instead of the configured repository file.
+.TP
+.B --config-file=FILE
+Use FILE instead of the configured configuration file.
+.TP
+.B --alias-file=FILE
+Use FILE instead of the configured alias file.
+.TP
+.B --mask-file=FILE
+Use FILE instead of the configured mask file.
+.SH FILES
+.TP
+.I @SYSCONFDIR@/emerald.conf
+Build and runtime configuration.
+.TP
+.I @SYSCONFDIR@/emerald.repo
+Repository definitions.
+.TP
+.I @SYSCONFDIR@/emerald.alias
+Package aliases.
+.TP
+.I @SYSCONFDIR@/emerald.mask
+Ports excluded from system upgrades.
+.SH EXIT STATUS
+Zero indicates success. A non-zero status indicates invalid input, an unavailable port/package, a failed operation, or (for checks such as missing dependencies) a detected problem.
+.SH SEE ALSO
+.BR pkgadd (1),
+.BR pkgbuild (1),
+.BR pkgdel (1),
+.BR portsync (1),
+.BR revdep (1),
+.BR emerald.conf (5)

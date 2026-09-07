@@ -1,0 +1,26 @@
+.TH EMERALD.REPO 5 "2026-09-07" "emerald" "File Formats"
+.SH NAME
+emerald.repo \- Emerald ports repository definitions
+.SH DESCRIPTION
+.I @SYSCONFDIR@/emerald.repo
+lists local destinations and their Git remotes. Emerald and \fBportsync\fR use it to construct and synchronize the ports tree.
+.SH FORMAT
+Each non-empty, non-comment line contains up to three whitespace-separated fields:
+.PP
+.EX
+REPOSITORY-DIRECTORY REMOTE-URL [BRANCH]
+.EE
+.PP
+The branch defaults to \fBmain\fR when omitted. The destination may be absolute or use the configured ports directory.
+.SH EXAMPLE
+.EX
+@PORTS_DIR@/core   https://gitlab.com/vylen/ports/core
+@PORTS_DIR@/extra  https://gitlab.com/vylen/ports/extra dev
+.EE
+.PP
+Lines beginning with \fB#\fR are disabled. The installed template may contain commented repositories for optional collections.
+.SH MANAGEMENT
+Run \fBportsync\fR to fetch and check out the configured repositories. Use its \fB--source\fR option to limit synchronization and \fB--reset\fR to recover a repository whose local state cannot be updated.
+.SH SEE ALSO
+.BR portsync (1),
+.BR emerald (1)

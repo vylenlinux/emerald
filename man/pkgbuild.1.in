@@ -1,0 +1,82 @@
+.TH PKGBUILD 1 "2026-09-07" "emerald" "User Commands"
+.SH NAME
+pkgbuild \- build an Emerald port package
+.SH SYNOPSIS
+.B pkgbuild
+.RI [ options ]
+.RI [ port ]
+.SH DESCRIPTION
+.B pkgbuild
+fetches, verifies, extracts, builds, and packages a port according to its build script. Depending on options it can stop after downloading or extraction, install the result, or generate package metadata. Build and cache paths come from the configuration unless overridden.
+.SH OPTIONS
+.TP
+.B -q, --quiet
+Show only status messages and errors.
+.TP
+.B -i, --install
+Install the resulting package.
+.TP
+.B -u, --upgrade
+Install as an upgrade.
+.TP
+.B -r, --reinstall
+Reinstall the resulting package.
+.TP
+.B -c, --ignore-conflict
+Ignore installation conflicts.
+.TP
+.B -v, --verbose
+Show verbose installation output.
+.TP
+.B -f, --force-rebuild
+Rebuild even if a package is already available.
+.TP
+.B -m, --skip-checksum
+Skip checksum verification.
+.TP
+.B -g, --gen-checksum
+Generate a checksum for the source.
+.TP
+.B -o, --download
+Download source only.
+.TP
+.B -x, --extract
+Download and extract source only.
+.TP
+.B -p, --pkgfiles
+Generate the package file list.
+.TP
+.B -w, --keep-work
+Keep the working directory.
+.TP
+.B -C, --clean
+Remove downloaded sources and prebuilt packages.
+.TP
+.B -h, --help
+Show help.
+.TP
+.B --config=FILE
+Use a custom configuration file.
+.TP
+.B --srcdir=PATH
+Override the source cache directory.
+.TP
+.B --pkgdir=PATH
+Override the package cache directory.
+.TP
+.B --workdir=PATH
+Override the working directory.
+.TP
+.B --jobs=N
+Override parallel build jobs; by default uses JOBS or the number of processors.
+.TP
+.B --no-backup
+Do not back up configuration files during an upgrade.
+.SH FILES
+A port normally contains the configured build script (default \fB@BUILD_SCRIPT@\fR), \fB@CHECKSUMS_FILE@\fR, and \fB@PKGFILES_FILE@\fR as applicable.
+.SH EXIT STATUS
+Zero on success; non-zero on failed fetch, checksum, build, packaging, or installation.
+.SH SEE ALSO
+.BR pkgadd (1),
+.BR portcreate (1),
+.BR emerald.conf (5)

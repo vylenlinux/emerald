@@ -1,0 +1,27 @@
+.TH PORTCREATE 1 "2026-09-07" "emerald" "User Commands"
+.SH NAME
+portcreate \- create a port template
+.SH SYNOPSIS
+.B portcreate
+.RB [ -b	type ]
+.I portname
+.SH DESCRIPTION
+.B portcreate
+creates a port directory containing the configured build script template. The generated template is intended to be edited before use with \fBpkgbuild\fR.
+.SH OPTIONS
+.TP
+.B -b BUILDER
+Select the build system. Supported values are \fBautotools\fR (default), \fBmeson\fR, \fBcmake\fR, \fBgo\fR, \fBpython\fR, and \fBrush\fR.
+.TP
+.B -h
+Show help.
+.SH EXAMPLES
+.nf
+portcreate myport
+portcreate -b meson myport
+portcreate -b rust myport
+.fi
+.SH EXIT STATUS
+Zero on successful creation; non-zero for an invalid builder or existing/unwritable destination.
+.SH SEE ALSO
+.BR pkgbuild (1)

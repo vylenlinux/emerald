@@ -1,0 +1,26 @@
+.TH PKGDEL 1 "2026-09-07" "emerald" "User Commands"
+.SH NAME
+pkgdel \- remove an installed Emerald package
+.SH SYNOPSIS
+.B pkgdel
+.RI [ options ]
+.I portname
+.SH DESCRIPTION
+.B pkgdel
+removes the named installed package and updates the package database. Removing a package may affect dependents; use Emerald dependency commands before removal. Root privileges are required unless operating in an explicitly permitted custom root.
+.SH OPTIONS
+.TP
+.B -h, --help
+Show help.
+.TP
+.B -v, --verbose
+Print removed files.
+.TP
+.B --root=PATH
+Remove from PATH instead of the system root.
+.SH EXIT STATUS
+Zero on success; non-zero if the package is absent, protected, or removal fails.
+.SH SEE ALSO
+.BR pkgadd (1),
+.BR pkgbase (1),
+.BR emerald (1)

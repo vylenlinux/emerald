@@ -1,0 +1,31 @@
+.TH PKGBASE 1 "2026-09-07" "emerald" "User Commands"
+.SH NAME
+pkgbase \- reduce an installation to base and selected packages
+.SH SYNOPSIS
+.B pkgbase
+.RI [ options ]
+.RI [ package ... ]
+.SH DESCRIPTION
+.B pkgbase
+removes all installed packages except the base set and the packages named on the command line. Dependencies of the base set and named packages are retained. This is destructive and requires root privileges.
+.SH OPTIONS
+.TP
+.B -n, --dryrun
+Show what would be removed without changing the system.
+.TP
+.B -y, --yes
+Do not ask for confirmation.
+.TP
+.B -h, --help
+Show help.
+.SH EXAMPLES
+.nf
+pkgbase -n vim git
+pkgbase -y
+pkgbase vim git curl
+.fi
+.SH EXIT STATUS
+Zero on success or dry-run completion; non-zero on invalid input or removal failure.
+.SH SEE ALSO
+.BR pkgdel (1),
+.BR emerald (1)

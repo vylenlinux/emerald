@@ -1,0 +1,34 @@
+.TH PORTSYNC 1 "2026-09-07" "emerald" "User Commands"
+.SH NAME
+portsync \- synchronize Emerald port repositories
+.SH SYNOPSIS
+.B portsync
+.RI [ options ]
+.SH DESCRIPTION
+.B portsync
+fetches configured ports repositories into the local ports tree. Repositories are shallow-fetched from the configured branch (\fBmain\fR by default) and checked out into their destination directories.
+.SH OPTIONS
+.TP
+.B -p, --prune
+Prune local repository data after synchronization.
+.TP
+.B -r, --reset
+Reset repository state before synchronization.
+.TP
+.B -s, --source REPO...
+Synchronize only the named repositories. The option consumes repository names until the next option.
+.TP
+.B -h, --help
+Show help.
+.SH EXAMPLES
+.nf
+portsync
+portsync --source main
+portsync -s main custom
+portsync -r -s main
+.fi
+.SH EXIT STATUS
+Zero when all selected repositories synchronize; non-zero when a repository cannot be created, fetched, or checked out.
+.SH SEE ALSO
+.BR emerald.repo (5),
+.BR emerald (1)

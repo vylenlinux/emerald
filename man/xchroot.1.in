@@ -1,0 +1,24 @@
+.TH XCHROOT 1 "2026-09-07" "emerald" "User Commands"
+.SH NAME
+xchroot \- enter a prepared chroot environment
+.SH SYNOPSIS
+.B xchroot
+.I chroot-dir
+.RI [ command ]
+.SH DESCRIPTION
+.B xchroot
+mounts the filesystems needed by a chroot and executes a command inside it. It mounts or binds \fB/dev\fR, \fB/proc\fR, \fB/sys\fR, \fB/run\fR, \fB/tmp\fR, and \fB@SYSCONFDIR@/resolv.conf\fR as appropriate, then cleans up mounts on exit.
+.PP
+If COMMAND is omitted, \fB/bin/sh\fR is launched. Arguments are passed without collapsing their structure.
+.SH EXAMPLES
+.nf
+xchroot /mnt/mysystem
+xchroot /mnt/mysystem portsync
+xchroot /mnt/mysystem emerald sysup -y
+xchroot /mnt/mysystem /bin/mksh -c portsync
+.fi
+.SH EXIT STATUS
+Zero on successful command execution; non-zero for invalid directories, mount failures, permission errors, or command failure.
+.SH SEE ALSO
+.BR chroot (1),
+.BR emerald (1)

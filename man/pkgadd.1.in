@@ -1,0 +1,43 @@
+.TH PKGADD 1 "2026-09-07" "emerald" "User Commands"
+.SH NAME
+pkgadd \- install an Emerald package archive
+.SH SYNOPSIS
+.B pkgadd
+.RI [ options ]
+.RI [ package.epkg.tar.xz ]
+.SH DESCRIPTION
+.B pkgadd
+installs an epkg package archive and updates the package database. It may upgrade or reinstall an existing package. System installation requires root privileges.
+.SH OPTIONS
+.TP
+.B -u, --upgrade
+Upgrade an installed package.
+.TP
+.B -r, --reinstall
+Reinstall an installed package.
+.TP
+.B -c, --ignore-conflict
+Ignore package file conflicts.
+.TP
+.B -v, --verbose
+Print installed files.
+.TP
+.B -h, --help
+Show help.
+.TP
+.B --no-backup
+Do not back up configuration files during an upgrade.
+.TP
+.B --print-db-dir
+Print the package database directory and exit.
+.TP
+.B --root=PATH
+Install into PATH instead of the system root.
+.SH FILES
+The package database location is determined by Emerald's package metadata and can be queried with \fB--print-db-dir\fR. Configuration files may receive the configured \fB.@EPKGNEW_EXT@\fR suffix during upgrades.
+.SH EXIT STATUS
+Zero on success; non-zero on invalid archives, conflicts, missing dependencies, permission errors, or installation failure.
+.SH SEE ALSO
+.BR pkgbuild (1),
+.BR pkgdel (1),
+.BR emerald (1)
