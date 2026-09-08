@@ -718,8 +718,15 @@ pkg_package() {
         rm -rf usr/lib/systemd usr/lib/sysusers.d usr/lib/tmpfiles.d
         rm -rf usr/share/licenses usr/lib/python3.*/site-packages/*.dist-info/licenses
 
-        find . \( -name perllocal.pod -o -name .packlist \) -delete
-        [ -d usr/share/fonts ] && find usr/share/fonts \( -name fonts.dir -o -name fonts.scale \) -delete
+        find . \( \
+            -name perllocal.pod -o \
+            -name .packlist \
+        \) -delete
+
+        [ -d usr/share/fonts ] && find usr/share/fonts \( \
+            -name fonts.dir -o \
+            -name fonts.scale \
+        \) -delete
 
         case "$KEEP_LIBTOOL" in
             0 | no) find . ! -type d -name "*.la" -delete ;;
@@ -1109,6 +1116,18 @@ main() {
     # Set up environment variables for build helpers to use local cache directories within the source tree.
     export CARGO_HOME="${CARGO_HOME:-"${SRC}/.cargo"}"
     export GOCACHE="${GOCACHE:-"${SRC}/.go"}"
+    export GOMODCACHE="${GOMODCACHE:-"${SRC}/.go"}"
+    export GOTMPDIR="${GOTMPDIR:-"${SRC}/.go"}"
+    export GOPATH="${GOPATH:-"${SRC}/.go"}"
+
+    # Set up environment variables for build helpers to use the system's compiler flags.
+    export CGO_LDFLAGS="${LDFLAGS}"
+    export CGO_CFLAGS="${CFLAGS}"
+    export CGO_CPPFLAGS="${CPPFLAGS}"
+    export CGO_CXXFLAGS="${CXXFLAGS}"
+
+    # Set up environment variables for build helpers to use the system's XML catalog.
+    export XML_CATALOG_FILES=/etc/xml/catalog
 
     # show usage
     [ "$SHOW_HELP" = "yes" ] && {
