@@ -1093,7 +1093,7 @@ main() {
 
     # Fallback to nproc if CBUILD_JOBS wasn't set in config or via --jobs, or is not numeric
     case "$CBUILD_JOBS" in
-        '' | *[!0-9]*) CBUILD_JOBS=$(nproc 2>/dev/null) || CBUILD_JOBS=1 ;;
+        '' | *[!0-9]*) CBUILD_JOBS="$(nproc 2>/dev/null)" || CBUILD_JOBS=1 ;;
     esac
 
     [ "$CBUILD_JOBS" -ge 1 ] 2>/dev/null || CBUILD_JOBS=1
@@ -1105,6 +1105,10 @@ main() {
     export CARGO_BUILD_JOBS="$CBUILD_JOBS"
     export GOFLAGS="${GOFLAGS:+$GOFLAGS }-p=$CBUILD_JOBS"
     export CBUILD_JOBS
+
+    # Set up environment variables for build helpers to use local cache directories within the source tree.
+    export CARGO_HOME="${CARGO_HOME:-"${SRC}/.cargo"}"
+    export GOCACHE="${GOCACHE:-"${SRC}/.go"}"
 
     # show usage
     [ "$SHOW_HELP" = "yes" ] && {
