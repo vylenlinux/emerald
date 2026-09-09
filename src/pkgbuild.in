@@ -574,6 +574,9 @@ pkg_build() {
     msg_info "Build start: $name-$version-$release"
 
     cd "$SRC" >/dev/null || abort 1
+        mkdir -p "${SRC}/.cargo" \
+            "${SRC}/.go"
+
         export CARGO_HOME="${CARGO_HOME:-"${SRC}/.cargo"}"
         export GOCACHE="${GOCACHE:-"${SRC}/.go"}"
         export GOMODCACHE="${GOMODCACHE:-"${SRC}/.go"}"
