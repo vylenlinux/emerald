@@ -1113,21 +1113,22 @@ main() {
     export GOFLAGS="${GOFLAGS:+$GOFLAGS }-p=$CBUILD_JOBS"
     export CBUILD_JOBS
 
-    # Set up environment variables for build helpers to use local cache directories within the source tree.
     export CARGO_HOME="${CARGO_HOME:-"${SRC}/.cargo"}"
     export GOCACHE="${GOCACHE:-"${SRC}/.go"}"
     export GOMODCACHE="${GOMODCACHE:-"${SRC}/.go"}"
     export GOTMPDIR="${GOTMPDIR:-"${SRC}/.go"}"
     export GOPATH="${GOPATH:-"${SRC}/.go"}"
+    export MESON_PACKAGE_CACHE_DIR="${SRC}"
 
-    # Set up environment variables for build helpers to use the system's compiler flags.
     export CGO_LDFLAGS="${LDFLAGS}"
     export CGO_CFLAGS="${CFLAGS}"
     export CGO_CPPFLAGS="${CPPFLAGS}"
     export CGO_CXXFLAGS="${CXXFLAGS}"
 
-    # Set up environment variables for build helpers to use the system's XML catalog.
     export XML_CATALOG_FILES=/etc/xml/catalog
+    export PYTHON=/usr/bin/python3
+    export PYTHON_VERSION=3
+    export PYTHON_VERSIONS=python3
 
     # show usage
     [ "$SHOW_HELP" = "yes" ] && {
