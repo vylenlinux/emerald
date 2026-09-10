@@ -37,8 +37,8 @@ get_autotools_template() {
 
 # shellcheck disable=SC2034
 description=""
-maintainer="Vylen Linux Team"
 homepage=""
+maintainer="Vylen Linux Team <wonkru-dev@proton.me>"
 
 name=%name%
 version=
@@ -64,8 +64,8 @@ get_meson_template() {
 
 # shellcheck disable=SC2034
 description=""
-maintainer="Vylen Linux Team"
 homepage=""
+maintainer="Vylen Linux Team <wonkru-dev@proton.me>"
 
 name=%name%
 version=
@@ -91,8 +91,8 @@ get_cmake_template() {
 
 # shellcheck disable=SC2034
 description=""
-maintainer="Vylen Linux Team"
 homepage=""
+maintainer="Vylen Linux Team <wonkru-dev@proton.me>"
 
 name=%name%
 version=
@@ -123,8 +123,8 @@ get_go_template() {
 
 # shellcheck disable=SC2034
 description=""
-maintainer="Vylen Linux Team"
 homepage=""
+maintainer="Vylen Linux Team <wonkru-dev@proton.me>"
 
 name=%name%
 version=
@@ -162,8 +162,8 @@ get_python_template() {
 
 # shellcheck disable=SC2034
 description=""
-maintainer="Vylen Linux Team"
 homepage=""
+maintainer="Vylen Linux Team <wonkru-dev@proton.me>"
 
 name=%name%
 version=
@@ -190,8 +190,8 @@ get_rust_template() {
 
 # shellcheck disable=SC2034
 description=""
-maintainer="Vylen Linux Team"
 homepage=""
+maintainer="Vylen Linux Team <wonkru-dev@proton.me>"
 
 name=%name%
 version=
