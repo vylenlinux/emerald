@@ -80,85 +80,10 @@ do_revdep() {
     msg_info "Installed: /etc/revdep.d/$name.conf"
 }
 
-parse_git_url() {
-    _url="$1"
-    _url="${_url#git+}"
-
-    case "$_url" in
-        *#*)
-            _git_url="${_url%%#*}"
-            _fragment="${_url#*#}"
-
-            case "$_fragment" in
-                branch=*)
-                    _ref_type="branch"
-                    _ref="${_fragment#branch=}"
-                ;;
-
-                commit=*)
-                    _ref_type="commit"
-                    _ref="${_fragment#commit=}"
-                ;;
-
-                tag=*)
-                    _ref_type="tag"
-                    _ref="${_fragment#tag=}"
-                ;;
-
-                *)
-                    _ref_type="auto"
-                    _ref="$_fragment"
-                ;;
-            esac
-        ;;
-
-        *)
-            _git_url="$_url"
-            _ref_type="none"
-
-            _ref=""
-        ;;
-    esac
-
-    printf '%s\n' "$_git_url"
-    printf '%s\n' "$_ref_type"
-    printf '%s\n' "$_ref"
-}
-
-get_git_dirname() {
-    _url="$1"
-
-    _dirname="${_url##*/}"
-    _dirname="${_dirname%.git}"
-
-    case "$2" in
-        none) printf '%s\n' "$_dirname" ;;
-        *) printf '%s-%s\n' "$_dirname" "$3" ;;
-    esac
-}
-
-is_git_source() {
-    case "$1" in
-        git+*) return 0 ;;
-        *) return 1 ;;
-    esac
-}
-
 get_filepath() {
     for i in $source; do
         case $i in
-            *::*)
-                _prefix="${i%::*}"
-                _proto="${i#*::}"
-
-                printf '%s\n' "$SOURCE_DIR/$_prefix"
-            ;;
-
-            git+*)
-                set -- $(parse_git_url "$i")
-                printf '%s\n' "$SOURCE_DIR/$(get_git_dirname "$1" "$2" "$3")"
-            ;;
-
+            *::*) printf '%s\n' "$SOURCE_DIR/${i%::*}" ;;
             *://*) printf '%s\n' "$SOURCE_DIR/${i##*/}" ;;
             *) printf '%s\n' "$PWD/$i" ;;
         esac
@@ -167,10 +92,6 @@ get_filepath() {
 
 pkg_gen_checksums() {
     for i in $(get_filepath); do
-        if [ -d "$i/.git" ]; then
-            continue
-        fi
-
         [ -f "$i" ] || {
             msg_error "File missing: $i"
             abort 1
@@ -187,9 +108,7 @@ pkg_gen_checksums() {
 
 generate_checksum() {
     for s in $(get_filepath); do
-        [ -d "$s/.git" ] && continue
         [ -f "$s" ] || continue
-
         b3sum "$s" | sed -e 's|  .*/|  |'
     done | sort -k 2
 }
@@ -242,210 +161,14 @@ pkg_checksum() {
     esac
 }
 
-clone_or_update_git() {
-    _url="$1"
-    _dest="$2"
-    _ref_type="$3"
-    _ref="$4"
-
-    if [ -d "$_dest/.git" ]; then
-        msg_info "Updating git repository: $_dest"
-        cd "$_dest" || return 1
-
-        _current_remote=$(git remote get-url origin 2>/dev/null || git config --get remote.origin.url)
-
-        if [ "$_current_remote" != "$_url" ]; then
-            msg_info "Remote URL changed, re-cloning..."
-            cd - >/dev/null || return 1
-
-            rm -rf "$_dest"
-        else
-            git fetch --all --tags --prune || {
-                msg_error "Failed to fetch updates"
-                cd - >/dev/null
-
-                return 1
-            }
-
-            case "$_ref_type" in
-                none)
-                    _latest_tag=$(git describe --tags --abbrev=0 2>/dev/null)
-
-                    if [ -n "$_latest_tag" ]; then
-                        msg_info "Checking out latest tag: $_latest_tag"
-
-                        git checkout -f "$_latest_tag" || {
-                            msg_error "Failed to checkout tag $_latest_tag"
-                            cd - >/dev/null
-
-                            return 1
-                        }
-                    else
-                        git checkout -f FETCH_HEAD || {
-                            msg_error "Failed to checkout FETCH_HEAD"
-                            cd - >/dev/null
-
-                            return 1
-                        }
-                    fi
-                ;;
-
-                branch)
-                    msg_info "Checking out branch: $_ref"
-
-                    git checkout -f -B "$_ref" "origin/$_ref" || {
-                        msg_error "Failed to checkout branch $_ref"
-                        cd - >/dev/null
-
-                        return 1
-                    }
-
-                    git pull --ff-only || true
-                ;;
-
-                tag | auto)
-                    msg_info "Checking out: $_ref"
-
-                    git checkout -f "$_ref" || {
-                        msg_error "Failed to checkout $_ref"
-                        cd - >/dev/null
-
-                        return 1
-                    }
-                ;;
-
-                commit)
-                    msg_info "Checking out commit: $_ref"
-
-                    git checkout -f "$_ref" || {
-                        msg_error "Failed to checkout commit $_ref"
-                        cd - >/dev/null
-
-                        return 1
-                    }
-                ;;
-            esac
-
-            cd - >/dev/null || return 1
-            return 0
-        fi
-    fi
-
-    msg_info "Cloning: $_url"
-
-    git clone "$_url" "$_dest" || {
-        msg_error "Failed to clone $_url"
-        return 1
-    }
-
-    cd "$_dest" || return 1
-        case "$_ref_type" in
-            branch)
-                msg_info "Switching to branch: $_ref"
-
-                git checkout -b "$_ref" "origin/$_ref" 2>/dev/null || git checkout -f "$_ref" || {
-                    msg_error "Failed to checkout branch $_ref"
-                    cd - >/dev/null
-
-                    return 1
-                }
-            ;;
-
-            tag | auto)
-                msg_info "Checking out: $_ref"
-
-                git checkout -f "$_ref" || {
-                    msg_error "Failed to checkout $_ref"
-                    cd - >/dev/null
-
-                    return 1
-                }
-            ;;
-
-            commit)
-                msg_info "Checking out commit: $_ref"
-
-                git checkout -f "$_ref" || {
-                    msg_error "Failed to checkout commit $_ref"
-                    cd - >/dev/null
-
-                    return 1
-                }
-            ;;
-        esac
-    cd - >/dev/null || return 1
-}
-
 pkg_fetch() {
     for i in $source; do
         COPT=""
 
         case $i in
             *::*)
-                _prefix="${i%::*}"
-                _proto="${i#*::}"
-
-                if is_git_source "$_proto"; then
-                    filepath="$SOURCE_DIR/$_prefix"
-                    set -- $(parse_git_url "$_proto")
-
-                    _git_url="$1"
-                    _ref_type="$2"
-                    _ref="$3"
-
-                    if [ -d "$filepath/.git" ]; then
-                        msg_info "Git repository found: $filepath"
-                        _need_update=0
-
-                        if [ "$_ref_type" != "none" ]; then
-                            cd "$filepath" || abort 1
-                                _current=$(git describe --tags --exact-match 2>/dev/null || git rev-parse --abbrev-ref HEAD 2>/dev/null || git rev-parse --short HEAD)
-
-                                if [ "$_current" != "$_ref" ]; then
-                                    _need_update=1
-                                fi
-                            cd - >/dev/null || abort 1
-                        fi
-
-                        [ "$_need_update" -eq 0 ] && continue
-                    fi
-
-                    clone_or_update_git "$_git_url" "$filepath" "$_ref_type" "$_ref" || abort 1
-                    continue
-                fi
-
-                filepath="$SOURCE_DIR/$_prefix"
-                url="$_proto"
-            ;;
-
-            git+*)
-                set -- $(parse_git_url "$i")
-
-                _git_url="$1"
-                _ref_type="$2"
-                _ref="$3"
-
-                filepath="$SOURCE_DIR/$(get_git_dirname "$_git_url" "$_ref_type" "$_ref")"
-
-                if [ -d "$filepath/.git" ]; then
-                    msg_info "Git repository found: $filepath"
-                    _need_update=0
-
-                    if [ "$_ref_type" != "none" ]; then
-                        cd "$filepath" || abort 1
-                            _current=$(git describe --tags --exact-match 2>/dev/null || git rev-parse --abbrev-ref HEAD 2>/dev/null || git rev-parse --short HEAD)
-
-                            if [ "$_current" != "$_ref" ]; then
-                                _need_update=1
-                            fi
-                        cd - >/dev/null || abort 1
-                    fi
-
-                    [ "$_need_update" -eq 0 ] && continue
-                fi
-
-                clone_or_update_git "$_git_url" "$filepath" "$_ref_type" "$_ref" || abort 1
-                continue
+                filepath="$SOURCE_DIR/${i%::*}"
+                url="${i#*::}"
             ;;
 
             *://*)
@@ -515,26 +238,13 @@ pkg_unpack() {
     fi
 
     for i in $(get_filepath); do
-        if [ ! -f "$i" ] && [ ! -d "$i" ]; then
+        [ -f "$i" ] || {
             msg_error "Source missing: $i"
             abort 1
-        fi
-
-        if [ -d "$i" ] && [ -d "$i/.git" ]; then
-            msg_info "Preparing git source: $i"
-
-            cp -r "$i" "$SRC" || {
-                msg_error "Preparing failed: $i"
-                abort 1
-            }
-
-            continue
-        fi
+        }
 
         for n in $noextract; do
-            _basename="${i##*/}"
-
-            if [ "$_basename" = "$n" ]; then
+            if [ "${i##*/}" = "$n" ]; then
                 msg_info "Preparing: $i"
 
                 cp --reflink=auto "$i" "$SRC" || {
@@ -848,13 +558,6 @@ pkg_clean() {
         case $i in
             "$PWD"/*) continue ;;
         esac
-
-        if [ -d "$i/.git" ]; then
-            rm -rf "$i"
-            msg_info "Repository removed: $i"
-
-            continue
-        fi
 
         [ -e "$i" ] && {
             rm -f "$i"
