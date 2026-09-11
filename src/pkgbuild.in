@@ -593,6 +593,9 @@ pkg_build() {
         export PYTHON=/usr/bin/python3
         export PYTHON_VERSION=3
         export PYTHON_VERSIONS=python3
+        export INSTALLDIRS=vendor
+        export PERL_INSTALLDIRS=vendor
+        export PERL_MM_USE_DEFAULT=1
 
         if [ "$QUIET" = "yes" ]; then
             (
