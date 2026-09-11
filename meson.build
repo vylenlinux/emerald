@@ -18,6 +18,7 @@ conf_data.set('BUILD_SCRIPT', get_option('build_script'))
 conf_data.set('CHECKSUMS_FILE', get_option('checksums_file'))
 conf_data.set('PKGFILES_FILE', get_option('pkgfiles_file'))
 conf_data.set('EPKGNEW_EXT', get_option('epkgnew_ext'))
+conf_data.set('EMAIL', get_option('email'))
 
 subdir('data')
 subdir('man')

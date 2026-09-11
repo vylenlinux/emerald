@@ -38,7 +38,7 @@ get_autotools_template() {
 # shellcheck disable=SC2034
 description=""
 homepage=""
-maintainer="Vylen Linux Team <wonkru-dev@proton.me>"
+maintainer="Vylen Linux Team <@EMAIL@>"
 
 name=%name%
 version=
@@ -65,7 +65,7 @@ get_meson_template() {
 # shellcheck disable=SC2034
 description=""
 homepage=""
-maintainer="Vylen Linux Team <wonkru-dev@proton.me>"
+maintainer="Vylen Linux Team <@EMAIL@>"
 
 name=%name%
 version=
@@ -92,7 +92,7 @@ get_cmake_template() {
 # shellcheck disable=SC2034
 description=""
 homepage=""
-maintainer="Vylen Linux Team <wonkru-dev@proton.me>"
+maintainer="Vylen Linux Team <@EMAIL@>"
 
 name=%name%
 version=
@@ -124,7 +124,7 @@ get_go_template() {
 # shellcheck disable=SC2034
 description=""
 homepage=""
-maintainer="Vylen Linux Team <wonkru-dev@proton.me>"
+maintainer="Vylen Linux Team <@EMAIL@>"
 
 name=%name%
 version=
@@ -137,19 +137,13 @@ build() {
     # shellcheck disable=SC2164
     cd "${name}-${version}"
 
-    export CGO_LDFLAGS="${LDFLAGS}"
-    export CGO_CFLAGS="${CFLAGS}"
-    export CGO_CPPFLAGS="${CPPFLAGS}"
-    export CGO_CXXFLAGS="${CXXFLAGS}"
-    export GOPATH="${SRC}/go"
-    export PATH="${PATH}:${GOPATH}/bin"
-
     export GOFLAGS="-buildmode=pie \
         -trimpath \
         -mod=readonly \
         -modcacherw \
         -ldflags=-linkmode=external"
 
+    # shellcheck disable=SC2035
     go build *.go -o "bin/${name}"
     install -Dm755 "bin/${name}" -t "${PKG}/usr/bin/"
 }
@@ -163,7 +157,7 @@ get_python_template() {
 # shellcheck disable=SC2034
 description=""
 homepage=""
-maintainer="Vylen Linux Team <wonkru-dev@proton.me>"
+maintainer="Vylen Linux Team <@EMAIL@>"
 
 name=%name%
 version=
@@ -191,7 +185,7 @@ get_rust_template() {
 # shellcheck disable=SC2034
 description=""
 homepage=""
-maintainer="Vylen Linux Team <wonkru-dev@proton.me>"
+maintainer="Vylen Linux Team <@EMAIL@>"
 
 name=%name%
 version=
