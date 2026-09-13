@@ -160,7 +160,7 @@ pkg_check_partial() {
     [ -f "$filepath.partial" ] || return 0
 
     if [ -s "$filepath.partial" ] && [ -r "$filepath.partial" ]; then
-        msg_info "Continuing download: $filepath"
+        msg_info "Continuing download: $2"
         return 1
     fi
 
@@ -194,7 +194,7 @@ pkg_fetch() {
         }
 
         # check partial file
-        pkg_check_partial "$filepath" || COPT="-C -"
+        pkg_check_partial "$filepath" "$i" || COPT="-C -"
 
         msg_info "Fetching: $i"
         [ "$QUIET" != "yes" ] || _curl_quiet="--silent"
