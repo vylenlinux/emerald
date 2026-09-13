@@ -38,7 +38,7 @@ get_autotools_template() {
 # shellcheck disable=SC2034
 description=""
 homepage=""
-maintainer="Vylen Linux Team <@EMAIL@>"
+maintainer="@MAINTAINER@ <@EMAIL@>"
 
 name=%name%
 version=
@@ -65,7 +65,7 @@ get_meson_template() {
 # shellcheck disable=SC2034
 description=""
 homepage=""
-maintainer="Vylen Linux Team <@EMAIL@>"
+maintainer="@MAINTAINER@ <@EMAIL@>"
 
 name=%name%
 version=
@@ -75,7 +75,7 @@ backup=""
 source=""
 
 build() {
-    vylen-meson "${name}-${version}" build \
+    @MESON_WRAPPER@ "${name}-${version}" build \
         -Doption=false \
         -Doption2=true
 
@@ -92,7 +92,7 @@ get_cmake_template() {
 # shellcheck disable=SC2034
 description=""
 homepage=""
-maintainer="Vylen Linux Team <@EMAIL@>"
+maintainer="@MAINTAINER@ <@EMAIL@>"
 
 name=%name%
 version=
@@ -124,7 +124,7 @@ get_go_template() {
 # shellcheck disable=SC2034
 description=""
 homepage=""
-maintainer="Vylen Linux Team <@EMAIL@>"
+maintainer="@MAINTAINER@ <@EMAIL@>"
 
 name=%name%
 version=
@@ -157,7 +157,7 @@ get_python_template() {
 # shellcheck disable=SC2034
 description=""
 homepage=""
-maintainer="Vylen Linux Team <@EMAIL@>"
+maintainer="@MAINTAINER@ <@EMAIL@>"
 
 name=%name%
 version=
@@ -185,7 +185,7 @@ get_rust_template() {
 # shellcheck disable=SC2034
 description=""
 homepage=""
-maintainer="Vylen Linux Team <@EMAIL@>"
+maintainer="@MAINTAINER@ <@EMAIL@>"
 
 name=%name%
 version=
