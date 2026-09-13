@@ -629,16 +629,20 @@ check_build_script() {
 
 check_dir() {
     for DIR in "$@"; do
-        if [ ! -d "$DIR" ]; then
+        [ -d "$DIR" ] || {
             msg_error "Directory '$DIR' does not exist."
             exit 1
-        elif [ ! -w "$DIR" ]; then
+        }
+
+        [ -w "$DIR" ] || {
             msg_error "Directory '$DIR' not writable."
             exit 1
-        elif [ ! -x "$DIR" ] || [ ! -r "$DIR" ]; then
-            msg_error "Directory '$DIR' not readable."
-            exit 1
-        fi
+        }
+
+        [ -x "$DIR" ] && [ -r "$DIR" ] && continue
+
+        msg_error "Directory '$DIR' not readable."
+        exit 1
     done
 }
 
