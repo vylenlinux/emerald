@@ -285,18 +285,19 @@ pkg_build() {
     msg_info "Build start: $name-$version-$release"
 
     cd "$SRC" >/dev/null || abort 1
-        mkdir -p "${SRC}/.cargo" \
-            "${SRC}/.go" \
-            "${SRC}/.zig"
+        mkdir -p "${SRC}/.cache/cargo" \
+            "${SRC}/.cache/go" \
+            "${SRC}/.cache/zig" \
+	    "${SRC}/.cache/meson"
 
-        export CARGO_HOME="${CARGO_HOME:-"${SRC}/.cargo"}"
-        export GOCACHE="${GOCACHE:-"${SRC}/.go"}"
-        export GOMODCACHE="${GOMODCACHE:-"${SRC}/.go"}"
-        export GOTMPDIR="${GOTMPDIR:-"${SRC}/.go"}"
-        export GOPATH="${GOPATH:-"${SRC}/.go"}"
-        export MESON_PACKAGE_CACHE_DIR="${SRC}"
-        export ZIG_LOCAL_CACHE_DIR="${SRC}/.zig"
-        export ZIG_GLOBAL_CACHE_DIR="${SRC}/.zig"
+        export CARGO_HOME="${CARGO_HOME:-"${SRC}/.cache/cargo"}"
+        export GOCACHE="${GOCACHE:-"${SRC}/.cache/go"}"
+        export GOMODCACHE="${GOMODCACHE:-"${SRC}/.cache/go"}"
+        export GOTMPDIR="${GOTMPDIR:-"${SRC}/.cache/go"}"
+        export GOPATH="${GOPATH:-"${SRC}/.cache/go"}"
+        export MESON_PACKAGE_CACHE_DIR="${SRC}/.cache/meson"
+        export ZIG_LOCAL_CACHE_DIR="${SRC}/.cache/zig"
+        export ZIG_GLOBAL_CACHE_DIR="${SRC}/.cache/zig"
 
         export CGO_LDFLAGS="${LDFLAGS}"
         export CGO_CFLAGS="${CFLAGS}"
