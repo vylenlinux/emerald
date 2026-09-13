@@ -24,22 +24,16 @@ do_service() {
         }
 
         # Install init.d (required)
-        if [ -f "$_svc_dir/init.d/$_svc" ]; then
-            install -Dm755 "$_svc_dir/init.d/$_svc" "$PKG/etc/init.d/$_svc"
-            msg_info "Installed: /etc/init.d/$_svc"
-        elif [ -f "$_svc_dir/$_svc.initd" ]; then
-            install -Dm755 "$_svc_dir/$_svc.initd" "$PKG/etc/init.d/$_svc"
-            msg_info "Installed: /etc/init.d/$_svc"
-        else
+        [ -f "$_svc_dir/$_svc.initd" ] || {
             msg_error "No init.d found for $_svc"
             return 1
-        fi
+        }
+
+        install -Dm755 "$_svc_dir/$_svc.initd" "$PKG/etc/init.d/$_svc"
+        msg_info "Installed: /etc/init.d/$_svc"
 
         # Install conf.d (optional)
-        if [ -f "$_svc_dir/conf.d/$_svc" ]; then
-            install -Dm644 "$_svc_dir/conf.d/$_svc" "$PKG/etc/conf.d/$_svc"
-            msg_info "Installed: /etc/conf.d/$_svc"
-        elif [ -f "$_svc_dir/$_svc.confd" ]; then
+        if [ -f "$_svc_dir/$_svc.confd" ]; then
             install -Dm644 "$_svc_dir/$_svc.confd" "$PKG/etc/conf.d/$_svc"
             msg_info "Installed: /etc/conf.d/$_svc"
         fi
