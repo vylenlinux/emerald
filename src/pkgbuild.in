@@ -406,7 +406,10 @@ strip_files() {
 }
 
 compress_info_man_pages() {
-    find . -type f -path "*/share/man/*" | while read -r file; do
+    find . -type f \( \
+        -path "*/share/man/*" -o \
+        -path "*/share/info/*" \
+    \) | while read -r file; do
         if [ "$file" = "${file%%.gz}" ]; then
             gzip -9 -f "$file"
         fi
@@ -424,12 +427,6 @@ compress_info_man_pages() {
 
         if [ -e "$DIR/$TARGET" ]; then
             ln -sf "$TARGET" "$FILE"
-        fi
-    done
-
-    find . -type f -path "*/share/info/*" | while read -r file; do
-        if [ "$file" = "${file%%.gz}" ]; then
-            gzip -9 -f "$file"
         fi
     done
 }
