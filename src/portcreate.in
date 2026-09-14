@@ -75,10 +75,7 @@ backup=""
 source=""
 
 build() {
-    @MESON_WRAPPER@ "${name}-${version}" build \
-        -Doption=false \
-        -Doption2=true
-
+    @MESON_WRAPPER@ "${name}-${version}" build
     meson compile -C build
     DESTDIR="${PKG}" meson install --no-rebuild -C build
 }
