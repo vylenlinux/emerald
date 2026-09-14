@@ -28,11 +28,11 @@ subdir('src')
 
 empty_dirs = [
     [join_paths(SYSCONFDIR, 'revdep.d'), 'rwxr-xr-x'],
-    [join_paths(get_option('cache_dir'), 'packages'), 'rwxrwxrwx'],
-    [join_paths(get_option('cache_dir'), 'sources'), 'rwxrwxrwx'],
-    [join_paths(get_option('cache_dir'), 'work'), 'rwxrwxrwx'],
-    [join_paths(get_option('state_dir'), 'cbuild'), 'rwxrwxrwx'],
-    [get_option('ports_dir'), 'rwxr-xr-x']
+    [join_paths(get_option('cache-dir'), 'packages'), 'rwxrwxrwx'],
+    [join_paths(get_option('cache-dir'), 'sources'), 'rwxrwxrwx'],
+    [join_paths(get_option('cache-dir'), 'work'), 'rwxrwxrwx'],
+    [join_paths(get_option('state-dir'), 'cbuild'), 'rwxrwxrwx'],
+    [get_option('ports-dir'), 'rwxr-xr-x']
 ]
 
 foreach empty_dir: empty_dirs
