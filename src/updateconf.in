@@ -18,7 +18,7 @@ command -v "$EDITOR" >/dev/null 2>&1 || {
 }
 
 # Check for root privileges
-[ "$(id -u)" -ne 0 ] && {
+[ "$(id -u)" -eq 0 ] || {
     printf "This operation need root access. Exiting...\n"
     exit 1
 }
@@ -28,7 +28,7 @@ command -v "$EDITOR" >/dev/null 2>&1 || {
 epkgnew=$(find /etc -regextype posix-extended -regex ".+\.@EPKGNEW_EXT@" 2>/dev/null)
 
 # Exit if no .@EPKGNEW_EXT@ files found
-[ -z "$epkgnew" ] && {
+[ -n "$epkgnew" ] || {
     printf "Nothing to do. Exiting...\n"
     exit 0
 }
@@ -36,7 +36,7 @@ epkgnew=$(find /etc -regextype posix-extended -regex ".+\.@EPKGNEW_EXT@" 2>/dev/
 # Process each .@EPKGNEW_EXT@ file
 for file in $epkgnew; do
     # Remove .@EPKGNEW_EXT@ extension to get original filename
-    current_file=${file%.*}
+    current_file="${file%.*}"
 
     # If original file doesn't exist, remove the .@EPKGNEW_EXT@ file
     [ -e "$current_file" ] || {
@@ -54,7 +54,7 @@ for file in $epkgnew; do
         # Show unified diff between current and new file
         # Use --color=always if available (GNU extension, but gracefully degrades)
         diff -u "$current_file" "$file" --color=always 2>/dev/null || diff -u "$current_file" "$file"
-        diff_result=$?
+        diff_result="$?"
 
         # If files are identical, remove .@EPKGNEW_EXT@ and continue
         if [ "$diff_result" -eq 0 ]; then
