@@ -64,10 +64,7 @@ emerald is-installed base || {
 printf "Calculate packages to keep...\n"
 keep=$(emerald deplist base $pkg | awk '{print $2;}')
 
-if [ -z "$keep" ]; then
-    printf "Warning: no packages marked to keep\n" >&2
-fi
-
+[ -n "$keep" ] || printf "Warning: no packages marked to keep\n" >&2
 printf "Calculate selected packages to remove...\n"
 
 # Build list of packages to remove
@@ -76,12 +73,12 @@ for installed_pkg in $(find "$PKGDB_DIR" -type f 2>/dev/null | sed 's|.*/||'); d
     printf '%s\n' "$keep" | grep -qx "$installed_pkg" || remove="$remove $installed_pkg"
 done
 
-[ -z "$remove" ] && {
+[ -n "$remove" ] || {
     printf "Already on base, nothing to remove.\n"
     exit "$error"
 }
 
-[ "$dryrun" -eq 0 ] && {
+[ "$dryrun" -ne 0 ] || {
     emerald remove "$yes" $remove || error=1
     exit "$error"
 }
