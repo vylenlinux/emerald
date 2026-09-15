@@ -48,7 +48,7 @@ command -v pkgadd >/dev/null 2>&1 || {
 
 # Parse options directly; combined flags like -vh are not supported
 # (keeping it simple avoids a subshell and an extra pass over arguments)
-[ -z "$1" ] && {
+[ -n "$1" ] || {
     help
     exit 0
 }
@@ -74,7 +74,7 @@ while [ -n "$1" ]; do
     shift
 done
 
-[ -z "$RMNAME" ] && {
+[ -n "$RMNAME" ] || {
     help
     exit 0
 }
@@ -84,19 +84,19 @@ PKGDB_DIR="${PKGDB_DIR##/}"
 
 LOCK_FILE="@STATE_DIR@/epkg.lock"
 
-[ "$(id -u)" -ne 0 ] && {
+[ "$(id -u)" -eq 0 ] || {
     printf "Removing package need root access!\n"
     help
 
     exit 1
 }
 
-[ -f "$ROOT_DIR/$LOCK_FILE" ] && {
+if [ -f "$ROOT_DIR/$LOCK_FILE" ]; then
     msg_error "Cannot install/remove package simultaneously."
     msg_error "remove '$ROOT_DIR/$LOCK_FILE' if no install/remove package process running."
 
     exit 1
-}
+fi
 
 touch "$ROOT_DIR/$LOCK_FILE" 2>/dev/null || {
     msg_error "Cannot create lock file in '$ROOT_DIR/$LOCK_FILE'"
