@@ -101,15 +101,15 @@ msg_port_already_installed() {
 
 msg_deps_status() {
     for i in "$@"; do
-        emerald_is_installed "$i" && {
+        if emerald_is_installed "$i"; then
             printf "[%bi%b] %s\n" "$COLOR2" "$CRESET" "$i"
             continue
-        }
+        fi
 
-        get_port_path "$i" >/dev/null && {
+        if get_port_path "$i" >/dev/null; then
             printf "[-] %s\n" "$i"
             continue
-        }
+        fi
 
         printf "[%bm%b] %s\n" "$COLOR3" "$CRESET" "$i"
     done
@@ -119,17 +119,17 @@ msg_deps_status() {
 
 get_port_path() {
     for repo in $PORT_REPO; do
-        [ -f "$repo/$1/$BUILD_SCRIPT" ] && {
+        if [ -f "$repo/$1/$BUILD_SCRIPT" ]; then
             printf '%s/%s\n' "$repo" "$1"
             return 0
-        }
+        fi
     done
 
     return 1
 }
 
 require_root() {
-    [ "$(id -u)" -ne 0 ] && {
+    [ "$(id -u)" -eq 0 ] || {
         msg_error "this operation requires root privileges!"
         exit 1
     }
@@ -208,7 +208,7 @@ confirm() {
 }
 
 need_arg() {
-    [ -z "$1" ] && {
+    [ -n "$1" ] || {
         printf "This operation required an arguments!\n"
         exit 1
     }
@@ -308,9 +308,9 @@ emerald_build() {
                 *) pkgbuild $OPTS ;;
             esac
 
-            _build_ret=$?
+            _build_ret="$?"
 
-            [ "$_build_ret" -ne 0 ] && {
+            [ "$_build_ret" -eq 0 ] || {
                 set_term_title "Building $pkg failed."
 
                 if keep_going; then
@@ -765,7 +765,7 @@ emerald_dup() {
     # shellcheck disable=SC2086
     dup=$(find $PORT_REPO -mindepth 1 -maxdepth 1 -type d -printf '%P\n' 2>/dev/null | sort | uniq -d)
 
-    [ -z "$dup" ] && {
+    [ -n "$dup" ] || {
         msg_info "No duplicate ports found."
         return 0
     }
@@ -800,7 +800,7 @@ emerald_foreign() {
         }
     done
 
-    [ "$foreign_found" -eq 0 ] && msg_info "No foreign packages found."
+    [ "$foreign_found" -ne 0 ] || msg_info "No foreign packages found."
     return 0
 }
 
@@ -1244,12 +1244,12 @@ emerald_install() {
                 return 1
             }
 
-            emerald_is_installed "$ii" && {
+            if emerald_is_installed "$ii"; then
                 msg_port_already_installed "$ii"
                 skipped_installs="$skipped_installs $ii"
 
                 continue
-            }
+            fi
 
             cd "$PPATH" || return 1
                 set_term_title "Installing $ii..."
@@ -1292,10 +1292,10 @@ emerald_install() {
             continue
         }
 
-        emerald_is_installed "$i" && {
+        if emerald_is_installed "$i"; then
             msg_port_already_installed "$i"
             continue
-        }
+        fi
 
         IPKG="$IPKG $i"
     done
@@ -1321,10 +1321,10 @@ emerald_install() {
         printf "( %s install )\n" "$pkgcount"
         printf "\n"
 
-        [ "$NOCONFIRM" != 1 ] && {
+        if [ "$NOCONFIRM" != 1 ]; then
             confirm "Continue install package(s)?" "Package installation cancelled." || exit $?
             printf "\n"
-        }
+        fi
 
         error=0
         count=0
@@ -1368,7 +1368,7 @@ emerald_install() {
             cd - >/dev/null || return 1
         done
 
-        [ -n "$done_pkg" ] && emerald_trigger "$done_pkg"
+        [ -z "$done_pkg" ] || emerald_trigger "$done_pkg"
 
         # Show error summary if exist
         FAILED_PKGS="$failed_installs"
@@ -1413,7 +1413,7 @@ emerald_integrity() {
             done
         } < "$PKGDB_DIR/$pkg"
 
-        [ "$found" -eq 0 ] && {
+        [ "$found" -ne 0 ] || {
             msg_info "'$pkg' integrity is OK!"
             return 0
         }
@@ -1492,7 +1492,7 @@ emerald_missing_deps() {
 $(all_installed)
 EOF
 
-    [ "$found" -eq 0 ] && {
+    [ "$found" -ne 0 ] || {
         msg_info "No ports missing deps found!"
         return 0
     }
@@ -1501,7 +1501,7 @@ EOF
 }
 
 emerald_orphan() {
-    [ -f "$WORLD_FILE" ] && {
+    if [ -f "$WORLD_FILE" ]; then
         while IFS= read -r i; do
             case " $* " in
                 *" $i "*) continue ;;
@@ -1513,7 +1513,7 @@ emerald_orphan() {
 
             deplist "$i"
         done < "$WORLD_FILE"
-    }
+    fi
 
     all_installed | awk -v dep=" $DEP " '{
         if (index(dep, " " $0 " ") == 0) print;
@@ -1529,7 +1529,9 @@ version_compare() {
 }
 
 check_outdated() {
-    _MASKED_LIST=$(awk '!/^[[:space:]]*$/ && !/^#/ {printf "%s ", $0;}' "$MASK_FILE" 2>/dev/null)
+    _MASKED_LIST=$(awk '!/^[[:space:]]*$/ && !/^#/ {
+        printf "%s ", $0;
+    }' "$MASK_FILE" 2>/dev/null)
 
     # Build port version map in memory (first-repo-wins via dedup).
     _vmap=$(for _repo in $PORT_REPO; do
@@ -1581,10 +1583,10 @@ check_outdated() {
 
         if [ "$pversion" != "$iversion" ]; then
             version_compare "$pversion" "$iversion"
-            [ "$?" -eq 1 ] && NEW_INSTALLED=1
+            [ "$?" -ne 1 ] || NEW_INSTALLED=1
         elif [ "$prelease" != "$irelease" ]; then
             version_compare "$prelease" "$irelease"
-            [ "$?" -eq 1 ] && NEW_INSTALLED=1
+            [ "$?" -ne 1 ] || NEW_INSTALLED=1
         fi
 
         MASKED=0
@@ -1601,7 +1603,7 @@ check_outdated() {
 emerald_outdated() {
     out=$(check_outdated)
 
-    [ -z "$out" ] && {
+    [ -n "$out" ] || {
         msg_info "All packages are up to date."
         return 0
     }
@@ -1670,7 +1672,7 @@ emerald_purge() {
         [ -n "$remove" ] && remove="$remove $pkg" || remove="$pkg"
     done
 
-    [ -z "$remove" ] && {
+    [ -n "$remove" ] || {
         printf "No orphan packages found...\n"
         return 0
     }
@@ -1684,7 +1686,7 @@ emerald_redeps() {
 
     while [ -n "$1" ]; do
         case $1 in
-            --fix | -f) fix="yes" ;;
+            --fix | -f) fix=1 ;;
             --help | -h) emerald_help ;;
             *) pkg="$pkg $1" ;;
         esac
@@ -1705,17 +1707,17 @@ emerald_redeps() {
             for dd in $deps_i; do
                 [ "$dd" = "$d" ] && continue
 
-                emerald_deplist "$d" | awk '{print $2;}' | grep -qx "$dd" && {
+                if emerald_deplist "$d" | awk '{print $2;}' | grep -qx "$dd"; then
                     printf "[%s] %s (already pulled from %s)\n" "$i" "$dd" "$d"
 
-                    [ "$fix" = "yes" ] && {
+                    if [ "$fix" = 1 ]; then
                         deps_file="$PPATH/depends"
                         [ -f "$CBUILD_DIR/$i.dep" ] && deps_file="$CBUILD_DIR/$i.dep"
 
                         sed -i "/^$dd$/d" "$deps_file"
                         msg_info "$dd removed from $i ${deps_file##*/}"
-                    }
-                }
+                    fi
+                fi
             done
         done
     done
@@ -1761,10 +1763,10 @@ emerald_remove() {
     printf "( %s remove )\n" "$pkgcount"
     printf "\n"
 
-    [ "$NOCONFIRM" != 1 ] && {
+    if [ "$NOCONFIRM" != 1 ]; then
         confirm "Continue remove package(s)?" "Package removing cancelled." || exit $?
         printf "\n"
-    }
+    fi
 
     for pkg in $IPKG; do
         count=$(( count + 1 ))
@@ -1850,7 +1852,7 @@ emerald_search() {
         done
     done
 
-    [ "$_sr_found" -eq 0 ] && msg_info "No matching package found."
+    [ "$_sr_found" -ne 0 ] || msg_info "No matching package found."
     return 0
 }
 
@@ -1913,10 +1915,10 @@ do_upgrade_install() {
     printf "( %s upgrade, %s new install )\n" "$UPGPKG" "$NEWPKG"
     printf "\n"
 
-    [ "$NOCONFIRM" != 1 ] && {
+    if [ "$NOCONFIRM" != 1 ]; then
         confirm "Continue upgrade/install these package(s)?" "Package upgrade cancelled." || exit $?
         printf "\n"
-    }
+    fi
 
     error=0
     count=0
@@ -1975,7 +1977,7 @@ do_upgrade_install() {
         cd - >/dev/null || return 1
     done
 
-    [ -n "$done_pkg" ] && emerald_trigger "$done_pkg"
+    [ -z "$done_pkg" ] || emerald_trigger "$done_pkg"
 
     # Show error summary if exist
     FAILED_PKGS="$failed_upgrades"
@@ -2031,7 +2033,7 @@ emerald_sysup() {
         esac
     done
 
-    [ -z "$PKG" ] && {
+    [ -n "$PKG" ] || {
         printf "All packages are up to date.\n"
         return 0
     }
@@ -2052,91 +2054,91 @@ emerald_sysup() {
 trigger_fc_cache() {
     command -v fc-cache >/dev/null || return 0
 
-    printf '%s\n' "$PKGFILES" | grep -q "^usr/share/fonts/" && {
+    if printf '%s\n' "$PKGFILES" | grep -q "^usr/share/fonts/"; then
         msg_info "Updating fontconfig cache..."
         fc-cache -sf
-    }
+    fi
 }
 
 trigger_gdk_pixbuf_cache() {
     command -v gdk-pixbuf-query-loaders >/dev/null || return 0
 
-    printf '%s\n' "$PKGFILES" | grep -q "^usr/lib/gdk-pixbuf-2.0/2.10.0/loaders/" && {
+    if printf '%s\n' "$PKGFILES" | grep -q "^usr/lib/gdk-pixbuf-2.0/2.10.0/loaders/"; then
         msg_info "Probing GDK-Pixbuf loader modules..."
         gdk-pixbuf-query-loaders --update-cache
-    }
+    fi
 }
 
 trigger_gio_modules() {
     command -v gio-querymodules >/dev/null || return 0
 
-    printf '%s\n' "$PKGFILES" | grep -q "^usr/lib/gio/modules/" && {
+    if printf '%s\n' "$PKGFILES" | grep -q "^usr/lib/gio/modules/"; then
         msg_info "Updating GIO module cache..."
         gio-querymodules /usr/lib/gio/modules
-    }
+    fi
 }
 
 trigger_glib_schema() {
     command -v glib-compile-schemas >/dev/null || return 0
 
-    printf '%s\n' "$PKGFILES" | grep -q "^usr/share/glib-2.0/schemas/" && {
+    if printf '%s\n' "$PKGFILES" | grep -q "^usr/share/glib-2.0/schemas/"; then
         msg_info "Compiling GSettings XML schema files..."
         glib-compile-schemas /usr/share/glib-2.0/schemas
-    }
+    fi
 }
 
 trigger_gtk2_immodules() {
     command -v gtk-query-immodules-2.0 >/dev/null || return 0
 
-    printf '%s\n' "$PKGFILES" | grep -q "^usr/lib/gtk-2.0/2.10.0/immodules/" && {
+    if printf '%s\n' "$PKGFILES" | grep -q "^usr/lib/gtk-2.0/2.10.0/immodules/"; then
         msg_info "Probing GTK2 input method modules..."
         gtk-query-immodules-2.0 --update-cache
-    }
+    fi
 }
 
 trigger_gtk3_immodules() {
     command -v gtk-query-immodules-3.0 >/dev/null || return 0
 
-    printf '%s\n' "$PKGFILES" | grep -q "^usr/lib/gtk-3.0/3.0.0/immodules/" && {
+    if printf '%s\n' "$PKGFILES" | grep -q "^usr/lib/gtk-3.0/3.0.0/immodules/"; then
         msg_info "Probing GTK3 input method modules..."
         gtk-query-immodules-3.0 --update-cache
-    }
+    fi
 }
 
 trigger_icon_cache() {
     command -v gtk-update-icon-cache >/dev/null || return 0
 
-    printf '%s\n' "$PKGFILES" | grep -q "^usr/share/icons/" && {
+    if printf '%s\n' "$PKGFILES" | grep -q "^usr/share/icons/"; then
         msg_info "Updating icon theme caches..."
 
         for dir in /usr/share/icons/*; do
             [ -d "$dir" ] || continue # skip non-directory entries in /usr/share/icons
 
-            [ -e "$dir/index.theme" ] && {
+            if [ -e "$dir/index.theme" ]; then
                 gtk-update-icon-cache -q "$dir" 2>/dev/null
                 continue
-            }
+            fi
 
             rm -f "$dir/icon-theme.cache"
             rmdir "$dir" 2>/dev/null
         done
-    }
+    fi
 }
 
 trigger_udevdb() {
     command -v udevadm >/dev/null || return 0
 
-    printf '%s\n' "$PKGFILES" | grep -q "^etc/udev/hwdb.d/" && {
+    if printf '%s\n' "$PKGFILES" | grep -q "^etc/udev/hwdb.d/"; then
         msg_info "Updating hardware database..."
         udevadm hwdb --update
-    }
+    fi
 }
 
 trigger_fontcache() {
     command -v mkfontdir >/dev/null || return 0
     command -v mkfontscale >/dev/null || return 0
 
-    printf '%s\n' "$PKGFILES" | grep -q "^usr/share/fonts/" && {
+    if printf '%s\n' "$PKGFILES" | grep -q "^usr/share/fonts/"; then
         msg_info "Updating X fontdir indices..."
 
         find /usr/share/fonts -maxdepth 1 -type d ! -path /usr/share/fonts | while IFS= read -r dir; do
@@ -2148,25 +2150,25 @@ trigger_fontcache() {
             mkfontdir "$dir"
             mkfontscale "$dir"
         done
-    }
+    fi
 }
 
 trigger_desktop_database() {
     command -v update-desktop-database >/dev/null || return 0
 
-    printf '%s\n' "$PKGFILES" | grep -q "^usr/share/applications/" && {
+    if printf '%s\n' "$PKGFILES" | grep -q "^usr/share/applications/"; then
         msg_info "Updating desktop file MIME type cache..."
         update-desktop-database --quiet
-    }
+    fi
 }
 
 trigger_mime_database() {
     command -v update-mime-database >/dev/null || return 0
 
-    printf '%s\n' "$PKGFILES" | grep -q "^usr/share/mime/" && {
+    if printf '%s\n' "$PKGFILES" | grep -q "^usr/share/mime/"; then
         msg_info "Updating the MIME type database..."
         update-mime-database /usr/share/mime
-    }
+    fi
 }
 
 emerald_trigger() {
@@ -2237,10 +2239,10 @@ emerald_upgrade() {
             continue
         }
 
-        [ "$(get_iversion "$pkg")" = "$(get_version "$pkg")" ] && {
+        if [ "$(get_iversion "$pkg")" = "$(get_version "$pkg")" ]; then
             printf "Package '%s' is up to date.\n" "$pkg"
             continue
-        }
+        fi
 
         upkg="$upkg $pkg"
     done
@@ -2305,7 +2307,7 @@ world_del() {
 }
 
 emerald_world() {
-    [ -z "$1" ] && {
+    [ -n "$1" ] || {
         [ -s "$WORLD_FILE" ] && cat "$WORLD_FILE" || printf "world is empty\n"
         return 0
     }
@@ -2333,7 +2335,7 @@ emerald_alias() {
         list)
             _al_out=$(list_show "$ALIAS_FILE")
 
-            [ -z "$_al_out" ] && {
+            [ -n "$_al_out" ] || {
                 msg_info "No aliased ports found!"
                 return 0
             }
@@ -2396,7 +2398,7 @@ emerald_mask() {
         list)
             _ma_out=$(list_show "$MASK_FILE")
 
-            [ -z "$_ma_out" ] && {
+            [ -n "$_ma_out" ] || {
                 msg_info "No masked ports found!"
                 return 0
             }
@@ -2404,7 +2406,7 @@ emerald_mask() {
             printf '%s\n' "$_ma_out" | while IFS= read -r _ma_pkg; do
                 _ma_ver=$(get_iversion "$_ma_pkg")
 
-                [ -z "$_ma_ver" ] && {
+                [ -n "$_ma_ver" ] || {
                     printf '%s\n' "$_ma_pkg"
                     return 0
                 }
@@ -2477,7 +2479,7 @@ command -v pkgadd >/dev/null 2>&1 || {
 
 mode=$1
 
-[ -z "$mode" ] && {
+[ -n "$mode" ] || {
     printf "Run '%s help' to see available options.\n" "${0##*/}"
     exit 2
 }
@@ -2520,14 +2522,14 @@ for opt in "$@"; do
     shift
 done
 
-[ -f "$REPO_FILE" ] && {
+if [ -f "$REPO_FILE" ]; then
     # shellcheck disable=SC2013
     for repo_dir in $(awk '!/^[[:space:]]*$/ && !/^#/ {
         print $1;
     }' "$REPO_FILE"); do
         PORT_REPO="$PORT_REPO $repo_dir"
     done
-}
+fi
 
 [ -z "$OVERRIDEREPO" ] && PORT_REPO="$PREPENDREPO $PORT_REPO $APPENDREPO" || PORT_REPO="$OVERRIDEREPO"
 
