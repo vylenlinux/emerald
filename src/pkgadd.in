@@ -63,7 +63,7 @@ EOF
 }
 
 parse_opts() {
-    [ -z "$1" ] && {
+    [ -n "$1" ] || {
         SHOW_HELP=yes
         return 0
     }
@@ -121,10 +121,10 @@ LOCK_FILE="$EMERALD_DIR/epkg.lock"
 
 ROOT_DIR="${ROOT_DIR%/}" # Remove trailing slash
 
-[ "$PRINT_DB_DIR" = "yes" ] && {
+if [ "$PRINT_DB_DIR" = "yes" ]; then
     printf '%s/%s\n' "$ROOT_DIR" "$PKGDB_DIR"
     exit 0
-}
+fi
 
 # Show help page
 if [ "$SHOW_HELP" = "yes" ] || [ -z "$PKGNAME" ]; then
@@ -138,7 +138,7 @@ fi
 }
 
 # Check for root access
-[ "$(id -u)" -ne 0 ] && {
+[ "$(id -u)" -eq 0 ] || {
     msg_error "Installing packages requires root access!"
     help
 
@@ -146,12 +146,12 @@ fi
 }
 
 # Check for lock file
-[ -f "$ROOT_DIR/$LOCK_FILE" ] && {
+if [ -f "$ROOT_DIR/$LOCK_FILE" ]; then
     msg_error "Cannot install/remove package simultaneously."
     msg_error "remove '$ROOT_DIR/$LOCK_FILE' if no install/remove package process running."
 
     exit 1
-}
+fi
 
 touch "$ROOT_DIR/$LOCK_FILE" 2>/dev/null || {
     msg_error "Cannot create lock file in '$ROOT_DIR/$LOCK_FILE'."
@@ -173,10 +173,10 @@ version=${noextname##*-}
 name=${noextname%-*}
 
 # Get package information if installed
-[ -s "$ROOT_DIR/$PKGDB_DIR/$name" ] && {
+if [ -s "$ROOT_DIR/$PKGDB_DIR/$name" ]; then
     read -r iversion irelease < "$ROOT_DIR/$PKGDB_DIR/$name" # read first line
     ALREADY_INSTALLED=yes
-}
+fi
 
 if [ "$ALREADY_INSTALLED" = "yes" ] && [ "$UPGRADE_PKG" != "yes" ] && [ "$REINSTALL_PKG" != "yes" ]; then
     printf "Package '%s' already installed. (%s-%s)\n" "$name" "$iversion" "$irelease"
@@ -185,10 +185,10 @@ fi
 
 # Can't reinstall if not installed and can't upgrade if up-to-date
 if [ "$UPGRADE_PKG" = "yes" ] || [ "$REINSTALL_PKG" = "yes" ]; then
-    [ "$ALREADY_INSTALLED" != "yes" ] && {
+    if [ "$ALREADY_INSTALLED" != "yes" ]; then
         msg_error "Package '$name' not installed."
         ret 1
-    }
+    fi
 
     if [ "$UPGRADE_PKG" = "yes" ] && [ "$version-$release" = "$iversion-$irelease" ]; then
         printf "Package '%s' is up-to-date. (%s-%s)\n" "$name" "$iversion" "$irelease"
