@@ -34,7 +34,7 @@ make_dir() {
 
 # Wrapper for git commands with specific paths
 bare_git() {
-    git --git-dir="$baredir/${portdir}.git" --work-tree="$worktree/$portdir" "$@"
+    git --git-dir="$bare_dir/${port_dir}.git" --work-tree="$worktree/$port_dir" "$@"
 }
 
 # Show help message
@@ -92,17 +92,17 @@ parse_opts() {
 
 # Clean old objects from git repository
 prune_local() {
-    msg_info "pruning old objects from ${portdir}..."
+    msg_info "pruning old objects from ${port_dir}..."
 
     # Expire all old commits and their objects
     bare_git reflog expire --expire-unreachable=now --all || {
-        msg_warning "Failed to expire reflog for $portdir"
+        msg_warning "Failed to expire reflog for $port_dir"
         return 1
     }
 
     # Remove old objects
     bare_git gc --quiet --prune=all || {
-        msg_warning "Failed to garbage collect for $portdir"
+        msg_warning "Failed to garbage collect for $port_dir"
         return 1
     }
 
@@ -118,23 +118,23 @@ reset_repos() {
             "" | "#"*) continue ;;
         esac
 
-        _rr_portdir="${_rr_dir##*/}"
+        _rr_port_dir="${_rr_dir##*/}"
 
         # Skip local repositories without a URL (manually maintained)
-        [ -z "$_rr_url" ] && {
+        [ -n "$_rr_url" ] || {
             msg_info "Skipping local repo '$_rr_dir' (no URL)"
             continue
         }
 
         if [ -n "$SYNC_REPOS" ]; then
             case " $SYNC_REPOS " in
-                *" $_rr_portdir "*) ;;
+                *" $_rr_port_dir "*) ;;
                 *) continue ;;
             esac
         fi
 
-        rm -rf "$baredir/${_rr_portdir}.git" "$_rr_dir" || {
-            msg_error "Failed to remove repo: $_rr_portdir"
+        rm -rf "$bare_dir/${_rr_port_dir}.git" "$_rr_dir" || {
+            msg_error "Failed to remove repo: $_rr_port_dir"
             exit 1
         }
     done < "$repo_file"
@@ -152,51 +152,51 @@ sync_repo() {
     #   $2 - Remote repository URL
     #   $3 - Branch to synchronize (optional, default: main)
 
-    repodir="$1"
-    portdir="${repodir##*/}"
-    repourl="$2"
-    repobranch="${3:-main}"
+    repo_dir="$1"
+    port_dir="${repo_dir##*/}"
+    repo_url="$2"
+    repo_branch="${3:-main}"
 
     msg_info "fetching $2"
 
     # Ensure worktree directory exists
-    make_dir "$repodir" || {
-        msg_error "Failed to create directory: $repodir"
+    make_dir "$repo_dir" || {
+        msg_error "Failed to create directory: $repo_dir"
         exit 1
     }
 
     # Create bare repository if it doesn't exist
-    [ -d "$baredir/${portdir}.git" ] || git init --quiet --bare "$baredir/${portdir}.git" || {
-        msg_error "Failed to initialize git repository for $portdir"
+    [ -d "$bare_dir/${port_dir}.git" ] || git init --quiet --bare "$bare_dir/${port_dir}.git" || {
+        msg_error "Failed to initialize git repository for $port_dir"
         exit 1
     }
 
     # Ensure 'origin' remote exists and points to the correct URL
-    bare_git remote set-url origin "$repourl" 2>/dev/null || bare_git remote add origin "$repourl" || {
-        msg_error "Failed to configure remote for $portdir"
+    bare_git remote set-url origin "$repo_url" 2>/dev/null || bare_git remote add origin "$repo_url" || {
+        msg_error "Failed to configure remote for $port_dir"
         exit 1
     }
 
     # Shallow fetch (only latest commit), quiet mode
-    bare_git fetch --quiet --depth=1 origin "$repobranch" || {
-        msg_error "Failed to fetch from $repourl (branch: $repobranch)."
+    bare_git fetch --quiet --depth=1 origin "$repo_branch" || {
+        msg_error "Failed to fetch from $repo_url (branch: $repo_branch)."
         msg_error "Try running: 'portsync -r'"
 
         exit 1
     }
 
     # Update local branch and working tree in one step, quiet mode
-    bare_git checkout --quiet -B "$repobranch" FETCH_HEAD || {
-        msg_error "Failed to checkout branch $repobranch for $portdir."
+    bare_git checkout --quiet -B "$repo_branch" FETCH_HEAD || {
+        msg_error "Failed to checkout branch $repo_branch for $port_dir."
         msg_error "Try running: 'portsync -r'"
 
         exit 1
     }
 
     # Optional pruning
-    [ "$PRUNE" -eq 1 ] && prune_local
+    [ "$PRUNE" -ne 1 ] || prune_local
 
-    msg_info "${portdir} ports synced in $repodir"
+    msg_info "${port_dir} ports synced in $repo_dir"
     return 0
 }
 
@@ -204,21 +204,21 @@ sync_repo() {
 parse_opts "$@"
 
 # Show help if requested
-[ "$HELP" -eq 1 ] && {
+[ "$HELP" -ne 1 ] || {
     usage
     exit 0
 }
 
 # Check root permissions
-[ "$(id -u)" -ne 0 ] && {
+[ "$(id -u)" -eq 0 ] || {
     msg_error "This operation needs root access!"
     exit 1
 }
 
 # Define working directories
-baredir="@CACHE_DIR@/repos"
+bare_dir="@CACHE_DIR@/repos"
 
-make_dir "$baredir" || {
+make_dir "$bare_dir" || {
     msg_error "Failed to create cache directory"
     exit 1
 }
@@ -244,28 +244,28 @@ repo_file="@SYSCONFDIR@/emerald.repo"
 # Process each repository from configuration file
 printf "Syncing PORTS...\n"
 
-while read -r repodir repourl repobranch _; do
-    case "$repodir" in
+while read -r repo_dir repo_url repo_branch _; do
+    case "$repo_dir" in
         "" | "#"*) continue ;;
     esac
 
-    _portdir="${repodir##*/}"
+    _port_dir="${repo_dir##*/}"
 
     if [ -n "$SYNC_REPOS" ]; then
         case " $SYNC_REPOS " in
-            *" $_portdir "*) _seen_repos="$_seen_repos $_portdir" ;;
+            *" $_port_dir "*) _seen_repos="$_seen_repos $_port_dir" ;;
             *) continue ;;
         esac
     fi
 
     # Skip entries without a URL (local repositories)
-    [ -z "$repourl" ] && {
-        msg_warning "No URL for repo '$repodir', skipping."
+    [ -n "$repo_url" ] || {
+        msg_warning "No URL for repo '$repo_dir', skipping."
         continue
     }
 
-    sync_repo "$repodir" "$repourl" "${repobranch:-main}" || {
-        msg_error "Sync failed for repository $repodir"
+    sync_repo "$repo_dir" "$repo_url" "${repo_branch:-main}" || {
+        msg_error "Sync failed for repository $repo_dir"
         exit 1
     }
 done < "$repo_file"
