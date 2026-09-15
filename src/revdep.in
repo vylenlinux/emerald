@@ -306,7 +306,7 @@ check_python_modules() {
         [ -d "$i" ] || continue
         [ "$i" = "$python_lib_path" ] && continue
 
-        brokenpkg="$brokenpkg $(emerald provide "$i/" | awk '{print $1;}')"
+        broken_pkg="$broken_pkg $(emerald provide "$i/" | awk '{print $1;}')"
     done
 }
 
@@ -320,7 +320,7 @@ check_perl_modules() {
         [ "$perl_path" = "$i" ] && continue
         [ -d "$i" ] || continue
 
-        brokenpkg="$brokenpkg $(emerald provide "$i/" | awk '{print $1;}')"
+        broken_pkg="$broken_pkg $(emerald provide "$i/" | awk '{print $1;}')"
     done
 }
 
@@ -330,7 +330,7 @@ check_ruby_gem() {
 
     for i in "${gem_path%/*}"/*; do
         [ "$gem_path" = "$i" ] && continue
-        brokenpkg="$brokenpkg $(emerald provide "$i/" | awk '{print $1;}')"
+        broken_pkg="$broken_pkg $(emerald provide "$i/" | awk '{print $1;}')"
     done
 }
 
@@ -497,7 +497,7 @@ if [ -n "$PKG" ]; then
         count=$((count + 1))
         unset NEW_LIB_NAME
 
-        lib_name=${line##*/}
+        lib_name="${line##*/}"
         printf ' %d%% %s\033[0K\r' "$((100 * count / total))" "$lib_name"
 
         case "$(file -bi "$line")" in
@@ -588,8 +588,8 @@ if [ -z "$PKG" ]; then
 fi
 
 # Consolidate broken packages
-if [ -n "$brokenpkg" ]; then
-    for i in $brokenpkg; do
+if [ -n "$broken_pkg" ]; then
+    for i in $broken_pkg; do
         case " $expkg " in
             *" $i "*) continue ;;
         esac
