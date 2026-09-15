@@ -188,10 +188,10 @@ pkg_fetch() {
             *) continue ;;
         esac
 
-        [ -f "$filepath" ] && {
+        if [ -f "$filepath" ]; then
             msg_info "Source found: $filepath"
             continue
-        }
+        fi
 
         # check partial file
         pkg_check_partial "$filepath" "$i" || COPT="-C -"
@@ -275,7 +275,7 @@ pkg_unpack() {
 }
 
 pkg_build() {
-    [ "$(id -u)" -ne 0 ] && {
+    [ "$(id -u)" -eq 0 ] || {
         msg_error "You must build package as root, or use fakeroot."
         help
 
@@ -287,8 +287,8 @@ pkg_build() {
     cd "$SRC" >/dev/null || abort 1
         mkdir -p "${SRC}/.cache/cargo" \
             "${SRC}/.cache/go" \
-            "${SRC}/.cache/zig" \
-	    "${SRC}/.cache/meson"
+            "${SRC}/.cache/meson" \
+            "${SRC}/.cache/zig"
 
         export CARGO_HOME="${CARGO_HOME:-"${SRC}/.cache/cargo"}"
         export GOCACHE="${GOCACHE:-"${SRC}/.cache/go"}"
@@ -551,31 +551,31 @@ pkg_gen_pkgfiles() {
 }
 
 pkg_clean() {
-    [ -e "$PACKAGE_DIR/$PKGNAME" ] && {
+    if [ -e "$PACKAGE_DIR/$PKGNAME" ]; then
         rm -f "$PACKAGE_DIR/$PKGNAME"
         msg_info "Package removed: $PACKAGE_DIR/$PKGNAME"
-    }
+    fi
 
     for i in $(get_filepath); do
         case $i in
             "$PWD"/*) continue ;;
         esac
 
-        [ -e "$i" ] && {
+        if [ -e "$i" ]; then
             rm -f "$i"
             msg_info "File removed: $i"
-        }
+        fi
 
-        [ -e "$i.partial" ] && {
+        if [ -e "$i.partial" ]; then
             rm -f "$i.partial"
             msg_info "File removed: $i.partial"
-        }
+        fi
     done
 }
 
 check_build_script() {
     # check the required field in buildscript
-    [ -z "$name" ] && {
+    [ -n "$name" ] || {
         msg_error "'name' is empty!"
         exit 1
     }
@@ -592,12 +592,12 @@ check_build_script() {
         exit 1
     }
 
-    [ -z "$version" ] && {
+    [ -n "$version" ] || {
         msg_error "'version' is empty!"
         exit 1
     }
 
-    [ -z "$release" ] && {
+    [ -n "$release" ] || {
         msg_error "'release' is empty!"
         exit 1
     }
@@ -626,7 +626,7 @@ check_build_script() {
         exit 1
     fi
 
-    [ -z "$description" ] && {
+    [ -n "$description" ] || {
         msg_error "'description' is empty!"
         exit 1
     }
@@ -846,10 +846,10 @@ main() {
     export CBUILD_JOBS
 
     # show usage
-    [ "$SHOW_HELP" = "yes" ] && {
+    if [ "$SHOW_HELP" = "yes" ]; then
         help
         exit 0
-    }
+    fi
 
     # Ensure cbuild directory exists; non-fatal if it cannot be created
     [ -d "$CBUILD_DIR" ] || mkdir -p "$CBUILD_DIR" 2>/dev/null
@@ -874,46 +874,46 @@ main() {
     esac
 
     # generate @PKGFILES_FILE@
-    [ "$GEN_PKGFILES" = "yes" ] && {
+    if [ "$GEN_PKGFILES" = "yes" ]; then
         pkg_gen_pkgfiles
         exit 0
-    }
+    fi
 
     # download source only
-    [ "$DOWNLOAD_ONLY" = "yes" ] && {
+    if [ "$DOWNLOAD_ONLY" = "yes" ]; then
         pkg_fetch
         [ -f "${CHECKSUMS_FILE}" ] || pkg_gen_checksums
 
         exit 0
-    }
+    fi
 
     # extract source only
-    [ "$EXTRACT_ONLY" = "yes" ] && {
+    if [ "$EXTRACT_ONLY" = "yes" ]; then
         pkg_unpack
         exit 0
-    }
+    fi
 
     # update checksum
-    [ "$UPDATE_CHECKSUM" = "yes" ] && {
+    if [ "$UPDATE_CHECKSUM" = "yes" ]; then
         pkg_gen_checksums
         exit 0
-    }
+    fi
 
     # remove source and package
-    [ "$CLEANUP" = "yes" ] && {
+    if [ "$CLEANUP" = "yes" ]; then
         pkg_clean
         exit 0
-    }
+    fi
 
     LOCK_FILE="/tmp/pkgbuild.$name.lock"
 
     # check for lock file
-    [ -f "$LOCK_FILE" ] && {
+    if [ -f "$LOCK_FILE" ]; then
         msg_error "Cannot build same package simultaneously."
         msg_error "remove '$LOCK_FILE' if no build process for '$name'."
 
         exit 1
-    }
+    fi
 
     # create lock file
     touch "$LOCK_FILE" 2>/dev/null || {
