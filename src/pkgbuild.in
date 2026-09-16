@@ -294,7 +294,7 @@ pkg_build() {
         export GOCACHE="${GOCACHE:-"${SRC}/.cache/go"}"
         export GOMODCACHE="${GOMODCACHE:-"${SRC}/.cache/go"}"
         export GOTMPDIR="${GOTMPDIR:-"${SRC}/.cache/go"}"
-        export GOPATH="${GOPATH:-"${SRC}/.cache/go"}"
+        export GOPATH="${GOPATH:-"${SRC}"}"
         export MESON_PACKAGE_CACHE_DIR="${SRC}/.cache/meson"
         export ZIG_LOCAL_CACHE_DIR="${SRC}/.cache/zig"
         export ZIG_GLOBAL_CACHE_DIR="${SRC}/.cache/zig"
