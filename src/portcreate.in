@@ -16,7 +16,7 @@ Create a port template directory with @BUILD_SCRIPT@ file.
 
 Options:
     -b <builder>  Specify build system (default: autotools)
-                  Available: autotools, meson, cmake, go, python, rust
+                  Available: autotools, meson, cmake, go, python, rust, gpep517
 
     -h            Show this help message
 
@@ -27,6 +27,7 @@ Examples:
     portcreate -b go myport      # Creates go template
     portcreate -b python myport  # Creates python template
     portcreate -b rust myport    # Creates rust template
+    portcreate -b gpep517 myport # Creates gpep517 template
 EOF
     exit 0
 }
@@ -204,6 +205,35 @@ build() {
 EOF
 }
 
+get_gpep517_template() {
+    cat <<'EOF'
+#!/bin/sh
+
+# shellcheck disable=SC2034
+description=""
+homepage=""
+maintainer="@MAINTAINER@ <@EMAIL@>"
+
+name=%name%
+version=
+release=1
+noextract=""
+backup=""
+source=""
+
+build() {
+    # shellcheck disable=SC2164
+    cd "${name}-${version}"
+
+    gpep517 build-wheel \
+        --wheel-dir .dist \
+        --output-fd 3 3>&1 >&2
+
+    python3 -m installer -d "${PKG}" .dist/*.whl
+}
+EOF
+}
+
 # Default builder
 BUILDER="autotools"
 
@@ -245,10 +275,11 @@ case "${BUILDER}" in
     go | golang) TEMPLATE=$(get_go_template) ;;
     python | python3) TEMPLATE=$(get_python_template) ;;
     rust | rs) TEMPLATE=$(get_rust_template) ;;
+    gpep517 | gpep) TEMPLATE=$(get_gpep517_template) ;;
 
     *)
         msg_error "Unknown builder '${BUILDER}'!"
-        printf "Available builders: autotools, meson, cmake, go, python, rust\n" >&2
+        printf "Available builders: autotools, meson, cmake, go, python, rust, gpep517\n" >&2
 
         rm -rf "${PORTNAME}"
         exit 1
