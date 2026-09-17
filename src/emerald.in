@@ -189,18 +189,8 @@ get_depends() {
     [ -f "$CBUILD_DIR/${1}.dep" ] && deps_file="$CBUILD_DIR/$1.dep"
     [ -f "$deps_file" ] || return 0
 
-    deps=$(grep -v '^[[:space:]]*\(#.*\)\?$' "$deps_file")
-    [ "$ALIAS_PORT" = "yes" ] && deps_alias "$deps" || printf "%s\n" "$deps"
-}
-
-get_makedepends() {
-    PPATH=$(get_port_path "$1") || return 0
-
-    deps_file="$PPATH/makedepends"
-    [ -f "$deps_file" ] || return 0
-
-    deps=$(grep -v '^[[:space:]]*\(#.*\)\?$' "$deps_file")
-    [ "$ALIAS_PORT" = "yes" ] && deps_alias "$deps" || printf "%s\n" "$deps"
+    deps=$(grep -v '^$' "$deps_file")
+    [ "$ALIAS_PORT" = "yes" ] && deps_alias "$deps" || printf "%s" "$deps"
 }
 
 confirm() {
@@ -605,26 +595,11 @@ get_dependent() {
             found = 1;
         } found {
             n = split(f, a, "/");
-            print a[n - 1];
+            print a[n-1];
 
             found = 0;
             nextfile;
         }' "$repo"/*/depends 2>/dev/null
-    done | sort -u
-}
-
-get_required_by() {
-    get_port_path "$1" >/dev/null 2>&1 || return 1
-
-    for repo in $PORT_REPO; do
-        awk -v pkg="$1" 'FNR == 1 {
-            n = split(FILENAME, a, "/");
-            dependent = a[n - 1];
-
-            kind = ((a[n] == "depends") ? "runtime" : "make");
-        } $0 == pkg {
-            printf "%s|%s\n", dependent, kind;
-        }' "$repo"/*/depends "$repo"/*/makedepends 2>/dev/null
     done | sort -u
 }
 
@@ -635,21 +610,6 @@ emerald_dependent() {
         msg_port_not_found "$1"
         return 1
     }
-
-    for dep in $depends; do
-        msg_deps_status "$dep"
-    done
-}
-
-emerald_makedepends() {
-    need_arg "${@}"
-
-    get_port_path "$1" >/dev/null 2>&1 || {
-        msg_port_not_found "$1"
-        return 1
-    }
-
-    depends=$(get_makedepends "$1")
 
     for dep in $depends; do
         msg_deps_status "$dep"
@@ -685,18 +645,9 @@ deplist() {
     # add package to currently processing
     CHECK="$CHECK $pkg "
 
-    # Runtime dependencies are always traversed. Build dependencies are added
-    # only for the requested package, never recursively for its dependencies.
-    deps=$(get_depends "$pkg")
-    root_makedepends="$makedepends"
-
-    if [ "$makedepends" = 1 ] && [ "$ROOT_DEPLIST" = 1 ]; then
-        deps="$deps $(get_makedepends "$pkg")"
-        ROOT_DEPLIST=0
-    fi
-
-    for dep in $deps; do
-        if [ "$quick" = 1 ] && [ "$all" != 1 ] && emerald_is_installed "$dep"; then
+    # check dependencies
+    for dep in $(get_depends "$pkg"); do
+        if [ "$quick" = 1 ] && emerald_is_installed "$dep"; then
             continue
         fi
 
@@ -717,7 +668,7 @@ deplist() {
         *" $pkg "*) ;;
 
         *)
-            if [ "$quick" != 1 ] || [ "$all" = 1 ] || ! emerald_is_installed "$pkg"; then
+            if [ "$quick" != 1 ] || ! emerald_is_installed "$pkg"; then
                 DEP="$DEP $pkg "
             fi
         ;;
@@ -725,7 +676,6 @@ deplist() {
 
     # remove from processing list
     CHECK=$(printf "%s" "$CHECK" | sed "s/ $pkg / /g")
-    makedepends="$root_makedepends"
 }
 
 emerald_deplist() {
@@ -734,8 +684,6 @@ emerald_deplist() {
     # reset accumulators
     PKG=""
     quick=""
-    all=""
-    makedepends=""
     exclude=""
 
     # parse arguments
@@ -745,8 +693,6 @@ emerald_deplist() {
     while [ -n "$1" ]; do
         case $1 in
             -q | --quick) quick=1 ;;
-            -a | --all) all=1 ;;
-            -m | --makedepends) makedepends=1 ;;
 
             --exclude=*)
                 for i in ${1#*=}; do
@@ -775,7 +721,6 @@ emerald_deplist() {
 
     # process dependencies
     for p in $PPKG; do
-        ROOT_DEPLIST=1
         deplist "$p"
     done
 
@@ -866,88 +811,85 @@ Usage:
 
 Options:
     search       <pattern>         find ports in repo
-                                   -n, --name         search in port names only
+                                   -n, --name   search in port names only
 
     sync                   <arg>   update ports database (use portsync arg)
-                                   -p, --prune        prune local git repository
-                                   -r, --reset        reset git repositories
+                                   -p, --prune  prune local git repository
+                                   -r, --reset  reset git repositories
 
     build        <ports>   <arg>   build ports (use pkgbuild arg, except '-i', '-u', '-r', '-g', & '-p')
-                                   -f                 force rebuild package
-                                   -k                 keep going building next package on error
-                                   -m                 skip checksum checking
-                                   -o                 fetch sources only
-                                   -q, --quiet        show only status messages and errors
-                                   -w                 keep working directory
-                                   -y                 skip ask user confirmation
-                                   -C, --clean        remove downloaded sources and prebuilt packages
-                                   --log              log build process (/var/log/name-version-release-date.log)
-                                   --jobs=<N>         override parallel build jobs (default: JOBS in config, or nproc)
+                                   -f           force rebuild package
+                                   -k           keep going building next package on error
+                                   -m           skip checksum checking
+                                   -o           fetch sources only
+                                   -q, --quiet  show only status messages and errors
+                                   -w           keep working directory
+                                   -y           skip ask user confirmation
+                                   -C, --clean  remove downloaded sources and prebuilt packages
+                                   --log        log build process (/var/log/name-version-release-date.log)
+                                   --jobs=<N>   override parallel build jobs (default: JOBS in config, or nproc)
 
     install      <ports>   <arg>   install ports (use pkgbuild arg, except '-i' & '-u')
-                                   -c                 ignore conflict when installing package
-                                   -f                 force rebuild package
-                                   -k                 keep going installing next package on error
-                                   -m                 skip checksum checking
-                                   -n                 skip dependencies
-                                   -o                 fetch sources only
-                                   -q, --quiet        show only status messages and errors
-                                   -r                 reinstall
-                                   -w                 keep working directory
-                                   -y, --yes          skip ask user confirmation
-                                   --exclude=*        exclude dependencies, comma separated
-                                   --no-backup        skip backup when reinstalling package
-                                   --jobs=<N>         override parallel build jobs (default: JOBS in config, or nproc)
+                                   -c           ignore conflict when installing package
+                                   -f           force rebuild package
+                                   -k           keep going installing next package on error
+                                   -m           skip checksum checking
+                                   -n           skip dependencies
+                                   -o           fetch sources only
+                                   -q, --quiet  show only status messages and errors
+                                   -r           reinstall
+                                   -w           keep working directory
+                                   -y, --yes    skip ask user confirmation
+                                   --exclude=*  exclude dependencies, comma separated
+                                   --no-backup  skip backup when reinstalling package
+                                   --jobs=<N>   override parallel build jobs (default: JOBS in config, or nproc)
 
     upgrade      <ports>   <arg>   upgrade ports (use pkgbuild arg, except '-i' & '-r')
-                                   -c                 ignore conflict when installing package
-                                   -f                 force rebuild package
-                                   -k                 keep going upgrading next package on error
-                                   -m                 skip checksum checking
-                                   -n                 skip dependencies
-                                   -o                 fetch sources only
-                                   -q, --quiet        show only status messages and errors
-                                   -w                 keep working directory
-                                   -y, --yes          skip ask user confirmation
-                                   --exclude=*        exclude dependencies, comma separated
-                                   --no-backup        skip backup when upgrading package
-                                   --jobs=<N>         override parallel build jobs (default: JOBS in config, or nproc)
+                                   -c           ignore conflict when installing package
+                                   -f           force rebuild package
+                                   -k           keep going upgrading next package on error
+                                   -m           skip checksum checking
+                                   -n           skip dependencies
+                                   -o           fetch sources only
+                                   -q, --quiet  show only status messages and errors
+                                   -w           keep working directory
+                                   -y, --yes    skip ask user confirmation
+                                   --exclude=*  exclude dependencies, comma separated
+                                   --no-backup  skip backup when upgrading package
+                                   --jobs=<N>   override parallel build jobs (default: JOBS in config, or nproc)
 
     sysup                  <arg>   full system upgrade (use pkgbuild arg, except '-i', '-r'  & '-u')
-                                   -c                 ignore conflict when installing package
-                                   -f                 force rebuild package
-                                   -k                 keep going upgrading next package on error
-                                   -m                 skip checksum checking
-                                   -n                 skip dependencies
-                                   -o                 fetch sources only
-                                   -q, --quiet        show only status messages and errors
-                                   -w                 keep working directory
-                                   -y, --yes          skip ask user confirmation
-                                   --exclude=*        exclude dependencies, comma separated
-                                   --no-backup        skip backup when upgrading package
-                                   --jobs=<N>         override parallel build jobs (default: JOBS in config, or nproc)
+                                   -c           ignore conflict when installing package
+                                   -f           force rebuild package
+                                   -k           keep going upgrading next package on error
+                                   -m           skip checksum checking
+                                   -n           skip dependencies
+                                   -o           fetch sources only
+                                   -q, --quiet  show only status messages and errors
+                                   -w           keep working directory
+                                   -y, --yes    skip ask user confirmation
+                                   --exclude=*  exclude dependencies, comma separated
+                                   --no-backup  skip backup when upgrading package
+                                   --jobs=<N>   override parallel build jobs (default: JOBS in config, or nproc)
 
     remove       <ports>   <arg>   remove installed ports (use pkgdel arg)
-                                   -y, --yes          skip ask user confirmation
+                                   -y, --yes    skip ask user confirmation
 
     deplist      <ports>           print all dependencies for ports
-                                   -q, --quick        skip installed ports
-                                   -a, --all          include installed ports
-                                   -m, --makedepends  include build dependencies for roots
-                                   --exclude=*        exclude dependencies, comma separated
+                                   -q, --quick  skip installed ports
+                                   --exclude=*  exclude dependencies, comma separated
 
     redeps       <ports>   <arg>   find redundant dependencies
-                                   -f, --fix          fix (remove) redundant port deps
+                                   -f, --fix    fix (remove) redundant port deps
 
-    cache                          (no args)          clean packages AND sources cache
-                                   -p, --pkg          clean packages cache only
-                                   -s, --src          clean sources cache only
+    cache                          (no args)    clean packages AND sources cache
+                                   -p, --pkg    clean packages cache only
+                                   -s, --src    clean sources cache only
 
     cat          <port>            print $BUILD_SCRIPT
     config                         print @PROJECT_NAME@ config
     dependent    <port>            print reverse dependencies
-    depends      <port>            print runtime dependencies
-    makedepends  <port>            print build dependencies
+    depends      <port>            print dependencies
     dup                            print duplicate ports
     files        <port>            print files installed
     foreign                        print foreign ports
@@ -1052,33 +994,25 @@ EOF
     deps=$(get_depends "$PKGNAME" | tr '\n' ' ')
     deps_out=""
 
-    if [ -n "$deps" ]; then
+    [ -z "$deps" ] || {
         for pkg in $deps; do
             emerald_is_installed "${pkg}" && deps_out=$(printf "%s%b%s%b " "${deps_out}" "${COLOR2}" "${pkg}" "${CRESET}") || deps_out=$(printf "%s%b%s%b " "${deps_out}" "${COLOR1}" "${pkg}" "${CRESET}")
         done
-    fi
+    }
 
     [ -n "$deps_out" ] || deps_out="None"
 
-    # Check dependents (required by), including runtime and make dependencies.
-    required_by=$(get_required_by "$PKGNAME")
+    # Check dependent (required by)
+    required_by=$(get_dependent "$PKGNAME" | tr '\n' ' ')
     required_by_out=""
 
-    if [ -n "${required_by}" ]; then
-        while IFS='|' read -r pkg kind; do
-            [ -n "$pkg" ] || continue
-
-            color="$(emerald_is_installed "$pkg" && printf "%b" "$COLOR2" || printf "%b" "$COLOR1")"
-            required_by_out=$(printf "%s%b%s%b (%s) " "$required_by_out" "$color" "$pkg" "$CRESET" "$kind")
-        done <<EOF
-${required_by}
-EOF
-    fi
+    [ -z "${required_by}" ] || {
+        for pkg in $required_by; do
+            emerald_is_installed "${pkg}" && required_by_out=$(printf "%s%b%s%b " "${required_by_out}" "${COLOR2}" "${pkg}" "${CRESET}") || required_by_out=$(printf "%s%b%s%b " "${required_by_out}" "${COLOR1}" "${pkg}" "${CRESET}")
+        done
+    }
 
     [ -n "$required_by_out" ] || required_by_out="None"
-
-    makedeps_out=$(get_makedepends "$PKGNAME" | tr '\n' ' ')
-    [ -n "$makedeps_out" ] || makedeps_out="None"
 
     [ -z "$FIELD" ] || {
         case "$FIELD" in
@@ -1092,7 +1026,6 @@ EOF
             commit) printf '%s\n' "$commit" ;;
             installed) printf '%s\n' "$iver" ;;
             depends) printf '%s\n' "$deps_out" ;;
-            makedepends) printf '%s\n' "$makedeps_out" ;;
             required-by) printf '%s\n' "$required_by_out" ;;
 
             *)
@@ -1135,10 +1068,9 @@ EOF
     printf '%bRelease:%b %b%s%b\n' "$COLOR5" "$CRESET" "$COLOR4" "$release" "$CRESET"
     [ -z "$commit" ] || printf '%bCommit:%b %s\n' "$COLOR5" "$CRESET" "$commit"
     printf '%bInstalled:%b %b%s%b\n' "$COLOR5" "$CRESET" "$COLOR2" "$iver" "$CRESET"
-    printf '%bAliased:%b %s\n' "$COLOR5" "$CRESET" "$port_alias"
-    printf '%bMasked:%b %s\n' "$COLOR5" "$CRESET" "$masked"
+    printf "%bAliased:%b %s\n" "$COLOR5" "$CRESET" "$port_alias"
+    printf "%bMasked:%b %s\n" "$COLOR5" "$CRESET" "$masked"
     printf '%bDepends:%b %s\n' "$COLOR5" "$CRESET" "$deps_out"
-    printf '%bMake depends:%b %s\n' "$COLOR5" "$CRESET" "$makedeps_out"
     printf '%bRequired by:%b %s\n' "$COLOR5" "$CRESET" "$required_by_out"
 }
 
@@ -1371,9 +1303,7 @@ emerald_install() {
     [ -n "$IPKG" ] || return 0
 
     printf "Resolving dependencies...\n"
-    # Build dependencies are installed before the package is built, but only
-    # explicitly requested packages are added to world.
-    INST="$(emerald_deplist -q --makedepends "$IPKG" "$EXOPT")"
+    INST="$(emerald_deplist -q "$IPKG" "$EXOPT")"
 
     if [ -n "$INST" ]; then
         printf "\n"
