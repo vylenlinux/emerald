@@ -287,7 +287,6 @@ pkg_build() {
     cd "$SRC" >/dev/null || abort 1
         mkdir -p "${SRC}/.cache/cargo" \
             "${SRC}/.cache/go" \
-            "${SRC}/.cache/meson" \
             "${SRC}/.cache/zig"
 
         export CARGO_HOME="${CARGO_HOME:-"${SRC}/.cache/cargo"}"
@@ -295,7 +294,7 @@ pkg_build() {
         export GOMODCACHE="${GOMODCACHE:-"${SRC}/.cache/go"}"
         export GOTMPDIR="${GOTMPDIR:-"${SRC}/.cache/go"}"
         export GOPATH="${GOPATH:-"${SRC}"}"
-        export MESON_PACKAGE_CACHE_DIR="${SRC}/.cache/meson"
+        export MESON_PACKAGE_CACHE_DIR="${SRC}"
         export ZIG_LOCAL_CACHE_DIR="${SRC}/.cache/zig"
         export ZIG_GLOBAL_CACHE_DIR="${SRC}/.cache/zig"
 
