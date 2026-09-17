@@ -109,20 +109,22 @@ write_world_build() {
 }
 
 write_required_runtime() {
-    # Keep runtime dependencies of installed packages, but not the packages
-    # themselves. A package is protected only when another package needs it.
+    # A candidate must not protect itself, but dependencies of every other
+    # installed package must remain protected. Exclude candidates first, then
+    # compute the union in one emerald process instead of once per package.
+    awk 'NR == FNR {
+        candidate[$0] = 1;
+        next;
+    } !candidate[$0];' "$TMPDIR/candidates" "$TMPDIR/installed" > "$TMPDIR/runtime-roots"
+
     : > "$TMPDIR/required-runtime"
+    [ -s "$TMPDIR/runtime-roots" ] || return 0
 
-    while IFS= read -r pkg; do
-        [ -n "$pkg" ] || continue
-
-        emerald deplist -q -a "$pkg" > "$TMPDIR/deplist" 2>/dev/null || {
-            msg_error "cannot verify runtime dependencies of '$pkg'"
-            exit 1
-        }
-
-        awk -v root="$pkg" '$0 != root;' "$TMPDIR/deplist" >> "$TMPDIR/required-runtime"
-    done < "$TMPDIR/installed"
+    # shellcheck disable=SC2046
+    emerald deplist -q -a $(cat "$TMPDIR/runtime-roots") > "$TMPDIR/required-runtime" 2>/dev/null || {
+        msg_error "cannot verify runtime dependencies of installed packages"
+        exit 1
+    }
 
     sort -u "$TMPDIR/required-runtime" -o "$TMPDIR/required-runtime"
 }
@@ -174,35 +176,22 @@ filter_candidates() {
 }
 
 remove_safe() {
-    printf "The following makedepends are safe to remove:\n"
-
-    sed 's/^/  - /' "$TMPDIR/safe"
-    [ "$DRYRUN" -eq 1 ] && return 0
-
-    if [ "$YES" -ne 1 ]; then
-        printf "Remove these packages? (Y/n) "
-        read -r answer
-
-        case "$answer" in
-            [Nn] | [Nn][Oo])
-                printf "Package removal cancelled.\n"
-                return 2
-            ;;
-        esac
+    if [ "$DRYRUN" -eq 1 ]; then
+        sed 's/^/  - /' "$TMPDIR/safe"
+        return 0
     fi
 
     # shellcheck disable=SC2046
-    emerald remove -y $(cat "$TMPDIR/safe")
+    emerald remove $(cat "$TMPDIR/safe")
 }
 
 DRYRUN=0
 YES=0
 REQUESTED=""
 
-while [ $# -gt 0 ]; do
+while [ "$#" -gt 0 ]; do
     case "$1" in
         -n | --dryrun) DRYRUN=1 ;;
-        -y | --yes) YES=1 ;;
 
         -h | --help)
             usage
@@ -250,8 +239,8 @@ write_world
 write_installed
 write_world_runtime
 write_world_build
-write_required_runtime
 write_candidates
+write_required_runtime
 filter_candidates
 
 [ -s "$TMPDIR/safe" ] || {
