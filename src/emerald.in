@@ -613,6 +613,21 @@ get_dependent() {
     done | sort -u
 }
 
+get_required_by() {
+    get_port_path "$1" >/dev/null 2>&1 || return 1
+
+    for repo in $PORT_REPO; do
+        awk -v pkg="$1" 'FNR == 1 {
+            n = split(FILENAME, a, "/");
+            dependent = a[n - 1];
+
+            kind = ((a[n] == "depends") ? "runtime" : "make");
+        } $0 == pkg {
+            printf "%s|%s\n", dependent, kind;
+        }' "$repo"/*/depends "$repo"/*/makedepends 2>/dev/null
+    done | sort -u
+}
+
 emerald_dependent() {
     need_arg "${@}"
 
@@ -1045,14 +1060,19 @@ EOF
 
     [ -n "$deps_out" ] || deps_out="None"
 
-    # Check dependent (required by)
-    required_by=$(get_dependent "$PKGNAME" | tr '\n' ' ')
+    # Check dependents (required by), including runtime and make dependencies.
+    required_by=$(get_required_by "$PKGNAME")
     required_by_out=""
 
     if [ -n "${required_by}" ]; then
-        for pkg in $required_by; do
-            emerald_is_installed "${pkg}" && required_by_out=$(printf "%s%b%s%b " "${required_by_out}" "${COLOR2}" "${pkg}" "${CRESET}") || required_by_out=$(printf "%s%b%s%b " "${required_by_out}" "${COLOR1}" "${pkg}" "${CRESET}")
-        done
+        while IFS='|' read -r pkg kind; do
+            [ -n "$pkg" ] || continue
+
+            color="$(emerald_is_installed "$pkg" && printf "%b" "$COLOR2" || printf "%b" "$COLOR1")"
+            required_by_out=$(printf "%s%b%s%b (%s) " "$required_by_out" "$color" "$pkg" "$CRESET" "$kind")
+        done <<EOF
+${required_by}
+EOF
     fi
 
     [ -n "$required_by_out" ] || required_by_out="None"
