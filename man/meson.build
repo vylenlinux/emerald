@@ -5,6 +5,7 @@ if get_option('man')
         'pkgbase.1',
         'pkgbuild.1',
         'pkgdel.1',
+        'mdpurge.1',
         'pkgrebuild.1',
         'portcreate.1',
         'portsync.1',

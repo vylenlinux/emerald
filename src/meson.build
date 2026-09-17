@@ -4,6 +4,7 @@ files = [
     'pkgbase',
     'pkgbuild',
     'pkgdel',
+    'mdpurge',
     'pkgrebuild',
     'portcreate',
     'portsync',
