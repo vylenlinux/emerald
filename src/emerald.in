@@ -994,11 +994,12 @@ EOF
     deps=$(get_depends "$PKGNAME" | tr '\n' ' ')
     deps_out=""
 
-    [ -z "$deps" ] || {
+    if [ -n "$deps" ]; then
         for pkg in $deps; do
-            emerald_is_installed "${pkg}" && deps_out=$(printf "%s%b%s%b " "${deps_out}" "${COLOR2}" "${pkg}" "${CRESET}") || deps_out=$(printf "%s%b%s%b " "${deps_out}" "${COLOR1}" "${pkg}" "${CRESET}")
+            color="$(emerald_is_installed "${pkg}" && printf '%b' "$COLOR2" || printf '%b' "$COLOR1")"
+            deps_out=$(printf "%s%b%s%b " "${deps_out}" "${color}" "${pkg}" "${CRESET}")
         done
-    }
+    fi
 
     [ -n "$deps_out" ] || deps_out="None"
 
@@ -1006,11 +1007,12 @@ EOF
     required_by=$(get_dependent "$PKGNAME" | tr '\n' ' ')
     required_by_out=""
 
-    [ -z "${required_by}" ] || {
+    if [ -n "${required_by}" ]; then
         for pkg in $required_by; do
-            emerald_is_installed "${pkg}" && required_by_out=$(printf "%s%b%s%b " "${required_by_out}" "${COLOR2}" "${pkg}" "${CRESET}") || required_by_out=$(printf "%s%b%s%b " "${required_by_out}" "${COLOR1}" "${pkg}" "${CRESET}")
+		color="$(emerald_is_installed "${pkg}" && printf '%b' "$COLOR2" || printf '%b' "$COLOR1")"
+            required_by_out=$(printf "%s%b%s%b " "${required_by_out}" "${color}" "${pkg}" "${CRESET}")
         done
-    }
+    fi
 
     [ -n "$required_by_out" ] || required_by_out="None"
 
