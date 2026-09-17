@@ -29,13 +29,10 @@ Print the effective configuration and configured aliases/masks.
 List packages depending on PORT.
 .TP
 .B depends PORT
-List direct runtime dependencies of PORT.
-.TP
-.B makedepends PORT
-List direct build dependencies of PORT.
+List direct dependencies of PORT.
 .TP
 .B deplist PORT...
-Print dependency lists. Use \fB-m, --makedepends\fR to include build dependencies of requested ports and \fB-a, --all\fR to include already installed packages.
+Print dependency lists.
 .TP
 .B dup
 Report duplicate installed packages.
