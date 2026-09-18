@@ -129,10 +129,10 @@ get_port_path() {
 }
 
 require_root() {
-    [ "$(id -u)" -eq 0 ] || {
+    if [ "$(id -u)" -ne 0 ]; then
         msg_error "this operation requires root privileges!"
         exit 1
-    }
+    fi
 }
 
 get_iversion() {
@@ -208,10 +208,10 @@ confirm() {
 }
 
 need_arg() {
-    [ -n "$1" ] || {
+    if [ -z "$1" ]; then
         printf "This operation required an arguments!\n"
         exit 1
-    }
+    fi
 }
 
 keep_going() {
@@ -310,7 +310,7 @@ emerald_build() {
 
             _build_ret="$?"
 
-            [ "$_build_ret" -eq 0 ] || {
+            if [ "$_build_ret" -ne 0 ]; then
                 set_term_title "Building $pkg failed."
 
                 if keep_going; then
@@ -322,7 +322,7 @@ emerald_build() {
                 fi
 
                 return 1
-            }
+	    fi
 
             set_term_title "Building $pkg done."
         cd - >/dev/null || return 1
@@ -340,7 +340,7 @@ emerald_build() {
 
 human_size() {
     # Converts bytes to a human-readable size with one decimal
-    b=$1
+    b="$1"
 
     awk -v b="$b" 'BEGIN {
         suf="B K M G T P";
@@ -511,8 +511,8 @@ EOF
 
     if confirm "Remove old caches?" "Old caches are kept."; then
         # delete in parallel
-        [ -n "$to_remove_pkg" ] && printf '%s' "$to_remove_pkg" | tr '|' '\n' | xargs -P "$(nproc)" -I{} rm -f "$PACKAGE_DIR/{}"
-        [ -n "$to_remove_src" ] && printf '%s' "$to_remove_src" | tr '|' '\n' | xargs -P "$(nproc)" -I{} rm -f "$SOURCE_DIR/{}"
+        [ -z "$to_remove_pkg" ] || printf '%s' "$to_remove_pkg" | tr '|' '\n' | xargs -P "$(nproc)" -I{} rm -f "$PACKAGE_DIR/{}"
+        [ -z "$to_remove_src" ] || printf '%s' "$to_remove_src" | tr '|' '\n' | xargs -P "$(nproc)" -I{} rm -f "$SOURCE_DIR/{}"
 
         msg_info "Old caches removed!"
     fi
@@ -566,7 +566,7 @@ emerald_config() {
     if [ -n "$_cfg_aliased" ]; then
         printf '\n%bALIASED PORTS:%b\n' "$COLOR5" "$CRESET"
 
-        printf '%s\n' "$_cfg_aliased" | while read -r _cfg_real _cfg_al _cfg_rest; do
+        printf '%s\n' "$_cfg_aliased" | while read -r _cfg_real _cfg_al _; do
             printf '  - %s -> %s\n' "$_cfg_real" "$_cfg_al"
         done
     fi
@@ -577,7 +577,7 @@ emerald_config() {
         printf '\n%bMASKED PORTS:%b\n' "$COLOR5" "$CRESET"
 
         printf '%s\n' "$_cfg_masked" | while IFS= read -r _cfg_m; do
-            _mk_ver=$(get_iversion "$_cfg_m")
+            _mk_ver="$(get_iversion "$_cfg_m")"
             printf '  - %s == %s\n' "$_cfg_m" "$_mk_ver"
         done
     fi
@@ -595,7 +595,7 @@ get_dependent() {
             found = 1;
         } found {
             n = split(f, a, "/");
-            print a[n-1];
+            print a[n - 1];
 
             found = 0;
             nextfile;
@@ -765,10 +765,10 @@ emerald_dup() {
     # shellcheck disable=SC2086
     dup=$(find $PORT_REPO -mindepth 1 -maxdepth 1 -type d -printf '%P\n' 2>/dev/null | sort | uniq -d)
 
-    [ -n "$dup" ] || {
+    if [ -z "$dup" ]; then
         msg_info "No duplicate ports found."
         return 0
-    }
+    fi
 
     for dport in $dup; do
         for drepo in $PORT_REPO; do
@@ -1016,7 +1016,7 @@ EOF
 
     [ -n "$required_by_out" ] || required_by_out="None"
 
-    [ -z "$FIELD" ] || {
+    if [ -n "$FIELD" ]; then
         case "$FIELD" in
             description) printf '%s\n' "$description" ;;
             maintainer) printf '%s\n' "$maintainer" ;;
@@ -1037,7 +1037,7 @@ EOF
         esac
 
         return 0
-    }
+    fi
 
     # Check alias: the queried port can appear as either the 'real' name
     # (1st field) or the 'alias' name (2nd field) in $ALIAS_FILE, e.g. for
@@ -1070,8 +1070,8 @@ EOF
     printf '%bRelease:%b %b%s%b\n' "$COLOR5" "$CRESET" "$COLOR4" "$release" "$CRESET"
     [ -z "$commit" ] || printf '%bCommit:%b %s\n' "$COLOR5" "$CRESET" "$commit"
     printf '%bInstalled:%b %b%s%b\n' "$COLOR5" "$CRESET" "$COLOR2" "$iver" "$CRESET"
-    printf "%bAliased:%b %s\n" "$COLOR5" "$CRESET" "$port_alias"
-    printf "%bMasked:%b %s\n" "$COLOR5" "$CRESET" "$masked"
+    printf '%bAliased:%b %s\n' "$COLOR5" "$CRESET" "$port_alias"
+    printf '%bMasked:%b %s\n' "$COLOR5" "$CRESET" "$masked"
     printf '%bDepends:%b %s\n' "$COLOR5" "$CRESET" "$deps_out"
     printf '%bRequired by:%b %s\n' "$COLOR5" "$CRESET" "$required_by_out"
 }
@@ -1415,10 +1415,10 @@ emerald_integrity() {
             done
         } < "$PKGDB_DIR/$pkg"
 
-        [ "$found" -ne 0 ] || {
+        if [ "$found" -eq 0 ]; then
             msg_info "'$pkg' integrity is OK!"
             return 0
-        }
+        fi
 
         return 1
     fi
@@ -1494,10 +1494,10 @@ emerald_missing_deps() {
 $(all_installed)
 EOF
 
-    [ "$found" -ne 0 ] || {
+    if [ "$found" -eq 0 ]! then
         msg_info "No ports missing deps found!"
         return 0
-    }
+    fi
 
     return 1
 }
@@ -1605,10 +1605,10 @@ check_outdated() {
 emerald_outdated() {
     out=$(check_outdated)
 
-    [ -n "$out" ] || {
+    if [ -z "$out" ]; then
         msg_info "All packages are up to date."
         return 0
-    }
+    fi
 
     printf '%s\n' "$out" | while IFS='#' read -r pname oldver newver newins masked; do
         unset ii
@@ -1674,10 +1674,10 @@ emerald_purge() {
         [ -n "$remove" ] && remove="$remove $pkg" || remove="$pkg"
     done
 
-    [ -n "$remove" ] || {
+    if [ -z "$remove" ]; then
         printf "No orphan packages found...\n"
         return 0
-    }
+    fi
 
     remove=$(printf '%s\n' $remove | awk '!seen[$0]++;') # remove duplicate shared dependencies
     emerald_remove $remove $PURGE_OPTS
@@ -2035,10 +2035,10 @@ emerald_sysup() {
         esac
     done
 
-    [ -n "$PKG" ] || {
+    if [ -z "$PKG" ]; then
         printf "All packages are up to date.\n"
         return 0
-    }
+    fi
 
     case " $PKG " in
         *" @PROJECT_NAME@ "*)
@@ -2309,10 +2309,10 @@ world_del() {
 }
 
 emerald_world() {
-    [ -n "$1" ] || {
+    if [ -z "$1" ]; then
         [ -s "$WORLD_FILE" ] && cat "$WORLD_FILE" || printf "world is empty\n"
         return 0
-    }
+    fi
 
     require_root
     touch "$WORLD_FILE"
@@ -2337,10 +2337,10 @@ emerald_alias() {
         list)
             _al_out=$(list_show "$ALIAS_FILE")
 
-            [ -n "$_al_out" ] || {
+            if [ -z "$_al_out" ]! then
                 msg_info "No aliased ports found!"
                 return 0
-            }
+	    fi
 
             printf '%s\n' "$_al_out"
         ;;
@@ -2360,10 +2360,10 @@ emerald_alias() {
         remove)
             require_root
 
-            [ -n "$2" ] || {
+            if [ -z "$2" ]; then
                 msg_error "Usage: @PROJECT_NAME@ alias remove <real>"
                 return 1
-            }
+	    fi
 
             list_del "$ALIAS_FILE" "$2" || {
                 msg_error "alias: '$2' not found"
@@ -2400,18 +2400,18 @@ emerald_mask() {
         list)
             _ma_out=$(list_show "$MASK_FILE")
 
-            [ -n "$_ma_out" ] || {
+            if [ -z "$_ma_out" ]; then
                 msg_info "No masked ports found!"
                 return 0
-            }
+	    fi
 
             printf '%s\n' "$_ma_out" | while IFS= read -r _ma_pkg; do
                 _ma_ver=$(get_iversion "$_ma_pkg")
 
-                [ -n "$_ma_ver" ] || {
+                if [ -z "$_ma_ver" ]; then
                     printf '%s\n' "$_ma_pkg"
                     return 0
-                }
+		fi
 
                 printf '%s == %s\n' "$_ma_pkg" "$_ma_ver"
             done
@@ -2421,10 +2421,10 @@ emerald_mask() {
             require_root
             shift
 
-            [ -n "$1" ] || {
+            if [ -z "$1" ]; then
                 msg_error "Usage: @PROJECT_NAME@ mask add <port1> <port2>..."
                 return 1
-            }
+            fi
 
             for _mk_port in "$@"; do
                 list_add "$MASK_FILE" "$_mk_port"
@@ -2436,10 +2436,10 @@ emerald_mask() {
             require_root
             shift
 
-            [ -n "$1" ] || {
+            if [ -z "$1" ]; then
                 msg_error "Usage: @PROJECT_NAME@ mask remove <port1> <port2>..."
                 return 1
-            }
+	    fi
 
             for _mk_port in "$@"; do
                 list_del "$MASK_FILE" "$_mk_port" || {
@@ -2479,12 +2479,12 @@ command -v pkgadd >/dev/null 2>&1 || {
     exit 1
 }
 
-mode=$1
+mode="$1"
 
-[ -n "$mode" ] || {
+if [ -z "$mode" ]; then
     printf "Run '%s help' to see available options.\n" "${0##*/}"
     exit 2
-}
+fi
 
 func="$(printf '%s' "$mode" | tr '-' '_')"
 
