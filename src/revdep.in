@@ -163,10 +163,10 @@ parse_opts() {
             ;;
 
             -p | --package)
-                [ -z "$2" ] && {
+                if [ -z "$2" ]; then
                     printf 'Option -p requires a package name\n' >&2
                     exit 1
-                }
+                fi
 
                 PKG=$2
                 shift
@@ -424,29 +424,29 @@ for d in $TARGET_SEARCH_DIRS; do
     fi
 done
 
-[ -z "$EXCLUDE_DIRS" ] || {
+if [ -n "$EXCLUDE_DIRS" ]; then
     printf '\nEXCLUDED DIRS:\n'
 
     for dd in $EXCLUDE_DIRS; do
         printf '  - %s\n' "$dd"
     done
-}
+fi
 
-[ -z "$EXCLUDE_FILES" ] || {
+if [ -n "$EXCLUDE_FILES" ]; then
     printf '\nEXCLUDED FILES:\n'
 
     for ff in $EXCLUDE_FILES; do
         printf '  - %s\n' "$ff"
     done
-}
+fi
 
-[ -z "$EXCLUDED_LIBS" ] || {
+if [ -n "$EXCLUDED_LIBS" ]; then
     printf '\nEXCLUDED LIBS:\n'
 
     for ll in $EXCLUDED_LIBS; do
         printf '  - %s\n' "$ll"
     done
-}
+fi
 
 printf '\n'
 

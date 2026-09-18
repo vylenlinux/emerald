@@ -73,15 +73,15 @@ for installed_pkg in $(find "$PKGDB_DIR" -type f 2>/dev/null | sed 's|.*/||'); d
     printf '%s\n' "$keep" | grep -qx "$installed_pkg" || remove="$remove $installed_pkg"
 done
 
-[ -n "$remove" ] || {
+if [ -z "$remove" ]; then
     printf "Already on base, nothing to remove.\n"
     exit "$error"
-}
+fi
 
-[ "$dryrun" -ne 0 ] || {
+if [ "$dryrun" -eq 0 ]; then
     emerald remove "$yes" $remove || error=1
     exit "$error"
-}
+fi
 
 printf "DRY-RUN MODE - No packages will be removed\n"
 printf "The following packages would be removed:\n"

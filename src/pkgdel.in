@@ -48,10 +48,10 @@ command -v pkgadd >/dev/null 2>&1 || {
 
 # Parse options directly; combined flags like -vh are not supported
 # (keeping it simple avoids a subshell and an extra pass over arguments)
-[ -n "$1" ] || {
+if [ -z "$1" ]; then
     help
     exit 0
-}
+fi
 
 while [ -n "$1" ]; do
     case $1 in
@@ -74,22 +74,22 @@ while [ -n "$1" ]; do
     shift
 done
 
-[ -n "$RMNAME" ] || {
+if [ -z "$RMNAME" ]; then
     help
     exit 0
-}
+fi
 
 PKGDB_DIR="$(pkgadd --print-db-dir)"
 PKGDB_DIR="${PKGDB_DIR##/}"
 
 LOCK_FILE="@STATE_DIR@/epkg.lock"
 
-[ "$(id -u)" -eq 0 ] || {
+if [ "$(id -u)" -ne 0 ]; then
     printf "Removing package need root access!\n"
     help
 
     exit 1
-}
+fi
 
 if [ -f "$ROOT_DIR/$LOCK_FILE" ]; then
     msg_error "Cannot install/remove package simultaneously."
@@ -137,20 +137,20 @@ awk -v rm_files="$_rm_files" -v rm_dirs="$_rm_dirs" 'NR > 1 {
 }' "$ROOT_DIR/$PKGDB_DIR/$name"
 
 # Remove regular files in one xargs batch
-[ -s "$_rm_files" ] && {
+if [ -s "$_rm_files" ]; then
     [ "$VERBOSE_REMOVE" = "yes" ] && sed "s|^|removing '${ROOT_DIR}/|;s|\$|'|" "$_rm_files"
     sed "s|^|${ROOT_DIR}/|" "$_rm_files" | xargs -r rm -f
-}
+fi
 
 # Remove directories deepest-first; skip any still referenced by another package
-[ -s "$_rm_dirs" ] && {
+if [ -s "$_rm_dirs" ]; then
     sort -r "$_rm_dirs" | while IFS= read -r d; do
         grep -Fxq "$d" "$tmpdb" || {
             [ "$VERBOSE_REMOVE" = "yes" ] && printf "removing directory '%s'\n" "${ROOT_DIR}/${d}"
             rmdir "${ROOT_DIR}/${d}" 2>/dev/null
         }
     done
-}
+fi
 
 # Remove files, dirs, tmpdb and the package entry from the database
 rm -f "$_rm_files" "$_rm_dirs" "$tmpdb" "$ROOT_DIR/$PKGDB_DIR/$name"

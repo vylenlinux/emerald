@@ -275,12 +275,12 @@ pkg_unpack() {
 }
 
 pkg_build() {
-    [ "$(id -u)" -eq 0 ] || {
+    if [ "$(id -u)" -ne 0 ]; then
         msg_error "You must build package as root, or use fakeroot."
         help
 
         abort 1
-    }
+    fi
 
     msg_info "Build start: $name-$version-$release"
 
@@ -574,10 +574,10 @@ pkg_clean() {
 
 check_build_script() {
     # check the required field in buildscript
-    [ -n "$name" ] || {
+    if [ -z "$name" ]; then
         msg_error "'name' is empty!"
         exit 1
-    }
+    fi
 
     case "$name" in
         *[A-Z]*)
@@ -591,15 +591,15 @@ check_build_script() {
         exit 1
     }
 
-    [ -n "$version" ] || {
+    if [ -z "$version" ]; then
         msg_error "'version' is empty!"
         exit 1
-    }
+    fi
 
-    [ -n "$release" ] || {
+    if [ -z "$release" ]; then
         msg_error "'release' is empty!"
         exit 1
-    }
+    fi
 
     case "$release" in
         *[A-Z]* | *[a-z]* | *-* | *\.* | *_*)
@@ -625,10 +625,10 @@ check_build_script() {
         exit 1
     fi
 
-    [ -n "$description" ] || {
+    if [ -z "$description" ]; then
         msg_error "'description' is empty!"
         exit 1
-    }
+    fi
 }
 
 check_dir() {
@@ -655,10 +655,10 @@ cbuild_restore() {
     _rs_dest="$1"
     _rs_cfg="$CBUILD_DIR/${2:-$name}.cfg"
 
-    [ -n "$_rs_dest" ] || {
+    if [ -z "$_rs_dest" ]; then
         msg_error "cbuild_restore: destination path required"
         return 1
-    }
+    fi
 
     [ -f "$_rs_cfg" ] || return 1
 
@@ -674,10 +674,10 @@ cbuild_save() {
     _sv_src="$1"
     _sv_cfg="$CBUILD_DIR/${2:-$name}.cfg"
 
-    [ -n "$_sv_src" ] || {
+    if [ -z "$_sv_src" ]; then
         msg_error "cbuild_save: source path required"
         return 1
-    }
+    fi
 
     [ -f "$_sv_src" ] || {
         msg_error "cbuild_save: '$_sv_src' not found"

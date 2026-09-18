@@ -83,12 +83,12 @@ umount_all() {
 }
 
 # Validate that target directory argument is provided
-[ -z "$1" ] && {
+if [ -z "$1" ]; then
     msg_error "Please specify a directory for chroot"
     help
 
     exit 1
-}
+fi
 
 # Remove trailing slash from directory path if present
 TARGET="${1%/}"

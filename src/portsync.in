@@ -121,10 +121,10 @@ reset_repos() {
         _rr_port_dir="${_rr_dir##*/}"
 
         # Skip local repositories without a URL (manually maintained)
-        [ -n "$_rr_url" ] || {
+        if [ -z "$_rr_url" ]; then
             msg_info "Skipping local repo '$_rr_dir' (no URL)"
             continue
-        }
+        fi
 
         if [ -n "$SYNC_REPOS" ]; then
             case " $SYNC_REPOS " in
@@ -204,16 +204,16 @@ sync_repo() {
 parse_opts "$@"
 
 # Show help if requested
-[ "$HELP" -ne 1 ] || {
+if [ "$HELP" -eq 1 ]; then
     usage
     exit 0
-}
+fi
 
 # Check root permissions
-[ "$(id -u)" -eq 0 ] || {
+if [ "$(id -u)" -ne 0 ]; then
     msg_error "This operation needs root access!"
     exit 1
-}
+fi
 
 # Define working directories
 bare_dir="@CACHE_DIR@/repos"
@@ -259,10 +259,10 @@ while read -r repo_dir repo_url repo_branch _; do
     fi
 
     # Skip entries without a URL (local repositories)
-    [ -n "$repo_url" ] || {
+    if [ -z "$repo_url" ]; then
         msg_warning "No URL for repo '$repo_dir', skipping."
         continue
-    }
+    fi
 
     sync_repo "$repo_dir" "$repo_url" "${repo_branch:-main}" || {
         msg_error "Sync failed for repository $repo_dir"

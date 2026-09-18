@@ -18,20 +18,20 @@ command -v "$EDITOR" >/dev/null 2>&1 || {
 }
 
 # Check for root privileges
-[ "$(id -u)" -eq 0 ] || {
+if [ "$(id -u)" -ne 0 ]; then
     printf "This operation need root access. Exiting...\n"
     exit 1
-}
+fi
 
 # Find all .@EPKGNEW_EXT@ files in /etc
 # Note: -regextype is GNU-specific, but commonly available
 epkgnew=$(find /etc -regextype posix-extended -regex ".+\.@EPKGNEW_EXT@" 2>/dev/null)
 
 # Exit if no .@EPKGNEW_EXT@ files found
-[ -n "$epkgnew" ] || {
+if [ -z "$epkgnew" ]; then
     printf "Nothing to do. Exiting...\n"
     exit 0
-}
+fi
 
 # Process each .@EPKGNEW_EXT@ file
 for file in $epkgnew; do

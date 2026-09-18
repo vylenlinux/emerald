@@ -63,10 +63,10 @@ EOF
 }
 
 parse_opts() {
-    [ -n "$1" ] || {
+    if [ -z "$1" ]; then
         SHOW_HELP=yes
         return 0
-    }
+    fi
 
     while [ -n "$1" ]; do
         case $1 in
@@ -138,12 +138,12 @@ fi
 }
 
 # Check for root access
-[ "$(id -u)" -eq 0 ] || {
+if [ "$(id -u)" -ne 0 ]; then
     msg_error "Installing packages requires root access!"
     help
 
     exit 1
-}
+fi
 
 # Check for lock file
 if [ -f "$ROOT_DIR/$LOCK_FILE" ]; then
