@@ -322,7 +322,7 @@ emerald_build() {
                 fi
 
                 return 1
-	    fi
+            fi
 
             set_term_title "Building $pkg done."
         cd - >/dev/null || return 1
@@ -2340,7 +2340,7 @@ emerald_alias() {
             if [ -z "$_al_out" ]! then
                 msg_info "No aliased ports found!"
                 return 0
-	    fi
+            fi
 
             printf '%s\n' "$_al_out"
         ;;
@@ -2363,7 +2363,7 @@ emerald_alias() {
             if [ -z "$2" ]; then
                 msg_error "Usage: @PROJECT_NAME@ alias remove <real>"
                 return 1
-	    fi
+            fi
 
             list_del "$ALIAS_FILE" "$2" || {
                 msg_error "alias: '$2' not found"
@@ -2403,7 +2403,7 @@ emerald_mask() {
             if [ -z "$_ma_out" ]; then
                 msg_info "No masked ports found!"
                 return 0
-	    fi
+            fi
 
             printf '%s\n' "$_ma_out" | while IFS= read -r _ma_pkg; do
                 _ma_ver=$(get_iversion "$_ma_pkg")
@@ -2411,7 +2411,7 @@ emerald_mask() {
                 if [ -z "$_ma_ver" ]; then
                     printf '%s\n' "$_ma_pkg"
                     return 0
-		fi
+                fi
 
                 printf '%s == %s\n' "$_ma_pkg" "$_ma_ver"
             done
@@ -2439,7 +2439,7 @@ emerald_mask() {
             if [ -z "$1" ]; then
                 msg_error "Usage: @PROJECT_NAME@ mask remove <port1> <port2>..."
                 return 1
-	    fi
+            fi
 
             for _mk_port in "$@"; do
                 list_del "$MASK_FILE" "$_mk_port" || {
