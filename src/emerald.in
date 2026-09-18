@@ -1009,7 +1009,7 @@ EOF
 
     if [ -n "${required_by}" ]; then
         for pkg in $required_by; do
-		color="$(emerald_is_installed "${pkg}" && printf '%b' "$COLOR2" || printf '%b' "$COLOR1")"
+            color="$(emerald_is_installed "${pkg}" && printf '%b' "$COLOR2" || printf '%b' "$COLOR1")"
             required_by_out=$(printf "%s%b%s%b " "${required_by_out}" "${color}" "${pkg}" "${CRESET}")
         done
     fi
