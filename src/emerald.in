@@ -1494,7 +1494,7 @@ emerald_missing_deps() {
 $(all_installed)
 EOF
 
-    if [ "$found" -eq 0 ]! then
+    if [ "$found" -eq 0 ]; then
         msg_info "No ports missing deps found!"
         return 0
     fi
@@ -2337,7 +2337,7 @@ emerald_alias() {
         list)
             _al_out=$(list_show "$ALIAS_FILE")
 
-            if [ -z "$_al_out" ]! then
+            if [ -z "$_al_out" ]; then
                 msg_info "No aliased ports found!"
                 return 0
             fi
