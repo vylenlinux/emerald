@@ -39,7 +39,7 @@ get_autotools_template() {
 # shellcheck disable=SC2034
 description=""
 homepage=""
-maintainer="@MAINTAINER@ <@EMAIL@>"
+maintainer="@MAINTAINER@"
 
 name=%name%
 version=
@@ -66,7 +66,7 @@ get_meson_template() {
 # shellcheck disable=SC2034
 description=""
 homepage=""
-maintainer="@MAINTAINER@ <@EMAIL@>"
+maintainer="@MAINTAINER@"
 
 name=%name%
 version=
@@ -90,7 +90,7 @@ get_cmake_template() {
 # shellcheck disable=SC2034
 description=""
 homepage=""
-maintainer="@MAINTAINER@ <@EMAIL@>"
+maintainer="@MAINTAINER@"
 
 name=%name%
 version=
@@ -122,7 +122,7 @@ get_go_template() {
 # shellcheck disable=SC2034
 description=""
 homepage=""
-maintainer="@MAINTAINER@ <@EMAIL@>"
+maintainer="@MAINTAINER@"
 
 name=%name%
 version=
@@ -155,7 +155,7 @@ get_python_template() {
 # shellcheck disable=SC2034
 description=""
 homepage=""
-maintainer="@MAINTAINER@ <@EMAIL@>"
+maintainer="@MAINTAINER@"
 
 name=%name%
 version=
@@ -183,7 +183,7 @@ get_rust_template() {
 # shellcheck disable=SC2034
 description=""
 homepage=""
-maintainer="@MAINTAINER@ <@EMAIL@>"
+maintainer="@MAINTAINER@"
 
 name=%name%
 version=
@@ -212,7 +212,7 @@ get_gpep517_template() {
 # shellcheck disable=SC2034
 description=""
 homepage=""
-maintainer="@MAINTAINER@ <@EMAIL@>"
+maintainer="@MAINTAINER@"
 
 name=%name%
 version=
