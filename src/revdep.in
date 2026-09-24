@@ -366,7 +366,7 @@ command -v pkgadd >/dev/null 2>&1 || {
 
 # Package database directory
 PKGDB_DIR="$(pkgadd --print-db-dir)"
-SEARCH_DIRS="/bin /usr/bin /sbin /usr/sbin /lib /usr/lib /lib64 /usr/lib64 /usr/libexec"
+SEARCH_DIRS="/usr/bin /usr/lib"
 
 parse_opts "$@"
 

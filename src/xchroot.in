@@ -227,7 +227,7 @@ msg_info "Executing: $*"
 # /usr/bin/env -i creates fresh environment with only specified variables
 # Use exec "$@" to properly handle command with multiple arguments
 # This preserves argument boundaries: ["ls", "-la", "/tmp"] not ["ls -la /tmp"]
-chroot "$TARGET" /usr/bin/env -i HOME=/root TERM="$TERM" PS1='\u:\w\$ ' PATH=/bin:/usr/bin:/sbin:/usr/sbin "$@"
+chroot "$TARGET" /usr/bin/env -i HOME=/root TERM="$TERM" PS1='\u:\w\$ ' PATH=/usr/bin "$@"
 
 # Capture chroot exit status immediately
 # Must be done before any other command to preserve $?

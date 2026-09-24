@@ -156,6 +156,6 @@ fi
 rm -f "$_rm_files" "$_rm_dirs" "$tmpdb" "$ROOT_DIR/$PKGDB_DIR/$name"
 
 # Refresh the dynamic linker cache if available
-[ -x "$ROOT_DIR/sbin/ldconfig" ] && "$ROOT_DIR/sbin/ldconfig" -r "$ROOT_DIR/"
+[ -x "$ROOT_DIR/usr/bin/ldconfig" ] && "$ROOT_DIR/usr/bin/ldconfig" -r "$ROOT_DIR/"
 
 ret 0

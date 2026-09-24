@@ -309,5 +309,5 @@ printf '%s %s\n' "$version" "$release" > "$ROOT_DIR/$PKGDB_DIR/$name"
 cat "$TMP_PKGINSTALL" >> "$ROOT_DIR/$PKGDB_DIR/$name"
 
 # Running ldconfig
-[ -x "$ROOT_DIR/sbin/ldconfig" ] && "$ROOT_DIR/sbin/ldconfig" -r "$ROOT_DIR/"
+[ -x "$ROOT_DIR/usr/bin/ldconfig" ] && "$ROOT_DIR/usr/bin/ldconfig" -r "$ROOT_DIR/"
 ret 0
