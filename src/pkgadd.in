@@ -97,7 +97,7 @@ parse_opts() {
             *.epkg.tar.*) PKGNAME="$(get_realpath "$1")" ;;
 
             *)
-                msg_info "Invalid option! ($1)";
+                msg_info "Invalid option! ($1)"
                 exit 1
             ;;
         esac
@@ -199,9 +199,10 @@ fi
 TMP_PKGADD="$ROOT_DIR/$EMERALD_DIR/.tmp_pkgadd"
 TMP_PKGINSTALL="$ROOT_DIR/$EMERALD_DIR/.tmp_pkginstall"
 
-# Check integrity of package and save list file/dirs to install
-# Note: POSIX 2024 standardized 'tar'. Flags are compliant.
-tar -tvf "$PKGNAME" > "$TMP_PKGADD" 2>/dev/null || {
+# Check integrity of package and save list file/dirs to install, --quoting-style=literal (GNU tar)
+# avoids octal-escaping non-ASCII filenames in the listing, so paths stored/compared here match
+# the real bytes on disk exactly.
+tar --quoting-style=literal -tvf "$PKGNAME" > "$TMP_PKGADD" 2>/dev/null || {
     msg_error "Package '$1' is corrupted!"
     ret 1
 }
@@ -255,7 +256,7 @@ fi
 rm -f "$TMP_PKGINSTALL"
 
 # Extract package into ROOT_DIR
-tar -xvhpf "$PKGNAME" -C "$ROOT_DIR/" | while read -r line; do
+tar --quoting-style=literal -xvhpf "$PKGNAME" -C "$ROOT_DIR/" | while read -r line; do
     case "$line" in
         *.@EPKGNEW_EXT@)
             line="${line%.@EPKGNEW_EXT@}"

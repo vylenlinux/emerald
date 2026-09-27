@@ -518,7 +518,7 @@ pkg_package() {
         }
 
         # Capture listing once; reuse for display and pkgfiles (avoids re-reading the archive)
-        _tar_list=$(tar -tvf "$PACKAGE_DIR/$PKGNAME")
+        _tar_list=$(tar --quoting-style=literal -tvf "$PACKAGE_DIR/$PKGNAME")
         [ "$QUIET" != "yes" ] && printf '%s\n' "$_tar_list" | sort -k 6
 
         msg_info "Packaging success: $PKGNAME ($(ls -lh "$PACKAGE_DIR/$PKGNAME" | awk '{print $5;}'))"
@@ -537,7 +537,7 @@ pkg_gen_pkgfiles() {
     if [ -n "$1" ]; then
         printf '%s\n' "$1"
     else
-        tar -tvf "$PACKAGE_DIR/$PKGNAME"
+        tar --quoting-style=literal -tvf "$PACKAGE_DIR/$PKGNAME"
     fi | awk '{
         $3 = $4 = $5 = "";
         print $0;
