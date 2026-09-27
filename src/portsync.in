@@ -152,8 +152,7 @@ sync_repo() {
     #   $2 - Remote repository URL
     #   $3 - Branch to synchronize (optional, default: main)
 
-    repo_dir="$1"
-    port_dir="${repo_dir##*/}"
+    repo_dir="${1##*/}"
     repo_url="$2"
     repo_branch="${3:-main}"
 
