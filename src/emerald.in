@@ -1031,7 +1031,7 @@ EOF
             required-by) printf '%s\n' "$required_by_out" ;;
 
             *)
-                printf 'Unknown field: %s\n' "$3" >&2
+                printf 'Unknown field: %s\n' "$FIELD" >&2
                 return 1
             ;;
         esac
