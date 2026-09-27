@@ -20,6 +20,7 @@ conf_data.set('PKGFILES_FILE', get_option('pkgfiles-file'))
 conf_data.set('EPKGNEW_EXT', get_option('epkgnew-ext'))
 conf_data.set('MAINTAINER', get_option('maintainer'))
 conf_data.set('MESON_WRAPPER', get_option('meson-wrapper'))
+conf_data.set('SEARCH_DIRS', get_option('search-dirs'))
 
 subdir('data')
 subdir('man')
