@@ -1787,6 +1787,7 @@ emerald_remove() {
     done
 
     set_term_title "$pkgcount package(s) removed."
+    return "${error:-0}"
 }
 
 emerald_search() {
