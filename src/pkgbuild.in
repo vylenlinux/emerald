@@ -14,32 +14,6 @@ msg_error() {
     printf "ERROR: %s\n" "$1" >&2
 }
 
-do_service() {
-    for _svc in "$@"; do
-        _svc_dir="$SRC/files/services/$_svc"
-
-        [ -d "$_svc_dir" ] || {
-            msg_error "Service directory not found: $_svc_dir"
-            return 1
-        }
-
-        # Install init.d (required)
-        [ -f "$_svc_dir/$_svc.initd" ] || {
-            msg_error "No init.d found for $_svc"
-            return 1
-        }
-
-        install -Dm755 "$_svc_dir/$_svc.initd" "$PKG/etc/init.d/$_svc"
-        msg_info "Installed: /etc/init.d/$_svc"
-
-        # Install conf.d (optional)
-        if [ -f "$_svc_dir/$_svc.confd" ]; then
-            install -Dm644 "$_svc_dir/$_svc.confd" "$PKG/etc/conf.d/$_svc"
-            msg_info "Installed: /etc/conf.d/$_svc"
-        fi
-    done
-}
-
 do_pam() {
     for _pam in "$@"; do
         _pam_dir="$SRC/files/pam.d"
@@ -449,7 +423,6 @@ pkg_package() {
         rm -f usr/share/info/dir usr/info/dir
         rm -f usr/lib/charset.alias # on musl system
 
-        rm -rf usr/lib/systemd usr/lib/sysusers.d usr/lib/tmpfiles.d
         rm -rf usr/share/licenses usr/lib/python3.*/site-packages/*.dist-info/licenses
 
         find . \( \
