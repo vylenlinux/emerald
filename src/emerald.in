@@ -1095,12 +1095,21 @@ hook() {
         port="${PWD##*/}"
     fi
 
-    hook="$hook_dir/$hook_stage-$hook_action"
+    hook="$hook_dir/$port.install"
+    hook_function="${hook_stage}_${hook_action}"
 
-    # hook are optional
+    # The single install file and each function in it are optional.
     if [ -f "$hook" ]; then
-        msg_info "${port}: hook $hook_stage-$hook_action"
-        sh "$hook"
+        (
+            cd "$hook_dir" || exit 1
+
+            # shellcheck source=$port.install
+            . "./$port.install" || exit 1
+            command -v "$hook_function" >/dev/null 2>&1 || exit 0
+
+            msg_info "$port: hook $hook_function"
+            "$hook_function"
+        )
     fi
 }
 
@@ -1110,7 +1119,7 @@ emerald_hook() {
     if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
         msg_warning "Usage: @PROJECT_NAME@ hook <stage> <action> <port>"
 
-        msg_info "@PROJECT_NAME@ hook <pre|post> <install|remove> <port>"
+        msg_info "@PROJECT_NAME@ hook <pre|post> <install|upgrade|remove> <port>"
         msg_info "Example: @PROJECT_NAME@ hook post install linux"
 
         return 1
@@ -1130,10 +1139,10 @@ emerald_hook() {
     esac
 
     case "$action" in
-        install | remove) ;;
+        install | upgrade | remove) ;;
 
         *)
-            msg_error "action must be 'install' or 'remove'"
+            msg_error "action must be 'install', 'upgrade' or 'remove'"
             return 1
         ;;
     esac
@@ -1931,9 +1940,8 @@ do_upgrade_install() {
         count=$(( count + 1 ))
 
         cd "$(get_port_path "$inst")" || return 1
-            hook pre install
-
             emerald_is_installed "$inst" || {
+                hook pre install
                 set_term_title "[ $count/$total ] Installing $inst..."
 
                 pkgbuild -i $OPTS || {
@@ -1958,6 +1966,7 @@ do_upgrade_install() {
                 continue
             }
 
+            hook pre upgrade
             set_term_title "[ $count/$total ] Upgrading $inst..."
 
             pkgbuild -u $OPTS || {
@@ -1975,7 +1984,7 @@ do_upgrade_install() {
                 break
             }
 
-            hook post install
+            hook post upgrade
             done_pkg="$done_pkg $inst"
         cd - >/dev/null || return 1
     done
