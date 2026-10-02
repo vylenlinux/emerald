@@ -38,7 +38,7 @@ Print dependency lists.
 Report duplicate installed packages.
 .TP
 .B files PORT
-List files belonging to an installed package.
+List files belonging to installed port.
 .TP
 .B foreign
 List installed packages not provided by configured ports.
@@ -46,8 +46,11 @@ List installed packages not provided by configured ports.
 .B help
 Show built-in help.
 .TP
+.B hook {pre|post} {install|upgrade|remove} PORT
+Run a hook manually from PORT's unified install file. The command requires root privileges.
+.TP
 .B info PORT...
-Show package/port metadata; package names may also be added to the world list as implemented by the command.
+Show port/package metadata; package names may also be added to the world list as implemented by the command.
 .TP
 .B install PORT...
 Build and install ports.
