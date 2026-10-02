@@ -1091,15 +1091,24 @@ hook() {
     # Hooks receive the installed version as $1 and the version being
     # installed as $2. Explicit versions keep post hooks stable after the
     # package database is updated.
-    case "$hook_action" in
-        install) [ -n "$new_version" ] || new_version=$(get_version "$port") ;;
-        remove) [ -n "$current_version" ] || current_version=$(get_iversion "$port") ;;
+    if [ "$#" -lt 5 ]; then
+        case "$hook_action" in
+            install)
+                new_version=$(get_version "$port")
+                [ "$hook_stage" = "post" ] && current_version=$(get_iversion "$port")
+            ;;
 
-        upgrade)
-            [ -n "$current_version" ] || current_version=$(get_iversion "$port")
-            [ -n "$new_version" ] || new_version=$(get_version "$port")
-        ;;
-    esac
+            upgrade)
+                current_version=$(get_iversion "$port")
+                new_version=$(get_version "$port")
+            ;;
+
+            remove) current_version=$(get_iversion "$port") ;;
+        esac
+    fi
+
+    current_version="${current_version%-*}"
+    new_version="${new_version%-*}"
 
     hook="$hook_dir/$port.install"
     hook_function="${hook_stage}_${hook_action}"
@@ -1382,7 +1391,7 @@ emerald_install() {
                     *" $inst "*) world_add "$inst" ;;
                 esac
 
-                hook post install "$inst" "" "$install_version"
+                hook post install "$inst" "$install_version" "$install_version"
                 done_pkg="$done_pkg $inst"
             cd - >/dev/null || return 1
         done
@@ -1971,7 +1980,7 @@ do_upgrade_install() {
                     break
                 }
 
-                hook post install "$inst" "" "$install_version"
+                hook post install "$inst" "$install_version" "$install_version"
                 done_pkg="$done_pkg $inst"
 
                 cd - >/dev/null || return 1
