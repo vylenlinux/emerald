@@ -1081,9 +1081,6 @@ hook() {
     # if using -o (download only), dont run hook
     [ "$DOWNLOAD_ONLY" = 1 ] && return 0
 
-    # silent sanity check
-    [ -n "$1" ] && [ -n "$2" ] || return 0
-
     hook_stage="$1"
     hook_action="$2"
     port="$3"
