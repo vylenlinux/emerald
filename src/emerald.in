@@ -1077,7 +1077,7 @@ EOF
 }
 
 hook() {
-    # hook <stage> <action> [port]
+    # hook <stage> <action> [port] [current-version] [new-version]
     # if using -o (download only), dont run hook
     [ "$DOWNLOAD_ONLY" = 1 ] && return 0
 
@@ -1087,6 +1087,8 @@ hook() {
     hook_stage="$1"
     hook_action="$2"
     port="$3"
+    current_version="$4"
+    new_version="$5"
     hook_dir="."
 
     if [ -n "$port" ]; then
@@ -1094,6 +1096,19 @@ hook() {
     else
         port="${PWD##*/}"
     fi
+
+    # Hooks receive the installed version as $1 and the version being
+    # installed as $2. Explicit versions keep post hooks stable after the
+    # package database is updated.
+    case "$hook_action" in
+        install) [ -n "$new_version" ] || new_version=$(get_version "$port") ;;
+        remove) [ -n "$current_version" ] || current_version=$(get_iversion "$port") ;;
+
+        upgrade)
+            [ -n "$current_version" ] || current_version=$(get_iversion "$port")
+            [ -n "$new_version" ] || new_version=$(get_version "$port")
+        ;;
+    esac
 
     hook="$hook_dir/$port.install"
     hook_function="${hook_stage}_${hook_action}"
@@ -1108,7 +1123,7 @@ hook() {
             command -v "$hook_function" >/dev/null 2>&1 || exit 0
 
             msg_info "$port: hook $hook_function"
-            "$hook_function"
+            "$hook_function" "$current_version" "$new_version"
         )
     fi
 }
@@ -1352,8 +1367,10 @@ emerald_install() {
             }
 
             cd "$PPATH" || return 1
+                install_version=$(get_version "$inst")
+
                 set_term_title "[ $count/$total ] installing $inst..."
-                hook pre install
+                hook pre install "$inst" "" "$install_version"
 
                 pkgbuild -i $OPTS || {
                     error=1
@@ -1374,7 +1391,7 @@ emerald_install() {
                     *" $inst "*) world_add "$inst" ;;
                 esac
 
-                hook post install
+                hook post install "$inst" "" "$install_version"
                 done_pkg="$done_pkg $inst"
             cd - >/dev/null || return 1
         done
@@ -1783,7 +1800,9 @@ emerald_remove() {
         count=$(( count + 1 ))
         set_term_title "[ $count/$pkgcount ] Removing $pkg..."
 
-        hook pre remove "$pkg"
+        remove_version=$(get_iversion "$pkg")
+
+        hook pre remove "$pkg" "$remove_version" ""
         printf "remove: %s %s...\n" "$pkg" "$(get_iversion "$pkg")"
 
         pkgdel "$pkg" $OPTS || {
@@ -1792,7 +1811,7 @@ emerald_remove() {
         }
 
         world_del "$pkg"
-        hook post remove "$pkg"
+        hook post remove "$pkg" "$remove_version" ""
     done
 
     set_term_title "$pkgcount package(s) removed."
@@ -1941,7 +1960,9 @@ do_upgrade_install() {
 
         cd "$(get_port_path "$inst")" || return 1
             emerald_is_installed "$inst" || {
-                hook pre install
+                install_version=$(get_version "$inst")
+
+                hook pre install "$inst" "" "$install_version"
                 set_term_title "[ $count/$total ] Installing $inst..."
 
                 pkgbuild -i $OPTS || {
@@ -1959,14 +1980,17 @@ do_upgrade_install() {
                     break
                 }
 
-                hook post install
+                hook post install "$inst" "" "$install_version"
                 done_pkg="$done_pkg $inst"
 
                 cd - >/dev/null || return 1
                 continue
             }
 
-            hook pre upgrade
+            current_version=$(get_iversion "$inst")
+            upgrade_version=$(get_version "$inst")
+
+            hook pre upgrade "$inst" "$current_version" "$upgrade_version"
             set_term_title "[ $count/$total ] Upgrading $inst..."
 
             pkgbuild -u $OPTS || {
@@ -1984,7 +2008,7 @@ do_upgrade_install() {
                 break
             }
 
-            hook post upgrade
+            hook post upgrade "$inst" "$current_version" "$upgrade_version"
             done_pkg="$done_pkg $inst"
         cd - >/dev/null || return 1
     done
