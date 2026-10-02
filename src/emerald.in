@@ -1089,13 +1089,7 @@ hook() {
     port="$3"
     current_version="$4"
     new_version="$5"
-    hook_dir="."
-
-    if [ -n "$port" ]; then
-        hook_dir="$(get_port_path "$port")" || return 1
-    else
-        port="${PWD##*/}"
-    fi
+    hook_dir="$(get_port_path "$port")"
 
     # Hooks receive the installed version as $1 and the version being
     # installed as $2. Explicit versions keep post hooks stable after the
@@ -1122,7 +1116,7 @@ hook() {
             . "./$port.install" || exit 1
             command -v "$hook_function" >/dev/null 2>&1 || exit 0
 
-            msg_info "$port: hook $hook_function"
+            msg_info "$port: hook ${hook_stage}-${hook_action}"
             "$hook_function" "$current_version" "$new_version"
         )
     fi
