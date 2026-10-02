@@ -701,8 +701,12 @@ cbuild_options() {
 
 pkg_cleanup() {
     if [ "$KEEP_WORK" != "yes" ] && [ -n "$name" ]; then
-        # shellcheck disable=SC2115
-        rm -rf "$WORK_DIR/$name"
+        _pkg_work_dir="$WORK_DIR/$name"
+        [ -e "$_pkg_work_dir" ] || return 0
+
+        # Run chmod outside fakeroot to restore real write permissions.
+        env -u LD_PRELOAD chmod -R u+rwX "$_pkg_work_dir" 2>/dev/null || :
+        rm -rf "$_pkg_work_dir"
     fi
 }
 
