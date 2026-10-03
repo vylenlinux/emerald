@@ -1016,29 +1016,6 @@ EOF
 
     [ -n "$required_by_out" ] || required_by_out="None"
 
-    if [ -n "$FIELD" ]; then
-        case "$FIELD" in
-            description) printf '%s\n' "$description" ;;
-            maintainer) printf '%s\n' "$maintainer" ;;
-            homepage) printf '%s\n' "$homepage" ;;
-            path) printf '%s\n' "$PPATH" ;;
-            name) printf '%s\n' "$PKGNAME" ;;
-            version) printf '%s\n' "$version" ;;
-            release) printf '%s\n' "$release" ;;
-            commit) printf '%s\n' "$commit" ;;
-            installed) printf '%s\n' "$iver" ;;
-            depends) printf '%s\n' "$deps_out" ;;
-            required-by) printf '%s\n' "$required_by_out" ;;
-
-            *)
-                printf 'Unknown field: %s\n' "$FIELD" >&2
-                return 1
-            ;;
-        esac
-
-        return 0
-    fi
-
     # Check alias: the queried port can appear as either the 'real' name
     # (1st field) or the 'alias' name (2nd field) in $ALIAS_FILE, e.g. for
     # a line "rust rust-lang", both '@PROJECT_NAME@ info rust' and '@PROJECT_NAME@ info rust-lang'
@@ -1060,6 +1037,31 @@ EOF
     # Check masked (exact first-field match, '-' is not a word char so grep -w won't do)
     masked="No"
     grep -qE "^$PKGNAME([[:space:]]|$)" "$MASK_FILE" 2>/dev/null && masked="Yes"
+
+    if [ -n "$FIELD" ]; then
+        case "$FIELD" in
+            description) printf '%s\n' "$description" ;;
+            maintainer) printf '%s\n' "$maintainer" ;;
+            homepage) printf '%s\n' "$homepage" ;;
+            path) printf '%s\n' "$PPATH" ;;
+            name) printf '%s\n' "$PKGNAME" ;;
+            version) printf '%s\n' "$version" ;;
+            release) printf '%s\n' "$release" ;;
+            commit) [ -z "$commit" ] || printf '%s\n' "$commit" ;;
+            installed) printf '%s\n' "$iver" ;;
+            aliased) printf '%s\n' "$port_alias" ;;
+            masked) printf '%s\n' "$masked" ;;
+            depends) printf '%s\n' "$deps_out" ;;
+            required-by) printf '%s\n' "$required_by_out" ;;
+
+            *)
+                printf 'Unknown field: %s\n' "$FIELD" >&2
+                return 1
+            ;;
+        esac
+
+        return 0
+    fi
 
     printf '%bDescription:%b %s\n' "$COLOR5" "$CRESET" "$description"
     printf '%bMaintainer:%b %s\n' "$COLOR5" "$CRESET" "$maintainer"
