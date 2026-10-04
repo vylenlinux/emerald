@@ -27,7 +27,7 @@ help() {
 Usage:
     xchroot <chroot-dir> [command]
 
-If 'command' is unspecified, xchroot will launch /bin/sh.
+If 'command' is unspecified, xchroot will launch /usr/bin/sh.
 
 Arguments:
     <chroot-dir>  Directory to use as new root filesystem
@@ -41,8 +41,8 @@ Examples:
     xchroot /mnt/mysystem
     xchroot /mnt/mysystem portsync
     xchroot /mnt/mysystem emerald sysup -y
-    xchroot /mnt/mysystem /bin/bash
-    xchroot /mnt/mysystem /bin/mksh -c portsync
+    xchroot /mnt/mysystem /usr/bin/bash
+    xchroot /mnt/mysystem /usr/bin/mksh -c portsync
 
 Notes:
     - If you want to run a command using a specific shell, use: shell -c 'command'
@@ -111,7 +111,7 @@ shift
 
 # Determine command to execute in chroot
 if [ -z "$1" ]; then
-    set -- /bin/sh
+    set -- /usr/bin/sh
 fi
 
 # At this point $@ contains the command and all its arguments
