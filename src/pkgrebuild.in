@@ -35,7 +35,6 @@ Options:
     -b, --base       rebuild base only
     -h, --help       Show this help
 EOF
-	  exit 0
 }
 
 require_root() {
@@ -53,7 +52,11 @@ parse_opts() {
             "") : ;;  # default: rebuild toolchain and base
             -t | --toolchain) BASE_REBUILD=0 ;;
             -b | --base) TOOLCHAIN_REBUILD=0 ;;
-            -h | --help) help ;;
+
+            -h | --help)
+                help
+                exit 0
+            ;;
 
             *)
                 msg_info "Invalid option! ($1)";
