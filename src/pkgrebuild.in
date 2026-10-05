@@ -59,7 +59,7 @@ parse_opts() {
             ;;
 
             *)
-                msg_info "Invalid option! ($1)";
+                msg_info "Invalid option! ($1)"
                 exit 1
             ;;
         esac
