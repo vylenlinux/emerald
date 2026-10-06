@@ -1,159 +1,337 @@
-.TH EMERALD 1 "2026-09-07" "emerald" "User Commands"
+.TH EMERALD 1 "2026-10-06" "emerald" "User Commands"
 .SH NAME
 emerald \- package and ports manager
 .SH SYNOPSIS
 .B emerald
-.RI [ options ]
+.RI [ global-options ]
 .I command
+.RI [ command-options ]
 .RI [ arguments ]
 .SH DESCRIPTION
 .B emerald
-manages ports, package installation, upgrades, removal, dependency inspection, repositories, and system updates. It uses the configured ports repositories and package database and must be run as root for operations that change the system.
+manages ports, package installation, upgrades, removal, dependency inspection, repositories, and system updates. It uses the configured ports repositories and package database. Operations that modify the system require root privileges.
 .PP
-The command name is followed by a subcommand. Use \fBemerald help\fR for the complete built-in list.
+Use \fBemerald help\fR to print the built-in command summary.
 .SH COMMANDS
 .TP
-.B build PORT
-Build a package from a port.
+.B search PATTERN
+Find ports in the configured repositories.
 .TP
-.B cache [clean|list]
-Inspect or clean cached sources and packages.
+.B sync [ARG]
+Update the ports database using \fBportsync\fR.
+.RS
 .TP
-.B cat PORT
-Print the port's build script (normally \fB@BUILD_SCRIPT@\fR).
+.B -p, --prune
+Prune local git repositories.
 .TP
-.B config
-Print the effective configuration and configured aliases/masks.
+.B -r, --reset
+Reset git repositories.
+.RE
 .TP
-.B dependent PORT
-List packages depending on PORT.
+.B build PORT...
+Build ports using \fBpkgbuild\fR.
+.RS
 .TP
-.B depends PORT
-List direct dependencies of PORT.
+.B -f
+Force package rebuild.
 .TP
-.B deplist PORT...
-Print dependency lists.
+.B -k
+Continue building the next package after an error.
 .TP
-.B dup
-Report duplicate installed packages.
+.B -m
+Skip checksum checking.
 .TP
-.B files PORT
-List files belonging to installed port.
+.B -o
+Fetch sources only.
 .TP
-.B foreign
-List installed packages not provided by configured ports.
+.B -q, --quiet
+Show only status messages and errors.
 .TP
-.B help
-Show built-in help.
+.B -w
+Keep the working directory.
 .TP
-.B hook {pre|post} {install|upgrade|remove} PORT
-Run a hook manually from PORT's unified install file. The command requires root privileges.
+.B -y
+Skip confirmation.
 .TP
-.B info PORT...
-Show port/package metadata; package names may also be added to the world list as implemented by the command.
+.B -C, --clean
+Remove downloaded sources and prebuilt packages.
+.TP
+.B --log
+Log the build process.
+.TP
+.B --jobs=N
+Override the number of parallel build jobs.
+.RE
 .TP
 .B install PORT...
-Build and install ports.
+Build and install ports using \fBpkgbuild\fR.
+.RS
 .TP
-.B installed
-List installed packages.
+.B -c
+Ignore conflicts when installing packages.
 .TP
-.B integrity
-Check installed package integrity.
+.B -f
+Force package rebuild.
 .TP
-.B list
-List available ports.
+.B -k
+Continue installing the next package after an error.
 .TP
-.B locate PATTERN
-Locate files in package file lists.
+.B -m
+Skip checksum checking.
 .TP
-.B missing-deps
-Report missing dependencies.
+.B -n
+Skip dependencies.
 .TP
-.B orphan
-List orphaned packages.
+.B -o
+Fetch sources only.
 .TP
-.B outdated
-List installed packages with newer port versions.
+.B -q, --quiet
+Show only status messages and errors.
 .TP
-.B path PORT
-Print a port directory path.
+.B -r
+Reinstall.
 .TP
-.B provide FILE
-Find packages providing FILE.
-.TP
-.B purge
-Remove packages no longer needed.
-.TP
-.B redeps PORT...
-Reinstall or rebuild dependencies as required.
-.TP
-.B remove PORT...
-Remove packages.
-.TP
-.B search PATTERN
-Search ports and package metadata.
-.TP
-.B sync
-Synchronize configured repositories.
-.TP
-.B sysup
-Upgrade the system while respecting masks.
-.TP
-.B trigger
-Run package-manager post-install triggers.
-.TP
-.B upgrade PORT...
-Upgrade packages.
-.TP
-.B world [add|remove|list] PORT...
-Manage the explicitly requested package set.
-.TP
-.B alias {list|add REAL ALIAS|remove REAL}
-Manage package aliases. Adding and removing aliases requires root.
-.TP
-.B mask {list|add PORT...|remove PORT...}
-Manage ports excluded from \fBsysup\fR. Adding and removing masks requires root.
-.TP
-.B version
-Print the Emerald version.
-.SH OPTIONS
-.TP
-.B -h, --help
-Show help.
-.TP
-.B -v, --verbose
-Print additional information where supported.
+.B -w
+Keep the working directory.
 .TP
 .B -y, --yes
-Answer yes to confirmations where supported.
+Skip confirmation.
 .TP
-.B -k, --keep-going
-Continue after a build or operation failure where supported.
+.B --exclude=LIST
+Exclude comma-separated dependencies.
+.TP
+.B --no-backup
+Skip backup when reinstalling packages.
+.TP
+.B --jobs=N
+Override the number of parallel build jobs.
+.RE
+.TP
+.B upgrade PORT...
+Upgrade ports using \fBpkgbuild\fR.
+.RS
+.TP
+.B -c
+Ignore conflicts when installing packages.
+.TP
+.B -f
+Force package rebuild.
+.TP
+.B -k
+Continue upgrading the next package after an error.
+.TP
+.B -m
+Skip checksum checking.
+.TP
+.B -n
+Skip dependencies.
+.TP
+.B -o
+Fetch sources only.
+.TP
+.B -q, --quiet
+Show only status messages and errors.
+.TP
+.B -w
+Keep the working directory.
+.TP
+.B -y, --yes
+Skip confirmation.
+.TP
+.B --exclude=LIST
+Exclude comma-separated dependencies.
+.TP
+.B --no-backup
+Skip backup when upgrading packages.
+.TP
+.B --jobs=N
+Override the number of parallel build jobs.
+.RE
+.TP
+.B sysup [ARG]
+Perform a full system upgrade using \fBpkgbuild\fR while respecting masks.
+.RS
+.TP
+.B -c
+Ignore conflicts when installing packages.
+.TP
+.B -f
+Force package rebuild.
+.TP
+.B -k
+Continue upgrading the next package after an error.
+.TP
+.B -m
+Skip checksum checking.
+.TP
+.B -n
+Skip dependencies.
+.TP
+.B -o
+Fetch sources only.
+.TP
+.B -q, --quiet
+Show only status messages and errors.
+.TP
+.B -w
+Keep the working directory.
+.TP
+.B -y, --yes
+Skip confirmation.
+.TP
+.B --exclude=LIST
+Exclude comma-separated dependencies.
+.TP
+.B --no-backup
+Skip backup when upgrading packages.
+.TP
+.B --jobs=N
+Override the number of parallel build jobs.
+.RE
+.TP
+.B remove PORT...
+Remove installed ports using \fBpkgdel\fR.
+.RS
+.TP
+.B -y, --yes
+Skip confirmation.
+.RE
+.TP
+.B deplist PORT...
+Print all dependencies for ports.
+.RS
+.TP
+.B -q, --quick
+Skip installed ports.
+.TP
+.B --exclude=LIST
+Exclude comma-separated dependencies.
+.RE
+.TP
+.B redeps PORT...
+Find redundant direct dependencies.
+.RS
+.TP
+.B -w, --world
+Check redundant entries in the world file.
+.TP
+.B -f, --fix
+Remove redundant port dependencies and world entries. Requires root privileges.
+.RE
+.TP
+.B cache
+Clean both the packages and sources caches.
+.RS
+.TP
+.B -p, --pkg
+Clean only the packages cache.
+.TP
+.B -s, --src
+Clean only the sources cache.
+.RE
+.TP
+.B cat PORT
+Print the port build script.
+.TP
+.B config
+Print the Emerald configuration, repositories, aliases, and masks.
+.TP
+.B dependent PORT
+Print reverse dependencies of a port.
+.TP
+.B depends PORT
+Print direct dependencies of a port.
+.TP
+.B dup
+Print duplicate ports.
+.TP
+.B files PORT
+Print files installed by a port.
+.TP
+.B foreign
+Print installed packages not provided by configured ports.
+.TP
+.B help
+Print built-in help.
+.TP
+.B hook STAGE ACTION PORT
+Run a port hook on demand. Run \fBemerald hook\fR without arguments for hook-specific help.
+.TP
+.B info PORT
+Print port information.
+.TP
+.B installed
+Print all installed ports.
+.TP
+.B integrity
+Check installed port integrity.
+.TP
+.B is-installed PORT
+Check whether a port is installed. The exit status is 0 if installed and 1 otherwise.
+.TP
+.B locate FILE
+Print the location of a file in the ports repository.
+.TP
+.B alias ARG
+Manage aliased ports. Run \fBemerald alias help\fR for usage.
+.TP
+.B mask ARG
+Manage masked ports. Run \fBemerald mask help\fR for usage.
+.TP
+.B missing-deps
+Print missing dependencies.
+.TP
+.B orphan
+Print orphaned installed ports.
+.TP
+.B outdated
+Print installed ports with newer repository versions.
+.TP
+.B path PORT
+Print the path of a port in the repository.
+.TP
+.B provide FILE
+Print ports providing a file.
+.TP
+.B purge [PORT...]
+Remove installed ports and their orphan dependencies.
+.TP
+.B trigger [PORT...]
+Run system post-install triggers.
+.TP
+.B world [PORT...]
+Print, add, or remove entries in the world list.
+.TP
+.B list
+Print all available ports.
+.TP
+.B version
+Print version information and exit.
+.SH GLOBAL OPTIONS
 .TP
 .B --append-repo=PATH
-Append a local repository to the search path. May be repeated.
+Append a custom local repository path. May be used multiple times.
 .TP
 .B --prepend-repo=PATH
-Prepend a local repository to the search path. May be repeated.
+Prepend a custom local repository path. May be used multiple times.
 .TP
 .B --override-repo=PATH
-Use a local repository instead of the corresponding configured repository. May be repeated.
+Override repositories from the repository file with custom local repositories. May be used multiple times.
 .TP
 .B --repo=PATH
-Add a repository path for this invocation. May be repeated.
+Add a custom repository path for this invocation. May be used multiple times.
 .TP
 .B --repo-file=FILE
-Use FILE instead of the configured repository file.
+Use FILE as the repository file.
 .TP
 .B --config-file=FILE
-Use FILE instead of the configured configuration file.
+Use FILE as the configuration file.
 .TP
 .B --alias-file=FILE
-Use FILE instead of the configured alias file.
+Use FILE as the alias file.
 .TP
 .B --mask-file=FILE
-Use FILE instead of the configured mask file.
+Use FILE as the mask file.
 .SH FILES
 .TP
 .I @SYSCONFDIR@/emerald.conf
@@ -168,7 +346,7 @@ Package aliases.
 .I @SYSCONFDIR@/emerald.mask
 Ports excluded from system upgrades.
 .SH EXIT STATUS
-Zero indicates success. A non-zero status indicates invalid input, an unavailable port/package, a failed operation, or (for checks such as missing dependencies) a detected problem.
+Zero indicates success. A non-zero status indicates invalid input, an unavailable port/package, a failed operation, or a detected problem for a checking command.
 .SH SEE ALSO
 .BR pkgadd (1),
 .BR pkgbuild (1),
