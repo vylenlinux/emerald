@@ -2572,13 +2572,13 @@ emerald_world() {
 
     while [ -n "$1" ]; do
         grep -qx "$1" "$WORLD_FILE" || {
-            world_add "$1" && printf "world: '%s' added to world\n" "$1"
+            world_add "$1" && msg_info "world: '%s' added to world\n" "$1"
 
             shift
             continue
         }
 
-        printf "world: '%s' deleted from world\n" "$1"
+        msg_info "world: '%s' deleted from world\n" "$1"
         world_del "$1"
 
         shift
@@ -2728,7 +2728,7 @@ EOF
 
 # check for 'pkgadd', required for package database path
 command -v pkgadd >/dev/null 2>&1 || {
-    printf "'pkgadd' not found in \$PATH!\n"
+    msg_error "'pkgadd' not found in \$PATH!\n"
     exit 1
 }
 
