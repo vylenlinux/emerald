@@ -2558,7 +2558,12 @@ world_del() {
 
 emerald_world() {
     if [ -z "$1" ]; then
-        [ -s "$WORLD_FILE" ] && cat "$WORLD_FILE" || printf "world is empty\n"
+        if [ -s "$WORLD_FILE" ]; then
+            cat "$WORLD_FILE"
+            return 0
+        fi
+
+        msg_info "world is empty"
         return 0
     fi
 
