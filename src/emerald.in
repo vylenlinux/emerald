@@ -629,53 +629,162 @@ emerald_depends() {
 }
 
 deplist() {
-    # shellcheck disable=SC3043
-    local pkg="$1"
+    # Resolve in a single awk pass, visiting dependencies in post-order exactly like
+    # the former recursive shell version (no forks per port, ~90x faster resolution).
+    # Args:  "<ports>"  (space separated; may be passed as one quoted string)
+    # Reads: quick, exclude, skip_root, ALIAS_PORT, PORT_REPO, CBUILD_DIR, PKGDB_DIR
+    # Appends to: DEP, MISSING_DEP
+    _dl_alias=""
 
-    # skip excluded dependencies
-    case " $exclude " in
-        *" $pkg "*) return 0 ;;
-    esac
+    if [ "$ALIAS_PORT" = "yes" ]; then
+        _dl_alias="$ALIAS_FILE"
+    fi
 
-    # check for circular dependencies
-    case " $CHECK " in
-        *" $pkg "*) return 0 ;;
-    esac
+    _dl_out=$(awk \
+        -v repos="$PORT_REPO" \
+        -v build_script="$BUILD_SCRIPT" \
+        -v cbuild_dir="$CBUILD_DIR" \
+        -v pkgdb_dir="$PKGDB_DIR" \
+        -v alias_file="$_dl_alias" \
+        -v quick="$quick" \
+        -v exclude="$exclude" \
+        -v skip_root="$skip_root" \
+        -v roots="$*" \
+        -v initial_deps="$DEP" \
+        -v initial_missing="$MISSING_DEP" \
+    'function file_exists(path, result) {
+        result = (getline _line < path);
+        close(path);
 
-    # add package to currently processing
-    CHECK="$CHECK $pkg "
+        return result >= 0;
+    }
 
-    # check dependencies
-    for dep in $(get_depends "$pkg"); do
-        if [ "$quick" = 1 ] && emerald_is_installed "$dep"; then
-            continue
-        fi
+    # Find the first repository providing the build script.
+    function find_port(package, repo_idx, port_path) {
+        if (package in port_path_cache) return port_path_cache[package];
+        port_path_cache[package] = "";
 
-        case " $DEP " in
-            *" $dep "*) continue ;;
-        esac
+        for (repo_idx = 1; repo_idx <= repo_count; repo_idx++) {
+            port_path = sprintf("%s/%s", repo[repo_idx], package);
 
-        get_port_path "$dep" >/dev/null 2>&1 || {
-            MISSING_DEP="$MISSING_DEP $dep($pkg) "
-            continue
+            if (file_exists(sprintf("%s/%s", port_path, build_script))) {
+                port_path_cache[package] = port_path;
+                break;
+            }
         }
 
-        deplist "$dep"
-    done
+        return port_path_cache[package];
+    }
 
-    # add dependency to list
-    case " $DEP " in
-        *" $pkg "*) ;;
+    function is_installed(package) {
+        if (package == "") return 0;
+        if (!(package in installed)) installed[package] = file_exists(sprintf("%s/%s", pkgdb_dir, package));
 
-        *)
-            if [ "$quick" != 1 ] || ! emerald_is_installed "$pkg"; then
-                DEP="$DEP $pkg "
-            fi
-        ;;
-    esac
+        return installed[package];
+    }
 
-    # remove from processing list
-    CHECK=$(printf "%s" "$CHECK" | sed "s/ $pkg / /g")
+    # Load package dependencies.
+    function load_deps(package, dep_file, port_path, line, word_count, word_idx, dependency, dep_idx) {
+        if (package in dep_count) return;
+
+        dep_count[package] = 0;
+        dep_file = sprintf("%s/%s.dep", cbuild_dir, package);
+
+        if (!file_exists(dep_file)) {
+            port_path = find_port(package);
+            if (port_path == "") return;
+
+            dep_file = sprintf("%s/depends", port_path);
+            if (!file_exists(dep_file)) return;
+        }
+
+        while ((getline line < dep_file) > 0) {
+            word_count = split(line, words);
+
+            for (word_idx = 1; word_idx <= word_count; word_idx++) {
+                dependency = words[word_idx];
+                if (alias_on && (dependency in alias)) dependency = alias[dependency];
+
+                if (dependency != "") {
+                    dep_idx = ++dep_count[package];
+                    dependencies[package, dep_idx] = dependency;
+                }
+            }
+        }
+
+        close(dep_file);
+    }
+
+    function add_to_order(package) {
+        in_order[package] = 1;
+        order[++order_count] = package;
+    }
+
+    # Recursively resolve package dependencies.
+    function resolve_deps(package, dep_idx, dependency) {
+        if ((package in excluded) || (package in resolving)) return;
+
+        resolving[package] = 1;
+        load_deps(package);
+
+        for (dep_idx = 1; dep_idx <= dep_count[package]; dep_idx++) {
+            dependency = dependencies[package, dep_idx];
+
+            if ((quick == 1) && is_installed(dependency)) continue;
+            if (dependency in in_order) continue;
+
+            if (find_port(dependency) == "") {
+                missing = sprintf("%s %s(%s) ", missing, dependency, package);
+                continue;
+            }
+
+            resolve_deps(dependency);
+        }
+
+        if (!(package in in_order) && !((quick == 1) && is_installed(package))) add_to_order(package);
+        delete resolving[package];
+    } BEGIN {
+        repo_count    = split(repos, repo);
+        exclude_count = split(exclude, names);
+
+        for (idx = 1; idx <= exclude_count; idx++) excluded[names[idx]] = 1;
+        initial_dep_count = split(initial_deps, names);
+
+        for (idx = 1; idx <= initial_dep_count; idx++) {
+            if (!(names[idx] in in_order)) add_to_order(names[idx]);
+        }
+
+        if (alias_file != "") {
+            alias_on = 1;
+
+            while ((getline line < alias_file) > 0) {
+                if (line ~ /^[[:space:]]*$/ || line ~ /^#/) continue;
+
+                split(line, names);
+                alias[names[1]] = names[2];
+            }
+
+            close(alias_file);
+        }
+
+        root_count = split(roots, names);
+
+        for (idx = 1; idx <= root_count; idx++) {
+            if ((skip_root == 1) && (names[idx] in in_order)) continue;
+            resolve_deps(names[idx]);
+        }
+
+        printf "D";
+        for (idx = 1; idx <= order_count; idx++) printf " %s", order[idx];
+        printf "\nM %s %s\n", initial_missing, missing;
+    }')
+
+    {
+        read -r _dl_t DEP
+        read -r _dl_t MISSING_DEP
+    } <<EOF
+$_dl_out
+EOF
 }
 
 emerald_deplist() {
@@ -720,9 +829,7 @@ emerald_deplist() {
     done
 
     # process dependencies
-    for p in $PPKG; do
-        deplist "$p"
-    done
+    deplist "$PPKG"
 
     [ -n "$DEP" ] || return 0
 
@@ -880,7 +987,8 @@ Options:
                                    --exclude=*  exclude dependencies, comma separated
 
     redeps       <ports>   <arg>   find redundant dependencies
-                                   -f, --fix    fix (remove) redundant port deps
+                                   -w, --world  check redundant entries in world
+                                   -f, --fix    fix (remove) redundant port deps / world entries
 
     cache                          (no args)    clean packages AND sources cache
                                    -p, --pkg    clean packages cache only
@@ -1532,17 +1640,19 @@ EOF
 
 emerald_orphan() {
     if [ -f "$WORLD_FILE" ]; then
+        _world_roots=""
+
         while IFS= read -r i; do
             case " $* " in
                 *" $i "*) continue ;;
             esac
 
-            case " $DEP " in
-                *" $i "*) continue ;;
-            esac
-
-            deplist "$i"
+            _world_roots="$_world_roots $i"
         done < "$WORLD_FILE"
+
+        skip_root=1
+        deplist "$_world_roots"
+        skip_root=0
     fi
 
     all_installed | awk -v dep=" $DEP " '{
@@ -1711,11 +1821,92 @@ emerald_purge() {
     emerald_remove $remove $PURGE_OPTS
 }
 
+redeps_world() {
+    [ "$fix" = 1 ] && require_root
+    printf "Checking world redeps...\n"
+
+    [ -s "$WORLD_FILE" ] || {
+        msg_info "world is empty"
+        return 0
+    }
+
+    # Stale entries are reported and removed from the active world set.
+    _world=""
+    _stale=""
+    _found=0
+
+    while IFS= read -r _pkg; do
+        [ -n "$_pkg" ] || continue
+
+        emerald_is_installed "$_pkg" || {
+            printf "[world] %s (not installed)\n" "$_pkg"
+            _stale="$_stale $_pkg"
+
+            _found=1
+            continue
+        }
+
+        get_port_path "$_pkg" >/dev/null || {
+            printf "[world] %s (no port found)\n" "$_pkg"
+            _found=1
+        }
+
+        _world="$_world $_pkg"
+    done < "$WORLD_FILE"
+
+    if [ "$fix" = 1 ]; then
+        for _pkg in $_stale; do
+            world_del "$_pkg"
+            msg_info " $_pkg removed from world"
+        done
+    fi
+
+    # A world entry removed from _active can no longer act as a puller.
+    _active=$_world
+
+    for _root in $_world; do
+        case " $_active " in
+            *" $_root "*) ;;
+            *) continue ;;
+        esac
+
+        DEP=""
+        deplist "$_root"
+
+        for _dep in $_active; do
+            [ "$_dep" = "$_root" ] && continue
+
+            case " $DEP " in
+                *" $_dep "*)
+                    printf "[world] %s (already pulled from %s)\n" "$_dep" "$_root"
+
+                    _found=1
+                    _remaining=""
+
+                    for _pkg in $_active; do
+                        [ "$_pkg" = "$_dep" ] || _remaining="$_remaining $_pkg"
+                    done
+
+                    _active=$_remaining
+
+                    if [ "$fix" = 1 ]; then
+                        world_del "$_dep"
+                        msg_info " $_dep removed from world"
+                    fi
+                ;;
+            esac
+        done
+    done
+
+    [ "$_found" -eq 1 ] || msg_info "No redeps found in world!"
+}
+
 emerald_redeps() {
     need_arg "$@"
 
     while [ -n "$1" ]; do
         case $1 in
+            --world | -w) world=1 ;;
             --fix | -f) fix=1 ;;
             --help | -h) emerald_help ;;
             *) pkg="$pkg $1" ;;
@@ -1724,21 +1915,40 @@ emerald_redeps() {
         shift
     done
 
+    [ "$world" = 1 ] && redeps_world
+
     for i in $pkg; do
         PPATH=$(get_port_path "$i") || {
             msg_port_not_found "$i"
             continue
         }
 
+        printf "Checking %s redeps...\n" "$i"
+
         deps_i=$(get_depends "$i")
-        [ -n "$deps_i" ] || continue
+
+        if [ -z "$deps_i" ]; then
+            msg_info "No depends found in $i!"
+            continue
+        fi
+
+        _rd_found=0
 
         for d in $deps_i; do
+            # resolve the closure of $d once, not once per sibling dependency
+            _rd_closure=$(emerald_deplist "$d" | awk '{printf "%s ", $2;}')
+
             for dd in $deps_i; do
                 [ "$dd" = "$d" ] && continue
 
-                if emerald_deplist "$d" | awk '{print $2;}' | grep -qx "$dd"; then
+                case " $_rd_closure " in
+                    *" $dd "*) found=1 ;;
+                    *) found=0 ;;
+                esac
+
+                if [ "$found" -eq 1 ]; then
                     printf "[%s] %s (already pulled from %s)\n" "$i" "$dd" "$d"
+                    _rd_found=1
 
                     if [ "$fix" = 1 ]; then
                         deps_file="$PPATH/depends"
@@ -1750,6 +1960,8 @@ emerald_redeps() {
                 fi
             done
         done
+
+        [ "$_rd_found" = 1 ] || msg_info "No redeps found in $i!"
     done
 }
 
