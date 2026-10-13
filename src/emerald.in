@@ -1924,7 +1924,6 @@ emerald_redeps() {
         }
 
         printf "Checking %s redeps...\n" "$i"
-
         deps_i=$(get_depends "$i")
 
         if [ -z "$deps_i" ]; then
