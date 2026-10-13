@@ -144,11 +144,18 @@ fi
 
 # Remove directories deepest-first; skip any still referenced by another package
 if [ -s "$_rm_dirs" ]; then
-    sort -r "$_rm_dirs" | while IFS= read -r d; do
-        grep -Fxq "$d" "$tmpdb" || {
-            [ "$VERBOSE_REMOVE" = "yes" ] && printf "removing directory '%s'\n" "${ROOT_DIR}/${d}"
-            rmdir "${ROOT_DIR}/${d}" 2>/dev/null
-        }
+    # Single pass over tmpdb: drop from the candidate set every dir
+    # still owned by another package; what remains is safe to remove.
+    awk 'NR == FNR {
+        candidate[$0];
+        next;
+    } $0 in candidate {
+        delete candidate[$0];
+    } END {
+        for (d in candidate) print d;
+    }' "$_rm_dirs" "$tmpdb" | sort -r | while IFS= read -r d; do
+        [ "$VERBOSE_REMOVE" = "yes" ] && printf "removing directory '%s'\n" "${ROOT_DIR}/${d}"
+        rmdir "${ROOT_DIR}/${d}" 2>/dev/null
     done
 fi
 
