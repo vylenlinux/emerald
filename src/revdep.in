@@ -470,11 +470,11 @@ else
 
     # shellcheck disable=SC2086
     find $SEARCH_DIRS $EXCLUDED_DIRS $EXCLUDED_FILES -type f \( \
-        -perm /+u+x -o \
+        -perm /111 -o \
         \
         -name '*.so' -o \
         -name '*.so.*' \
-    \) -print 2> /dev/null | sort -u > "$FILE_LIST"
+    \) -print 2>/dev/null | sort -u > "$FILE_LIST"
 fi
 
 total=$(wc -l < "$FILE_LIST")
