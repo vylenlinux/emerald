@@ -1936,12 +1936,13 @@ emerald_redeps() {
 
         for d in $deps_i; do
             # resolve the closure of $d once, not once per sibling dependency
-            _rd_closure=$(emerald_deplist "$d" | awk '{printf "%s ", $2;}')
+            DEP="" # deplist() seeds its output with $DEP
+            deplist "$d"
 
             for dd in $deps_i; do
                 [ "$dd" = "$d" ] && continue
 
-                case " $_rd_closure " in
+                case " $DEP " in
                     *" $dd "*) found=1 ;;
                     *) found=0 ;;
                 esac
