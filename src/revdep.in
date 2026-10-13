@@ -477,7 +477,7 @@ else
     \) -print 2> /dev/null | sort -u > "$FILE_LIST"
 fi
 
-total=$(wc -l "$FILE_LIST" | awk '{print $1;}')
+total=$(wc -l < "$FILE_LIST")
 printf '%s files found\n' "$total"
 
 if [ "$total" -eq 0 ]; then
