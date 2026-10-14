@@ -1190,6 +1190,8 @@ hook() {
     # hook <stage> <action> [port] [current-version] [new-version]
     # if using -o (download only), dont run hook
     [ "$DOWNLOAD_ONLY" = 1 ] && return 0
+    # if using -r (reinstall), dont run hook
+    [ "$REINSTALL" = 1 ] && return 0
 
     hook_stage="$1"
     hook_action="$2"
