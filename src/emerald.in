@@ -2133,7 +2133,7 @@ do_upgrade_install() {
 
         *)
             printf "Resolving dependencies...\n\n"
-            DEP=$(emerald_deplist "$targets" "$EXOPT" | awk '{print $2;}')
+            DEP=$(emerald_deplist "$targets" "$EXOPT" | awk '$1 ~ /^\[/ {print $2;}')
 
             for d in $DEP; do
                 case " $targets " in
