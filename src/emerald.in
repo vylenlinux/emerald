@@ -359,24 +359,19 @@ human_size() {
 }
 
 diff_lists() {
-    # Diff lists (all - keep)
-    all="$1"
-    keep="$2"
-    out=""
-    oldIFS=$IFS
-    IFS='|'
+    awk -v all="$1" -v keep="$2" 'BEGIN {
+        n = split(keep, k, "|");
+        for (i = 1; i <= n; i++) keep_set[k[i]] = 1;
 
-    set -- $all
-    IFS=$oldIFS
+        m = split(all, a, "|");
+        out = "";
 
-    for f; do
-        case "|$keep|" in
-            *"|$f|"*) ;; # keep
-            *) out="${out}${out:+|}$f" ;;
-        esac
-    done
+        for (i = 1; i <= m; i++) {
+            if (!(a[i] in keep_set)) out = out (out ? "|" : "") a[i];
+        }
 
-    printf '%s' "$out"
+        printf "%s", out;
+    }'
 }
 
 show_list() {
