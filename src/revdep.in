@@ -11,6 +11,20 @@
 # acts as a single-file worker and writes 'pkg|file|lib' lines to stdout.
 # xargs -P uses this to fan out work without a temporary helper script.
 
+# Check shared objects with their own directory on the lookup path,
+# as they may depend on sibling DSOs outside the default library paths.
+ldd_file() {
+    _ldd_file="$1"
+    _ldd_dir="${_ldd_file%/*}"
+
+    [ "$_ldd_dir" = "$_ldd_file" ] && _ldd_dir=.
+
+    case "$(file -bi "$_ldd_file")" in
+        *application/x-sharedlib*) LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}${_ldd_dir}" ldd "$_ldd_file" 2>/dev/null ;;
+        *) ldd "$_ldd_file" 2>/dev/null ;;
+    esac
+}
+
 # ==> Worker mode (invoked by xargs -P)
 if [ "$1" = "--check-file" ]; then
     [ -z "$2" ] && exit 0
@@ -18,7 +32,7 @@ if [ "$1" = "--check-file" ]; then
 
     case "$(file -bi "$line")" in
         *application/x-sharedlib* | *application/x-executable* | *application/x-pie-executable*)
-            ldd_out=$(ldd "$line" 2>/dev/null)
+            ldd_out=$(ldd_file "$line")
 
             case "$ldd_out" in
                 *"not found"*)
@@ -502,7 +516,7 @@ if [ -n "$PKG" ]; then
 
         case "$(file -bi "$line")" in
             *application/x-sharedlib* | *application/x-executable* | *application/x-pie-executable*)
-                ldd_out=$(ldd "$line" 2>/dev/null)
+                ldd_out=$(ldd_file "$line")
 
                 case "$ldd_out" in
                     *"not found"*)
