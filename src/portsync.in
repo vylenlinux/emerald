@@ -178,7 +178,7 @@ sync_repo() {
     }
 
     # Shallow fetch (only latest commit), quiet mode
-    bare_git fetch --quiet --depth=1 origin "$repo_branch" || {
+    bare_git fetch --quiet --depth=1 --no-tags origin "$repo_branch" || {
         msg_error "Failed to fetch from $repo_url (branch: $repo_branch)."
         msg_error "Try running: 'portsync -r'"
 
@@ -186,7 +186,7 @@ sync_repo() {
     }
 
     # Update local branch and working tree in one step, quiet mode
-    bare_git checkout --quiet -B "$repo_branch" FETCH_HEAD || {
+    bare_git checkout -f --quiet -B "$repo_branch" FETCH_HEAD || {
         msg_error "Failed to checkout branch $repo_branch for $port_dir."
         msg_error "Try running: 'portsync -r'"
 
