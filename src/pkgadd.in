@@ -282,11 +282,9 @@ if [ "$UPGRADE_PKG" = "yes" ] || [ "$REINSTALL_PKG" = "yes" ]; then
         while (n--) print lines[n];
     }' "$ROOT_DIR/$PKGDB_DIR/$name" | while read -r line; do
         case $line in
-            */\[) ;;
-
             */)
                 # Directory removal logic
-                grep "^$line$" "$ROOT_DIR/$PKGDB_DIR"/* "$TMP_PKGINSTALL" 2>/dev/null | grep -qv "$ROOT_DIR/$PKGDB_DIR/$name" || {
+                grep -Fxq "$line" "$TMP_PKGINSTALL" || grep -HFx "$line" "$ROOT_DIR/$PKGDB_DIR"/* 2>/dev/null | grep -Fqv "$ROOT_DIR/$PKGDB_DIR/$name:" || {
                     # Manual verbose printing, as 'rmdir -v' is not POSIX
                     [ "$VERBOSE_INSTALL" = "yes" ] && printf "removing directory '%s'\n" "$ROOT_DIR/$line"
                     rmdir "$ROOT_DIR/$line" 2>/dev/null
@@ -295,7 +293,7 @@ if [ "$UPGRADE_PKG" = "yes" ] || [ "$REINSTALL_PKG" = "yes" ]; then
 
             *)
                 # File removal logic
-                grep -q "^$line$" "$TMP_PKGINSTALL" || {
+                grep -Fxq "$line" "$TMP_PKGINSTALL" || {
                     # Manual verbose printing, as 'rm -v' is not POSIX
                     [ "$VERBOSE_INSTALL" = "yes" ] && printf "removing '%s'\n" "$ROOT_DIR/$line"
                     rm -f "$ROOT_DIR/$line"
