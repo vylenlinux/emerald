@@ -76,7 +76,7 @@ backup=""
 source=""
 
 build() {
-    @MESON_WRAPPER@ "${name}-${version}" build
+    vylen-meson "${name}-${version}" build
     meson compile -C build
     DESTDIR="${PKG}" meson install --no-rebuild -C build
 }
