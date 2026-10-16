@@ -8,17 +8,27 @@
 # Description:
 #   This script safely enters a chroot environment by mounting all necessary
 #   filesystems (/dev, /proc, /sys, /run, /tmp, /etc/resolv.conf) and
-#   provides automatic cleanup on exit.
+#   provides automatic cleanup on exit. Concurrent sessions targeting the
+#   same directory share these mounts; the last session unmounts them.
 #
 # Requirements:
 #   - Root privileges
 #   - Target directory must exist
 #   - Standard Linux filesystem hierarchy
+#   - flock(1), mountpoint(1), and sha256sum(1)
 #
 # Exit codes:
-#   0 - Success
-#   1 - Error (permission denied, invalid directory, mount failure)
+#   0   - Success
+#   1   - Error (permission denied, invalid directory, mount failure)
+#   129 - Terminated by SIGHUP
+#   130 - Terminated by SIGINT
+#   131 - Terminated by SIGQUIT
+#   143 - Terminated by SIGTERM
+#   Otherwise, the exit status of the command run inside the chroot.
 #
+
+# Directory holding the per-chroot lock files (tmpfs on the host)
+LOCK_ROOT=/run/xchroot
 
 # Display usage information
 help() {
@@ -36,6 +46,8 @@ Arguments:
 Description:
     This script mounts necessary filesystems and enters a chroot environment.
     It automatically mounts: /dev, /proc, /sys, /run, /tmp, and /etc/resolv.conf
+    Concurrent sessions targeting the same directory share mounts. They are
+    unmounted when the last session exits.
 
 Examples:
     xchroot /mnt/mysystem
@@ -68,18 +80,53 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
+# Check for commands needed for concurrent-session tracking
+for _command in flock mountpoint sha256sum; do
+    command -v "$_command" >/dev/null 2>&1 || {
+        msg_error "Required command '$_command' not found"
+        exit 1
+    }
+done
+
+# Mount a filesystem unless another xchroot session has already mounted it
+# Usage: mount_if_needed <subdirectory> <mount arguments, without target>
+mount_if_needed() {
+    _subdir="$1"
+    shift
+
+    if mountpoint -q "$TARGET/$_subdir" 2>/dev/null; then
+        return 0
+    fi
+
+    mount "$@" "$TARGET/$_subdir"
+}
+
 # Unmount all filesystems in reverse order
-# This function is called automatically on script exit via trap
 # Note: Uses reverse order to avoid "device busy" errors
 umount_all() {
-    # Iterate through mount points in reverse mount order
+    [ -n "$TARGET" ] || return 0
+
     for t in etc/resolv.conf tmp sys/firmware/efi/efivars sys run proc dev/shm dev/pts dev; do
-        # Check if mountpoint exists and is mounted before attempting unmount
         if mountpoint -q "$TARGET/$t" 2>/dev/null; then
             # Try normal unmount first, fallback to lazy unmount
             umount "$TARGET/$t" 2>/dev/null || umount -l "$TARGET/$t" 2>/dev/null
         fi
     done
+}
+
+# Leave this session. Only the last member unmounts the shared filesystems.
+# The mutex prevents another session from joining between the last-member
+# check and cleanup. flock releases membership locks automatically on SIGKILL.
+cleanup() {
+    trap '' 1 2 3 15
+
+    # Do not risk unmounting under other sessions if serialization fails
+    flock 9 || return 0
+
+    # Conversion succeeds only when this is the last session
+    if flock -xn 8; then
+        umount_all
+    fi
 }
 
 # Validate that target directory argument is provided
@@ -90,16 +137,29 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-# Remove trailing slash from directory path if present
-TARGET="${1%/}"
-
-# Verify target directory exists
-[ -d "$TARGET" ] || {
-    msg_error "Directory '$TARGET' does not exist"
+# Verify target directory exists before resolving it
+[ -d "$1" ] || {
+    msg_error "Directory '$1' does not exist"
     help
 
     exit 1
 }
+
+# Resolve the target to a physical absolute path so aliases share one lock
+TARGET=$(CDPATH='' cd -P -- "$1" 2>/dev/null && pwd -P) || {
+    msg_error "Cannot resolve directory '$1'"
+    help
+
+    exit 1
+}
+
+# Never allow the host root as chroot target
+if [ "$TARGET" = "/" ]; then
+    msg_error "Refusing to use '/' as chroot target"
+    help
+
+    exit 1
+fi
 
 # Optional check: inform if target is already a mount point
 if mountpoint -q "$TARGET" 2>/dev/null; then
@@ -117,121 +177,142 @@ fi
 # At this point $@ contains the command and all its arguments
 # This preserves argument separation for commands like: ls -la /tmp
 
-# Install trap handlers BEFORE mounting to ensure cleanup
-# Using signal numbers for maximum POSIX portability:
+# Hash the canonical path to keep lock filenames short and unambiguous
+KEY=$(printf '%s' "$TARGET" | sha256sum) || {
+    msg_error "Could not calculate lock key for '$TARGET'"
+    exit 1
+}
+
+KEY="${KEY%% *}"
+LOCK_DIR="$LOCK_ROOT/$KEY"
+MEMBERS="$LOCK_DIR/members"
+MUTEX="$LOCK_DIR/mutex"
+
+# Lock files are only usable by root; the kernel drops their locks on process exit
+umask 077
+
+mkdir -p "$LOCK_ROOT" || {
+    msg_error "Cannot create '$LOCK_ROOT'"
+    exit 1
+}
+
+chmod 700 "$LOCK_ROOT" || {
+    msg_error "Cannot secure '$LOCK_ROOT'"
+    exit 1
+}
+
+mkdir -p "$LOCK_DIR" || {
+    msg_error "Cannot create '$LOCK_DIR'"
+    exit 1
+}
+
+chmod 700 "$LOCK_DIR" || {
+    msg_error "Cannot secure '$LOCK_DIR'"
+    exit 1
+}
+
+# Open per-chroot lock files. These descriptors must not be inherited by chroot.
+exec 8>>"$MEMBERS" 9>>"$MUTEX" || {
+    msg_error "Cannot open lock files for '$TARGET'"
+    exit 1
+}
+
+# Serialize setup, then register this session as a member
+flock 9 || {
+    msg_error "Cannot lock '$MUTEX'"
+    exit 1
+}
+
+flock -s 8 || {
+    msg_error "Cannot lock '$MEMBERS'"
+    exit 1
+}
+
+# Install traps after joining the session set and before mounting anything
+# Signal numbers are used for maximum POSIX portability:
 #   0  = EXIT  - normal script exit
 #   1  = HUP   - hangup (terminal closed)
 #   2  = INT   - interrupt (Ctrl+C)
 #   3  = QUIT  - quit signal (Ctrl+\)
 #   15 = TERM  - termination signal (kill default)
-trap umount_all 0 1 2 3 15
-msg_info "Mounting filesystems for chroot environment..."
+trap cleanup 0
+trap 'cleanup; trap - 0; exit 129' 1
+trap 'cleanup; trap - 0; exit 130' 2
+trap 'cleanup; trap - 0; exit 131' 3
+trap 'cleanup; trap - 0; exit 143' 15
 
-# Mount all required filesystems using a loop with break pattern
-# Benefits: single exit point, automatic cleanup via trap, less code repetition
-# Pattern: while-true loop acts as POSIX "try-catch" mechanism
-mount_failed=0
+msg_info "Preparing filesystems for chroot environment..."
 
-while true; do
-    # Mount /dev - required for device access
-    mount -o bind /dev "$TARGET/dev" || {
-        msg_error "Failed to mount /dev"
-        mount_failed=1
-
-        break
-    }
-
-    # Mount devpts - required for pseudo-terminals (PTY)
-    # gid=5 typically corresponds to 'tty' group
-    mount -t devpts devpts -o gid=5,mode=620 "$TARGET/dev/pts" || {
-        msg_error "Failed to mount /dev/pts"
-        mount_failed=1
-
-        break
-    }
-
-    # Mount /dev/shm - shared memory tmpfs
-    # nosuid,nodev for security
-    mount -t tmpfs tmpfs -o nosuid,nodev "$TARGET/dev/shm" || {
-        msg_error "Failed to mount /dev/shm"
-        mount_failed=1
-
-        break
-    }
-
-    # Mount /proc - process information pseudo-filesystem
-    # Critical for most system tools
-    mount -t proc proc "$TARGET/proc" || {
-        msg_error "Failed to mount /proc"
-        mount_failed=1
-
-        break
-    }
-
-    # Mount /run - runtime data tmpfs
-    # Required for socket files, PIDs, etc.
-    mount -t tmpfs tmpfs "$TARGET/run" || {
-        msg_error "Failed to mount /run"
-        mount_failed=1
-
-        break
-    }
-
-    # Mount /sys - kernel and device information
-    # Critical for hardware interaction
-    mount -t sysfs sysfs "$TARGET/sys" || {
-        msg_error "Failed to mount /sys"
-        mount_failed=1
-
-        break
-    }
-
-    # Mount EFI variables (optional, UEFI systems only)
-    # Does not break loop on failure - not all systems have EFI
-    mount -t efivarfs efivarfs "$TARGET/sys/firmware/efi/efivars" 2>/dev/null || msg_info "EFI variables not mounted (may not be available)"
-
-    # Mount /tmp - temporary files
-    # mode=1777 = rwxrwxrwt (sticky bit for multi-user safety)
-    mount -t tmpfs tmpfs -o mode=1777,nosuid,nodev "$TARGET/tmp" || {
-        msg_error "Failed to mount /tmp"
-        mount_failed=1
-
-        break
-    }
-
-    # If we reach here, all critical mounts succeeded
-    # Break out of loop with success status
-    break
-done
-
-# Post-loop verification: check if any mount failed
-if [ "$mount_failed" -ne 0 ]; then
-    msg_error "Mount sequence failed, cleaning up..."
+# Mount required filesystems. Existing mounts are reused by concurrent sessions;
+# die exits through cleanup, which unmounts only if this was the last session.
+mount_if_needed dev -o bind /dev || {
+    msg_error "Failed to mount /dev"
     exit 1
-fi
+}
 
-# Handle DNS resolution configuration
-if [ -f /etc/resolv.conf ]; then
-    # Create empty resolv.conf in target if needed
+mount_if_needed dev/pts -t devpts devpts -o gid=5,mode=620 || {
+    msg_error "Failed to mount /dev/pts"
+    exit 1
+}
+
+mount_if_needed dev/shm -t tmpfs tmpfs -o nosuid,nodev || {
+    msg_error "Failed to mount /dev/shm"
+    exit 1
+}
+
+mount_if_needed proc -t proc proc || {
+    msg_error "Failed to mount /proc"
+    exit 1
+}
+
+mount_if_needed run -t tmpfs tmpfs || {
+    msg_error "Failed to mount /run"
+    exit 1
+}
+
+mount_if_needed sys -t sysfs sysfs || {
+    msg_error "Failed to mount /sys"
+    exit 1
+}
+
+# EFI variables are optional on systems without UEFI
+mount_if_needed sys/firmware/efi/efivars -t efivarfs efivarfs 2>/dev/null || msg_info "EFI variables not mounted (may not be available)"
+
+mount_if_needed tmp -t tmpfs tmpfs -o mode=1777,nosuid,nodev || {
+    msg_error "Failed to mount /tmp"
+    exit 1
+}
+
+# Handle DNS resolution configuration (do not bind it again if already mounted)
+if [ -f /etc/resolv.conf ] && ! mountpoint -q "$TARGET/etc/resolv.conf" 2>/dev/null; then
     touch "$TARGET/etc/resolv.conf" 2>/dev/null || msg_info "Could not create resolv.conf in chroot"
 
-    # Bind mount host's resolv.conf for DNS resolution
-    # Non-critical: doesn't fail if unsuccessful
+    # Non-critical: DNS configuration may be unavailable in minimal chroots
     mount -o bind /etc/resolv.conf "$TARGET/etc/resolv.conf" 2>/dev/null || msg_info "Could not bind mount resolv.conf"
 fi
+
+# Mounts are ready: allow other sessions to join or leave
+flock -u 9 || {
+    msg_error "Cannot release setup lock '$MUTEX'"
+    exit 1
+}
 
 msg_info "Entering chroot environment: $TARGET"
 msg_info "Executing: $*"
 
+# INT/QUIT also reach this script via the terminal's process group. Let the
+# command handle them while retaining its exit status for cleanup.
+trap : 2 3
+
 # Enter chroot with clean environment
 # /usr/bin/env -i creates fresh environment with only specified variables
-# Use exec "$@" to properly handle command with multiple arguments
-# This preserves argument boundaries: ["ls", "-la", "/tmp"] not ["ls -la /tmp"]
-chroot "$TARGET" /usr/bin/env -i HOME=/root TERM="$TERM" PS1='\u:\w\$ ' PATH=/usr/bin "$@"
+# 8>&- 9>&- keep the lock fds out of the chroot: otherwise a process left
+# running there would count as a live session forever.
+chroot "$TARGET" /usr/bin/env -i HOME=/root TERM="$TERM" PS1='\u:\w\$ ' PATH=/usr/bin "$@" 8>&- 9>&-
 
 # Capture chroot exit status immediately
 # Must be done before any other command to preserve $?
-retval=$?
+retval="$?"
 
 # Trap will automatically call umount_all on EXIT
 # No need to call it manually here
