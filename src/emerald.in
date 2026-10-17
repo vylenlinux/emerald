@@ -193,6 +193,31 @@ get_depends() {
     [ "$ALIAS_PORT" = "yes" ] && deps_alias "$deps" || printf "%s" "$deps"
 }
 
+get_conflicts() {
+    PPATH=$(get_port_path "$1") || return 0
+
+    conflicts_file="$PPATH/conflicts"
+    [ -f "$conflicts_file" ] || return 0
+
+    awk '/^[[:space:]]*#/ || /^[[:space:]]*$/ {
+        next;
+    } {
+        sub(/[[:space:]]*#.*/, "");
+        for (i = 1; i <= NF; i++) print $i;
+    }' "$conflicts_file"
+}
+
+check_conflicts() {
+    _conflict_pkg="$1"
+
+    for _conflict in $(get_conflicts "$_conflict_pkg"); do
+        if emerald_is_installed "$_conflict"; then
+            msg_error "Port '$_conflict_pkg' conflicts with installed port '$_conflict'."
+            exit 1
+        fi
+    done
+}
+
 confirm() {
     printf "%s (Y/n) " "$1"
     read -r response
@@ -1106,6 +1131,9 @@ EOF
 
     [ -n "$deps_out" ] || deps_out="None"
 
+    conflicts=$(get_conflicts "$PKGNAME" | tr '\n' ' ')
+    [ -n "$conflicts" ] || conflicts="None"
+
     # Check dependent (required by)
     required_by=$(get_dependent "$PKGNAME" | tr '\n' ' ')
     required_by_out=""
@@ -1155,6 +1183,7 @@ EOF
             aliased) printf '%s\n' "$port_alias" ;;
             masked) printf '%s\n' "$masked" ;;
             depends) printf '%s\n' "$deps_out" ;;
+            conflicts) printf '%s\n' "$conflicts" ;;
             required-by) printf '%s\n' "$required_by_out" ;;
 
             *)
@@ -1178,6 +1207,7 @@ EOF
     printf '%bAliased:%b %s\n' "$COLOR5" "$CRESET" "$port_alias"
     printf '%bMasked:%b %s\n' "$COLOR5" "$CRESET" "$masked"
     printf '%bDepends:%b %s\n' "$COLOR5" "$CRESET" "$deps_out"
+    printf '%bConflicts:%b %s\n' "$COLOR5" "$CRESET" "$conflicts"
     printf '%bRequired by:%b %s\n' "$COLOR5" "$CRESET" "$required_by_out"
 }
 
@@ -1327,6 +1357,8 @@ emerald_install() {
                 return 1
             }
 
+            check_conflicts "$ii"
+
             cd "$PPATH" || return 1
                 set_term_title "Reinstalling $ii..."
 
@@ -1383,6 +1415,8 @@ emerald_install() {
 
                 continue
             fi
+
+            check_conflicts "$ii"
 
             cd "$PPATH" || return 1
                 set_term_title "Installing $ii..."
@@ -1472,6 +1506,8 @@ emerald_install() {
 
                 continue
             }
+
+            check_conflicts "$inst"
 
             cd "$PPATH" || return 1
                 install_version=$(get_version "$inst")
@@ -2171,6 +2207,7 @@ do_upgrade_install() {
 
         cd "$(get_port_path "$inst")" || return 1
             emerald_is_installed "$inst" || {
+                check_conflicts "$inst"
                 install_version=$(get_version "$inst")
 
                 hook pre install "$inst" "" "$install_version"
