@@ -1063,6 +1063,20 @@ emerald_version() {
     exit 0
 }
 
+format_deps() {
+    _dep="$1"
+
+    if [ -z "$_dep" ]; then
+        printf 'None'
+        return
+    fi
+
+    for pkg in $_dep; do
+        color="$(emerald_is_installed "$pkg" && printf '%b' "$COLOR2" || printf '%b' "$COLOR1")"
+        printf "%b%s%b " "$color" "$pkg" "$CRESET"
+    done
+}
+
 emerald_info() {
     need_arg "$@"
 
@@ -1120,32 +1134,15 @@ EOF
 
     # Read depends file
     deps=$(get_depends "$PKGNAME" | tr '\n' ' ')
-    deps_out=""
+    deps_out=$(format_deps "$deps")
 
-    if [ -n "$deps" ]; then
-        for pkg in $deps; do
-            color="$(emerald_is_installed "${pkg}" && printf '%b' "$COLOR2" || printf '%b' "$COLOR1")"
-            deps_out=$(printf "%s%b%s%b " "${deps_out}" "${color}" "${pkg}" "${CRESET}")
-        done
-    fi
-
-    [ -n "$deps_out" ] || deps_out="None"
-
+    # Check conflicts
     conflicts=$(get_conflicts "$PKGNAME" | tr '\n' ' ')
-    [ -n "$conflicts" ] || conflicts="None"
+    conflicts_out=$(format_deps "$conflicts")
 
     # Check dependent (required by)
     required_by=$(get_dependent "$PKGNAME" | tr '\n' ' ')
-    required_by_out=""
-
-    if [ -n "${required_by}" ]; then
-        for pkg in $required_by; do
-            color="$(emerald_is_installed "${pkg}" && printf '%b' "$COLOR2" || printf '%b' "$COLOR1")"
-            required_by_out=$(printf "%s%b%s%b " "${required_by_out}" "${color}" "${pkg}" "${CRESET}")
-        done
-    fi
-
-    [ -n "$required_by_out" ] || required_by_out="None"
+    required_by_out=$(format_deps "$required_by")
 
     # Check alias: the queried port can appear as either the 'real' name
     # (1st field) or the 'alias' name (2nd field) in $ALIAS_FILE, e.g. for
@@ -1183,7 +1180,7 @@ EOF
             aliased) printf '%s\n' "$port_alias" ;;
             masked) printf '%s\n' "$masked" ;;
             depends) printf '%s\n' "$deps_out" ;;
-            conflicts) printf '%s\n' "$conflicts" ;;
+            conflicts) printf '%s\n' "$conflicts_out" ;;
             required-by) printf '%s\n' "$required_by_out" ;;
 
             *)
@@ -1207,7 +1204,7 @@ EOF
     printf '%bAliased:%b %s\n' "$COLOR5" "$CRESET" "$port_alias"
     printf '%bMasked:%b %s\n' "$COLOR5" "$CRESET" "$masked"
     printf '%bDepends:%b %s\n' "$COLOR5" "$CRESET" "$deps_out"
-    printf '%bConflicts:%b %s\n' "$COLOR5" "$CRESET" "$conflicts"
+    printf '%bConflicts:%b %s\n' "$COLOR5" "$CRESET" "$conflicts_out"
     printf '%bRequired by:%b %s\n' "$COLOR5" "$CRESET" "$required_by_out"
 }
 
