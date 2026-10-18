@@ -242,6 +242,9 @@ Print reverse dependencies of a port.
 .B depends PORT
 Print direct dependencies of a port.
 .TP
+.B conflicts PORT
+Print ports that conflict with a port.
+.TP
 .B dup
 Print duplicate ports.
 .TP

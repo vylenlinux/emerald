@@ -648,6 +648,18 @@ emerald_depends() {
     msg_deps_status $depends
 }
 
+emerald_conflicts() {
+    need_arg "$@"
+
+    get_port_path "$1" >/dev/null || {
+        msg_port_not_found "$1"
+        return 1
+    }
+
+    conflicts=$(get_conflicts "$1")
+    msg_deps_status $conflicts
+}
+
 deplist() {
     # Resolve in a single awk pass, visiting dependencies in post-order exactly like
     # the former recursive shell version (no forks per port, ~90x faster resolution).
@@ -1018,6 +1030,7 @@ Options:
     config                         print @PROJECT_NAME@ config
     dependent    <port>            print reverse dependencies
     depends      <port>            print dependencies
+    conflicts    <port>            print conflicting ports
     dup                            print duplicate ports
     files        <port>            print files installed
     foreign                        print foreign ports
