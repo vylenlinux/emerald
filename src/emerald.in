@@ -2420,11 +2420,29 @@ trigger_icon_cache() {
 }
 
 trigger_udevdb() {
-    command -v udevadm >/dev/null || return 0
+    command -v systemd-hwdb >/dev/null || return 0
 
-    if printf '%s\n' "$PKGFILES" | grep -q "^etc/udev/hwdb.d/"; then
+    if printf '%s\n' "$PKGFILES" | grep -q "^usr/lib/udev/hwdb.d/"; then
         msg_info "Updating hardware database..."
-        udevadm hwdb --update
+        systemd-hwdb --usr update
+    fi
+}
+
+trigger_sysusers() {
+    command -v systemd-sysusers >/dev/null || return 0
+
+    if printf '%s\n' "$PKGFILES" | grep -q "^usr/lib/sysusers.d/"; then
+        msg_info "Creating system user accounts..."
+        systemd-sysusers
+    fi
+}
+
+trigger_tmpfiles() {
+    command -v systemd-tmpfiles >/dev/null || return 0
+
+    if printf '%s\n' "$PKGFILES" | grep -q "^usr/lib/tmpfiles.d/"; then
+        msg_info "Creating temporary files..."
+        systemd-tmpfiles --create
     fi
 }
 
@@ -2478,7 +2496,7 @@ emerald_trigger() {
             cat "$PKGDB_DIR/$_p" 2>/dev/null
         done)
 
-        for t in mime_database desktop_database fontcache fc_cache udevdb icon_cache gtk3_immodules gtk2_immodules glib_schema gio_modules gdk_pixbuf_cache; do
+        for t in mime_database desktop_database fontcache fc_cache udevdb icon_cache gtk3_immodules gtk2_immodules glib_schema gio_modules gdk_pixbuf_cache sysusers tmpfiles; do
             "trigger_${t}"
         done
     fi

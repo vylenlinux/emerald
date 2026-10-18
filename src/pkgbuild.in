@@ -15,28 +15,119 @@ msg_error() {
 }
 
 do_service() {
+    _scope=system
+
+    case "$1" in
+        system | user)
+            _scope="$1"
+            shift
+        ;;
+    esac
+
+    _service_dir="/usr/lib/systemd/$_scope"
+
     for _svc in "$@"; do
         _svc_dir="$SRC/files/services/$_svc"
 
         [ -d "$_svc_dir" ] || {
             msg_error "Service directory not found: $_svc_dir"
-            return 1
+            exit 1
         }
 
-        # Install init.d (required)
-        [ -f "$_svc_dir/$_svc.initd" ] || {
-            msg_error "No init.d found for $_svc"
-            return 1
-        }
+        found=0
 
-        install -Dm755 "$_svc_dir/$_svc.initd" "$PKG/etc/init.d/$_svc"
-        msg_info "Installed: /etc/init.d/$_svc"
+        if [ -f "$_svc_dir/$_svc.service" ]; then
+            install -Dm644 "$_svc_dir/$_svc.service" -t "$PKG/$_service_dir/"
+            msg_info "Installed: $_service_dir/$_svc.service"
 
-        # Install conf.d (optional)
-        if [ -f "$_svc_dir/$_svc.confd" ]; then
-            install -Dm644 "$_svc_dir/$_svc.confd" "$PKG/etc/conf.d/$_svc"
-            msg_info "Installed: /etc/conf.d/$_svc"
+            found=1
         fi
+
+        if [ -f "$_svc_dir/$_svc@.service" ]; then
+            install -Dm644 "$_svc_dir/$_svc@.service" -t "$PKG/$_service_dir/"
+            msg_info "Installed: $_service_dir/$_svc@.service"
+
+            found=1
+        fi
+
+        if [ "$found" -eq 0 ]; then
+            msg_error "No systemd service found for $_svc"
+            exit 1
+        fi
+
+        if [ -f "$_svc_dir/$_svc.socket" ]; then
+            install -Dm644 "$_svc_dir/$_svc.socket" -t "$PKG/$_service_dir/"
+            msg_info "Installed: $_service_dir/$_svc.socket"
+        fi
+
+        if [ -f "$_svc_dir/$_svc.path" ]; then
+            install -Dm644 "$_svc_dir/$_svc.path" -t "$PKG/$_service_dir/"
+            msg_info "Installed: $_service_dir/$_svc.path"
+        fi
+
+        if [ -f "$_svc_dir/$_svc.timer" ]; then
+            install -Dm644 "$_svc_dir/$_svc.timer" -t "$PKG/$_service_dir/"
+            msg_info "Installed: $_service_dir/$_svc.timer"
+        fi
+
+        if [ -f "$_svc_dir/$_svc@.timer" ]; then
+            install -Dm644 "$_svc_dir/$_svc@.timer" -t "$PKG/$_service_dir/"
+            msg_info "Installed: $_service_dir/$_svc@.timer"
+        fi
+    done
+}
+
+do_sysusers() {
+    for _name in "$@"; do
+        _file="$_name.conf"
+
+        [ -f "$SRC/files/sysusers/$_file" ] || {
+            msg_error "sysusers file not found: $_file"
+            exit 1
+        }
+
+        install -Dm644 "$SRC/files/sysusers/$_file" -t "$PKG/usr/lib/sysusers.d/"
+        msg_info "Installed: /usr/lib/sysusers.d/$_file"
+    done
+}
+
+do_tmpfiles() {
+    for _name in "$@"; do
+        _file="$_name.conf"
+
+        [ -f "$SRC/files/tmpfiles/$_file" ] || {
+            msg_error "tmpfiles file not found: $_file"
+            exit 1
+        }
+
+        install -Dm644 "$SRC/files/tmpfiles/$_file" -t "$PKG/usr/lib/tmpfiles.d/"
+        msg_info "Installed: /usr/lib/tmpfiles.d/$_file"
+    done
+}
+
+do_udev_rules() {
+    for _name in "$@"; do
+        _file="$_name.rules"
+
+        [ -f "$SRC/files/udev/$_file" ] || {
+            msg_error "udev rules file not found: $_file"
+            exit 1
+        }
+
+        install -Dm644 "$SRC/files/udev/$_file" -t "$PKG/usr/lib/udev/rules.d/"
+        msg_info "Installed: /usr/lib/udev/rules.d/$_file"
+    done
+}
+
+do_systemd_scripts() {
+    for _name in "$@"; do
+        [ -f "$SRC/files/systemd/scripts/$_name" ] || {
+            msg_error "systemd script not found: $_name"
+            exit 1
+        }
+
+        install -Dm755 "$SRC/files/systemd/scripts/$_name" -t "$PKG/usr/lib/systemd/scripts/"
+        msg_info "Installed: /usr/lib/systemd/scripts/$_name"
     done
 }
 
@@ -46,12 +137,12 @@ do_pam() {
 
         [ -d "$_pam_dir" ] || {
             msg_error "PAM directory not found: $_pam_dir"
-            return 1
+            exit 1
         }
 
         [ -f "$_pam_dir/$_pam" ] || {
             msg_error "No PAM config found for $_pam"
-            return 1
+            exit 1
         }
 
         # Install pam.d config (required)
@@ -65,7 +156,7 @@ do_revdep() {
 
     [ -f "$_revdep_file" ] || {
         msg_error "Revdep file not found: $_revdep_file"
-        return 1
+        exit 1
     }
 
     install -d "$PKG/etc/revdep.d"
@@ -334,21 +425,6 @@ pkg_build() {
     cd - >/dev/null || return 1
 }
 
-auto_backup_confd() {
-    [ -d "$PKG/etc/conf.d" ] || return 0
-
-    for _conf_file in "$PKG/etc/conf.d"/*; do
-        [ -f "$_conf_file" ] || continue
-        _conf_path="${_conf_file#"$PKG"/}"
-
-        case " $backup " in
-            *" $_conf_path "*) continue ;;
-        esac
-
-        backup="${backup:+$backup }$_conf_path"
-    done
-}
-
 pkg_lint() {
     lint_error=0
 
@@ -439,8 +515,6 @@ compress_info_man_pages() {
 }
 
 pkg_package() {
-    auto_backup_confd
-
     # lint $PKG before packaging
     pkg_lint
 
@@ -449,7 +523,6 @@ pkg_package() {
         rm -f usr/share/info/dir usr/info/dir
         rm -f usr/lib/charset.alias # on musl system
 
-        rm -rf usr/lib/systemd usr/lib/sysusers.d usr/lib/tmpfiles.d
         rm -rf usr/share/licenses usr/lib/python3.*/site-packages/*.dist-info/licenses
 
         find . \( \
