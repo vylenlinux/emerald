@@ -134,12 +134,26 @@ do_systemd_scripts() {
 do_systemd_system_eg() {
     for _name in "$@"; do
         [ -f "$SRC/files/systemd/system-eg/$_name" ] || {
-            msg_error "systemd script not found: $_name"
+            msg_error "systemd environment generator not found: $_name"
             exit 1
         }
 
         install -Dm755 "$SRC/files/systemd/system-eg/$_name" -t "$PKG/usr/lib/systemd/system-environment-generators/"
         msg_info "Installed: /usr/lib/systemd/system-environment-generators/$_name"
+    done
+}
+
+do_systemd_system_preset() {
+    for _name in "$@"; do
+        _file="$_name.preset"
+
+        [ -f "$SRC/files/systemd/system-preset/$_file" ] || {
+            msg_error "systemd system preset not found: $_name"
+            exit 1
+        }
+
+        install -Dm755 "$SRC/files/systemd/system-preset/$_file" -t "$PKG/usr/lib/systemd/system-preset/"
+        msg_info "Installed: /usr/lib/systemd/system-preset/$_file"
     done
 }
 
