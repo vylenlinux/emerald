@@ -1,4 +1,4 @@
-project('emerald', 'c', version: '20261018')
+project('emerald', 'c', version: '20261020')
 
 SYSCONFDIR = get_option('sysconfdir')
 BINDIR = join_paths(get_option('prefix'), get_option('bindir'))
