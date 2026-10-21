@@ -166,11 +166,11 @@ BASEPKGNAME="${PKGNAME##*/}"
     ret 1
 }
 
-noextname=${BASEPKGNAME%.epkg.tar.*}
-release=${noextname##*-}
-noextname=${noextname%-*}
-version=${noextname##*-}
-name=${noextname%-*}
+stem="${BASEPKGNAME%.epkg.tar.*}"
+release="${stem##*-}"
+stem="${stem%-*}"
+version="${stem##*-}"
+name="${stem%-*}"
 
 # Get package information if installed
 if [ -s "$ROOT_DIR/$PKGDB_DIR/$name" ]; then
