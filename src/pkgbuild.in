@@ -172,8 +172,8 @@ do_pam() {
         }
 
         # Install pam.d config (required)
-        install -Dm644 "$_pam_dir/$_pam" -t "$PKG/etc/pam.d/"
-        msg_info "Installed: /etc/pam.d/$_pam"
+        install -Dm644 "$_pam_dir/$_pam" -t "$PKG/usr/lib/pam.d/"
+        msg_info "Installed: /usr/lib/pam.d/$_pam"
     done
 }
 
