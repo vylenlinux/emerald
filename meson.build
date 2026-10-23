@@ -30,7 +30,6 @@ empty_dirs = [
     [join_paths(get_option('cache-dir'), 'packages'), 'rwxrwxrwx'],
     [join_paths(get_option('cache-dir'), 'sources'), 'rwxrwxrwx'],
     [join_paths(get_option('cache-dir'), 'work'), 'rwxrwxrwx'],
-    [join_paths(get_option('state-dir'), 'cbuild'), 'rwxrwxrwx'],
     [get_option('ports-dir'), 'rwxr-xr-x']
 ]
 
