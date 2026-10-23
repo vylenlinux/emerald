@@ -1195,9 +1195,9 @@ EOF
             installed) printf '%s\n' "$iver" ;;
             aliased) printf '%s\n' "$port_alias" ;;
             masked) printf '%s\n' "$masked" ;;
-            depends) printf '%s\n' "$deps_out" ;;
-            conflicts) printf '%s\n' "$conflicts_out" ;;
-            required-by) printf '%s\n' "$required_by_out" ;;
+            depends) printf '%s\n' "$deps" ;;
+            conflicts) printf '%s\n' "$conflicts" ;;
+            required-by) printf '%s\n' "$required_by" ;;
 
             *)
                 printf 'Unknown field: %s\n' "$FIELD" >&2
