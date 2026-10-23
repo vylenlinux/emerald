@@ -188,9 +188,6 @@ LOCK_DIR="$LOCK_ROOT/$KEY"
 MEMBERS="$LOCK_DIR/members"
 MUTEX="$LOCK_DIR/mutex"
 
-# Lock files are only usable by root; the kernel drops their locks on process exit
-umask 077
-
 mkdir -p "$LOCK_ROOT" || {
     msg_error "Cannot create '$LOCK_ROOT'"
     exit 1
