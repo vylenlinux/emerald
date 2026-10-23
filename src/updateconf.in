@@ -8,6 +8,61 @@
 #   (with .@EPKGNEW_EXT@ extension) with existing ones after package updates.
 #
 
+# Directories searched for .@EPKGNEW_EXT@ files. 'backup=' in a recipe can name any
+# path inside the package, not only /etc. Override from the environment.
+SEARCH_DIRS="${SEARCH_DIRS:-"/etc /boot /opt /usr /var"}"
+
+usage() {
+    cat <<EOF
+Usage: ${0##*/} [-h | --help]
+
+Review the .@EPKGNEW_EXT@ files that @PROJECT_NAME@ leaves when an update would overwrite
+a configuration file listed in 'backup='. For each one the differences
+against the installed file are shown and you choose what to do:
+
+    U  Update   replace the current file with the new .@EPKGNEW_EXT@ version
+                (your local changes are lost)
+
+    D  Discard  delete the .@EPKGNEW_EXT@ and keep the current file
+                (the new defaults are lost)
+
+    E  Edit     open the current file in \$EDITOR to merge by hand, then show
+                the diff again; if it ends up identical, the .@EPKGNEW_EXT@ is removed
+
+    K  Keep     leave both files as they are; the .@EPKGNEW_EXT@ shows up again the
+                next time you run ${0##*/}
+
+A .@EPKGNEW_EXT@ identical to the current file, or whose current file does not exist,
+is removed without asking. A summary of what was done is printed at the end.
+
+Environment:
+    EDITOR       editor used by Edit, arguments allowed (default: vim)
+    SEARCH_DIRS  directories searched for .@EPKGNEW_EXT@ files (now: $SEARCH_DIRS)
+
+Examples:
+    ${0##*/}                   review every pending .@EPKGNEW_EXT@ file
+    EDITOR=nano ${0##*/}       use nano for Edit
+    SEARCH_DIRS=/etc ${0##*/}  look only in /etc
+EOF
+}
+
+# Parse arguments
+case "$1" in
+    -h | --help)
+        usage
+        exit 0
+    ;;
+
+    '') ;;
+
+    *)
+        printf "Unknown option: %s\n" "$1" >&2
+        printf "Try '%s --help'.\n" "${0##*/}" >&2
+
+        exit 2
+    ;;
+esac
+
 # Set default editor if not already set
 EDITOR="${EDITOR:-vim}"
 
@@ -23,9 +78,9 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-# Find all .@EPKGNEW_EXT@ files in /etc
-# Note: -regextype is GNU-specific, but commonly available
-epkgnew=$(find /etc -regextype posix-extended -regex ".+\.@EPKGNEW_EXT@" 2>/dev/null)
+# Find all .@EPKGNEW_EXT@ files. /var/cache is pruned: it holds @PROJECT_NAME@ work dirs,
+# whose .@EPKGNEW_EXT@ files belong to packages that are not installed yet.
+epkgnew=$(find $SEARCH_DIRS -path /var/cache -prune -o -type f -name '?*.@EPKGNEW_EXT@' -print 2>/dev/null)
 
 # Exit if no .@EPKGNEW_EXT@ files found
 if [ -z "$epkgnew" ]; then
@@ -33,17 +88,46 @@ if [ -z "$epkgnew" ]; then
     exit 0
 fi
 
+set -- ${epkgnew}
+
+total="$#"
+n=0
+failed=0
+summary=""
+
+log() {
+    summary="$summary$1: $2
+"
+}
+
+remove_epkgnew() {
+    rm -f "$1" || {
+        log "FAILED $2" "$1"
+        failed=1
+
+        return
+    }
+
+    log "$2" "$1"
+}
+
+summary() {
+    printf 'Summary (%d .@EPKGNEW_EXT@ file(s) found):\n%s' "$total" "$summary"
+    exit "$1"
+}
+
+trap 'summary 130' INT
+
 # Process each .@EPKGNEW_EXT@ file
-for file in $epkgnew; do
+for file; do
+    n="$((n + 1))"
+
     # Remove .@EPKGNEW_EXT@ extension to get original filename
     current_file="${file%.*}"
 
     # If original file doesn't exist, remove the .@EPKGNEW_EXT@ file
     [ -e "$current_file" ] || {
-        printf "Remove '%s', '%s' not exist.\n" "$file" "$current_file"
-        rm -f "$file"
-
-        sleep 1
+        remove_epkgnew "$file" "removed (no current file)"
         continue
     }
 
@@ -52,46 +136,51 @@ for file in $epkgnew; do
         clear
 
         # Show unified diff between current and new file
-        # Use --color=always if available (GNU extension, but gracefully degrades)
-        diff -u "$current_file" "$file" --color=always 2>/dev/null || diff -u "$current_file" "$file"
+        diff -u --color=auto "$current_file" "$file"
         diff_result="$?"
 
         # If files are identical, remove .@EPKGNEW_EXT@ and continue
         if [ "$diff_result" -eq 0 ]; then
-            printf "Remove '%s', no diff found.\n" "$file"
-            rm -f "$file"
-
-            sleep 1
+            remove_epkgnew "$file" "removed (identical)"
             break
         fi
 
         # Display menu
-        printf "\nFile: %s\n" "$current_file"
+        printf "\nFile [%d/%d]: %s\n" "$n" "$total" "$current_file"
         printf "\n[U]pdate [D]iscard [E]dit [K]eep ?: "
 
-        read -r ACTION
+        read -r ACTION || {
+            printf "\n"
+            log "aborted (EOF)" "$file"
+
+            summary 1
+        }
+
         printf "\n"
 
         # Process user's choice
         case "$ACTION" in
             U | u)
-                printf "Replace '%s' with '%s'.\n" "$current_file" "$file"
-                mv -f "$file" "$current_file"
+                mv -f "$file" "$current_file" || {
+                    log "FAILED update" "$current_file"
+                    failed=1
 
+                    break
+                }
+
+                log "updated" "$current_file"
                 break
             ;;
 
             D | d)
-                printf "Remove '%s'.\n" "$file"
-                rm -f "$file"
-
+                remove_epkgnew "$file" "discarded"
                 break
             ;;
 
             E | e) "$EDITOR" "$current_file" ;;
 
             K | k)
-                printf "Keeping both.\n"
+                log "kept" "$file"
                 break
             ;;
 
@@ -99,11 +188,7 @@ for file in $epkgnew; do
             *) ;;
         esac
     done
-
-    sleep 1
 done
 
 clear
-printf "Done updating package's configuration files.\n"
-
-exit 0
+summary "$failed"
