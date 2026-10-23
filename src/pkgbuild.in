@@ -428,6 +428,12 @@ pkg_build() {
         export PERL_INSTALLDIRS=vendor
         export PERL_MM_USE_DEFAULT=1
 
+        PYTHON_SITE_PACKAGES="$(python3 -c 'import sysconfig; print(sysconfig.get_path("purelib"));')"
+        PERL_SITE_PERL="$(perl -MConfig -e 'print $Config {sitearchexp};')"
+
+        export PYTHON_SITE_PACKAGES
+        export PERL_SITE_PERL
+
         if [ "$QUIET" = "yes" ]; then
             (
                 set -e
