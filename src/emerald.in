@@ -218,12 +218,16 @@ check_conflicts() {
 
 confirm() {
     printf "%s (Y/n) " "$1"
-    read -r response
+
+    read -r response || [ -n "$response" ] || {
+        printf "\n%s\n" "$2"
+        return 1
+    }
 
     case "$response" in
         [Nn][Oo] | [Nn])
             printf "%s\n" "$2"
-            return 2
+            return 1
         ;;
     esac
 
@@ -527,13 +531,13 @@ EOF
         return 0
     fi
 
-    if confirm "Remove old caches?" "Old caches are kept."; then
-        # delete in parallel
-        [ -z "$to_remove_pkg" ] || printf '%s' "$to_remove_pkg" | tr '|' '\n' | xargs -P "$(nproc)" -I{} rm -f "$PACKAGE_DIR/{}"
-        [ -z "$to_remove_src" ] || printf '%s' "$to_remove_src" | tr '|' '\n' | xargs -P "$(nproc)" -I{} rm -f "$SOURCE_DIR/{}"
+    confirm "Remove old caches?" "Old caches are kept." || return 1
 
-        msg_info "Old caches removed!"
-    fi
+    # delete in parallel
+    [ -z "$to_remove_pkg" ] || printf '%s' "$to_remove_pkg" | tr '|' '\n' | xargs -P "$(nproc)" -I{} rm -f "$PACKAGE_DIR/{}"
+    [ -z "$to_remove_src" ] || printf '%s' "$to_remove_src" | tr '|' '\n' | xargs -P "$(nproc)" -I{} rm -f "$SOURCE_DIR/{}"
+
+    msg_info "Old caches removed!"
 }
 
 emerald_cat() {
@@ -844,9 +848,13 @@ emerald_deplist() {
     IFS=$OLDIFS
 
     # validate packages
+    _dl_err=0
+
     for p in $PKG; do
         get_port_path "$p" >/dev/null 2>&1 || {
-            [ "$quick" != 1 ] && msg_port_not_found "$p"
+            [ "$quick" = 1 ] || msg_port_not_found "$p"
+            _dl_err=1
+
             continue
         }
 
@@ -856,7 +864,7 @@ emerald_deplist() {
     # process dependencies
     deplist "$PPKG"
 
-    [ -n "$DEP" ] || return 0
+    [ -n "$DEP" ] || return "$_dl_err"
 
     if [ "$quick" = 1 ]; then
         printf "%s\n" $DEP
@@ -870,6 +878,8 @@ emerald_deplist() {
             printf "Missing deps: %s\n" "$m" | sed 's/(/ (/'
         done
     fi
+
+    return "$_dl_err"
 }
 
 dup_status() {
@@ -914,7 +924,7 @@ emerald_files() {
 
     emerald_is_installed "$1" || {
         msg_port_not_installed "$1"
-        return 0
+        return 1
     }
 
     tail -n +2 "$PKGDB_DIR/$1"
@@ -1343,6 +1353,8 @@ emerald_install() {
 
                 if keep_going; then
                     failed_installs="$failed_installs $ii"
+                    error=1
+
                     continue
                 fi
 
@@ -1354,6 +1366,8 @@ emerald_install() {
 
                 if keep_going; then
                     failed_installs="$failed_installs $ii"
+                    error=1
+
                     continue
                 fi
 
@@ -1370,7 +1384,9 @@ emerald_install() {
 
                     if keep_going; then
                         msg_warning "Reinstall failed for '$ii', continuing with next package..."
+
                         failed_installs="$failed_installs $ii"
+                        error=1
 
                         cd - >/dev/null || return 1
                         continue
@@ -1456,9 +1472,13 @@ emerald_install() {
         return "$error"
     fi
 
+    _in_err=0
+
     for i in $PKGNAME; do
         get_port_path "$i" >/dev/null 2>&1 || {
             msg_port_not_found "$i"
+            _in_err=1
+
             continue
         }
 
@@ -1470,7 +1490,7 @@ emerald_install() {
         IPKG="$IPKG $i"
     done
 
-    [ -n "$IPKG" ] || return 0
+    [ -n "$IPKG" ] || return "$_in_err"
 
     printf "Resolving dependencies...\n"
     INST="$(emerald_deplist -q "$IPKG" "$EXOPT")"
@@ -1496,7 +1516,7 @@ emerald_install() {
             printf "\n"
         fi
 
-        error=0
+        error="$_in_err"
         count=0
         total=$(printf "%s\n" "$INST" | wc -w)
 
@@ -1553,6 +1573,8 @@ emerald_install() {
 
         return "$error"
     fi
+
+    return "$_in_err"
 }
 
 emerald_installed() {
@@ -1640,7 +1662,9 @@ emerald_locate() {
 
     for repo in $PORT_REPO; do
         grep -Ri "$1" "$repo"/*/@PKGFILES_FILE@ 2>/dev/null | sed 's/:/ /;s|/@PKGFILES_FILE@||' | awk '{printf "%s %s\n", $1, $4;}'
-    done
+    done | awk '1; END {
+        exit !NR;
+    }'
 }
 
 emerald_missing_deps() {
@@ -1807,7 +1831,12 @@ emerald_path() {
 
 emerald_provide() {
     need_arg "$@"
-    grep -RF "$1" "$PKGDB_DIR" | sed "s:$PKGDB_DIR/::" | tr : "\t"
+
+    grep -RF "$1" "$PKGDB_DIR" | sed "s:$PKGDB_DIR/::" | awk '{
+        gsub(":", "\t");
+    } 1; END {
+        exit !NR;
+    }'
 }
 
 emerald_purge() {
@@ -1952,10 +1981,13 @@ emerald_redeps() {
     done
 
     [ "$world" = 1 ] && redeps_world
+    _rd_err=0
 
     for i in $pkg; do
         PPATH=$(get_port_path "$i") || {
             msg_port_not_found "$i"
+            _rd_err=1
+
             continue
         }
 
@@ -1998,6 +2030,8 @@ emerald_redeps() {
 
         [ "$_rd_found" = 1 ] || msg_info "No redeps found in $i!"
     done
+
+    return "$_rd_err"
 }
 
 emerald_remove() {
@@ -2014,16 +2048,20 @@ emerald_remove() {
         shift
     done
 
+    error=0
+
     for i in $PKGNAME; do
         emerald_is_installed "$i" || {
             msg_port_not_installed "$i"
+            error=1
+
             continue
         }
 
         IPKG="$IPKG $i"
     done
 
-    [ -n "$IPKG" ] || return 0
+    [ -n "$IPKG" ] || return 1
     printf "Removing packages...\n\n"
 
     pkgcount=0
@@ -2063,8 +2101,8 @@ emerald_remove() {
         hook post remove "$pkg" "$remove_version" ""
     done
 
-    set_term_title "$pkgcount package(s) removed."
-    return "${error:-0}"
+    [ "$error" -eq 0 ] && set_term_title "$pkgcount package(s) removed."
+    return "$error"
 }
 
 emerald_search() {
@@ -2408,6 +2446,8 @@ trigger_icon_cache() {
             rm -f "$dir/icon-theme.cache"
             rmdir "$dir" 2>/dev/null
         done
+
+        return 0
     fi
 }
 
@@ -2477,6 +2517,7 @@ trigger_mime_database() {
 
 emerald_trigger() {
     require_root "Run trigger"
+    _tr_err=0
 
     if [ "$DOWNLOAD_ONLY" != 1 ]; then
         # shellcheck disable=SC2046
@@ -2489,9 +2530,11 @@ emerald_trigger() {
         done)
 
         for t in mime_database desktop_database fontcache fc_cache udevdb icon_cache gtk3_immodules gtk2_immodules glib_schema gio_modules gdk_pixbuf_cache sysusers tmpfiles; do
-            "trigger_${t}"
+            "trigger_${t}" || _tr_err=1
         done
     fi
+
+    return "$_tr_err"
 }
 
 emerald_upgrade() {
@@ -2520,12 +2563,16 @@ emerald_upgrade() {
         shift
     done
 
+    _up_err=0
+
     for pkg in $PKGNAME; do
         emerald_is_installed "$pkg" || {
             msg_port_not_installed "$pkg"
 
             if keep_going; then
                 failed_upgrades="$failed_upgrades $pkg"
+                _up_err=1
+
                 continue
             fi
 
@@ -2534,6 +2581,7 @@ emerald_upgrade() {
 
         get_port_path "$pkg" >/dev/null 2>&1 || {
             printf "Package '%s' not exist.\n" "$pkg"
+            _up_err=1
 
             if keep_going; then
                 failed_upgrades="$failed_upgrades $pkg"
@@ -2551,8 +2599,10 @@ emerald_upgrade() {
         upkg="$upkg $pkg"
     done
 
-    [ -n "$upkg" ] || return 0
-    do_upgrade_install "$upkg"
+    [ -n "$upkg" ] || return "$_up_err"
+    do_upgrade_install "$upkg" || return 1
+
+    return "$_up_err"
 }
 
 # Generic flat-file list manager, shared by 'alias' and 'mask' commands.
@@ -2606,7 +2656,7 @@ world_add() {
 }
 
 world_del() {
-    grep -qx "$1" "$WORLD_FILE" || return
+    grep -qx "$1" "$WORLD_FILE" || return 1
     sed "/^$1$/d;/^$/d" -i "$WORLD_FILE"
 }
 
@@ -2660,7 +2710,7 @@ emerald_alias() {
                 return 1
             fi
 
-            list_add "$ALIAS_FILE" "$2" "$3"
+            list_add "$ALIAS_FILE" "$2" "$3" || return 1
             msg_info "alias: '$2' -> '$3' added"
         ;;
 
@@ -2734,7 +2784,7 @@ emerald_mask() {
             fi
 
             for _mk_port in "$@"; do
-                list_add "$MASK_FILE" "$_mk_port"
+                list_add "$MASK_FILE" "$_mk_port" || return 1
                 msg_info "mask: '$_mk_port' added"
             done
         ;;
