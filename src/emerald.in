@@ -1401,8 +1401,7 @@ emerald_install() {
         done
 
         if [ -n "$done_pkg" ]; then
-            emerald_trigger "$done_pkg"
-            error=1
+            emerald_trigger "$done_pkg" || error=1
         fi
 
         # Show error summary if exist
@@ -1464,8 +1463,7 @@ emerald_install() {
         done
 
         if [ -n "$done_pkg" ]; then
-            emerald_trigger "$done_pkg"
-            error=1
+            emerald_trigger "$done_pkg" || error=1
         fi
 
         # Show error summary if exist
@@ -1569,8 +1567,7 @@ emerald_install() {
         done
 
         if [ -n "$done_pkg" ]; then
-            emerald_trigger "$done_pkg"
-            error=1
+            emerald_trigger "$done_pkg" || error=1
         fi
 
         # Show error summary if exist
@@ -2311,8 +2308,7 @@ do_upgrade_install() {
     done
 
     if [ -n "$done_pkg" ]; then
-        emerald_trigger "$done_pkg"
-        error=1
+        emerald_trigger "$done_pkg" || error=1
     fi
 
     # Show error summary if exist
