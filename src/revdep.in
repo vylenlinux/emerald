@@ -248,8 +248,8 @@ rev_exclude() {
     #   f: = file      (starts with /)
     #   l: = library   (contains .so)
     _raw=$({
-        cat /etc/revdep.conf 2>/dev/null
-        cat /etc/revdep.d/*.conf 2>/dev/null
+        cat @SYSCONFDIR@/revdep.conf 2>/dev/null
+        cat @SYSCONFDIR@/revdep.d/*.conf 2>/dev/null
     } | awk '/^[[:space:]]*$/ || /^#/ {
         next;
     } /\/$/ {
@@ -405,11 +405,11 @@ while read -r line; do
     case "$line" in
         /*) EXTRA_SEARCH_DIRS="$EXTRA_SEARCH_DIRS $line " ;;
     esac
-done < /etc/ld.so.conf
+done < @SYSCONFDIR@/ld.so.conf
 
 # Process ld.so.conf.d directory
-if [ -d /etc/ld.so.conf.d ]; then
-    for dir in /etc/ld.so.conf.d/*.conf; do
+if [ -d @SYSCONFDIR@/ld.so.conf.d ]; then
+    for dir in @SYSCONFDIR@/ld.so.conf.d/*.conf; do
         [ -f "$dir" ] || continue
 
         while read -r line; do
