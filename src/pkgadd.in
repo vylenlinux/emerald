@@ -158,7 +158,7 @@ touch "$ROOT_DIR/$LOCK_FILE" 2>/dev/null || {
     exit 1
 }
 
-BASEPKGNAME="${PKGNAME##*/}"
+BASE_PKG_NAME="${PKGNAME##*/}"
 
 # Check existence of package file
 [ -f "$PKGNAME" ] || {
@@ -166,7 +166,7 @@ BASEPKGNAME="${PKGNAME##*/}"
     ret 1
 }
 
-stem="${BASEPKGNAME%.epkg.tar.*}"
+stem="${BASE_PKG_NAME%.epkg.tar.*}"
 release="${stem##*-}"
 stem="${stem%-*}"
 version="${stem##*-}"
