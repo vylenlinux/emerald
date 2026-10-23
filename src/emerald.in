@@ -1400,7 +1400,10 @@ emerald_install() {
             cd - >/dev/null || return 1
         done
 
-        [ -n "$done_pkg" ] && emerald_trigger "$done_pkg"
+        if [ -n "$done_pkg" ]; then
+            emerald_trigger "$done_pkg"
+            error=1
+        fi
 
         # Show error summary if exist
         FAILED_PKGS="$failed_installs"
@@ -1460,7 +1463,10 @@ emerald_install() {
             cd - >/dev/null || return 1
         done
 
-        [ -n "$done_pkg" ] && emerald_trigger "$done_pkg"
+        if [ -n "$done_pkg" ]; then
+            emerald_trigger "$done_pkg"
+            error=1
+        fi
 
         # Show error summary if exist
         FAILED_PKGS="$failed_installs"
@@ -1562,7 +1568,10 @@ emerald_install() {
             cd - >/dev/null || return 1
         done
 
-        [ -z "$done_pkg" ] || emerald_trigger "$done_pkg"
+        if [ -n "$done_pkg" ]; then
+            emerald_trigger "$done_pkg"
+            error=1
+        fi
 
         # Show error summary if exist
         FAILED_PKGS="$failed_installs"
@@ -2301,7 +2310,10 @@ do_upgrade_install() {
         cd - >/dev/null || return 1
     done
 
-    [ -z "$done_pkg" ] || emerald_trigger "$done_pkg"
+    if [ -n "$done_pkg" ]; then
+        emerald_trigger "$done_pkg"
+        error=1
+    fi
 
     # Show error summary if exist
     FAILED_PKGS="$failed_upgrades"
