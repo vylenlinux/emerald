@@ -1424,6 +1424,8 @@ emerald_install() {
 
                 if keep_going; then
                     failed_installs="$failed_installs $ii"
+                    error=1
+
                     continue
                 fi
 
@@ -2576,11 +2578,10 @@ emerald_upgrade() {
     for pkg in $PKGNAME; do
         emerald_is_installed "$pkg" || {
             msg_port_not_installed "$pkg"
+            _up_err=1
 
             if keep_going; then
                 failed_upgrades="$failed_upgrades $pkg"
-                _up_err=1
-
                 continue
             fi
 
