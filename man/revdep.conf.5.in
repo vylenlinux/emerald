@@ -3,7 +3,9 @@
 revdep.conf \- reverse-dependency scan exclusions
 .SH DESCRIPTION
 .I @SYSCONFDIR@/revdep.conf
-contains paths and library names that \fBrevdep\fR must ignore during its scan. Additional files may be placed in \fB@SYSCONFDIR@/revdep.d/\fR with a \fB.conf\fR suffix.
+contains paths and library names that \fBrevdep\fR must ignore during its scan.
+Additional local files may be placed in \fB@SYSCONFDIR@/revdep.d/\fR with a \fB.conf\fR suffix.
+Vendor packages may install additional exclusions in \fB@LIBDIR@/revdep.d/\fR with a \fB.conf\fR suffix.
 .SH FORMAT
 One exclusion per line. Blank lines and lines beginning with \fB#\fR are ignored.
 .TP

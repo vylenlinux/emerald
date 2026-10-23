@@ -3,12 +3,14 @@ project('emerald', 'c', version: '20261023')
 SYSCONFDIR = get_option('sysconfdir')
 BINDIR = join_paths(get_option('prefix'), get_option('bindir'))
 LOCALSTATEDIR = get_option('localstatedir')
+LIBDIR = get_option('libdir')
 
 project_name = meson.project_name()
 project_version = meson.project_version()
 
 conf_data = configuration_data()
 conf_data.set('SYSCONFDIR', SYSCONFDIR)
+conf_data.set('LIBDIR', LIBDIR)
 conf_data.set('PORTS_DIR', get_option('ports-dir'))
 conf_data.set('CACHE_DIR', get_option('cache-dir'))
 conf_data.set('STATE_DIR', get_option('state-dir'))
@@ -27,6 +29,7 @@ subdir('src')
 
 empty_dirs = [
     [join_paths(SYSCONFDIR, 'revdep.d'), 'rwxr-xr-x'],
+    [join_paths(LIBDIR, 'revdep.d'), 'rwxr-xr-x'],
     [join_paths(get_option('cache-dir'), 'packages'), 'rwxrwxrwx'],
     [join_paths(get_option('cache-dir'), 'sources'), 'rwxrwxrwx'],
     [join_paths(get_option('cache-dir'), 'work'), 'rwxrwxrwx'],

@@ -250,6 +250,7 @@ rev_exclude() {
     _raw=$({
         cat @SYSCONFDIR@/revdep.conf 2>/dev/null
         cat @SYSCONFDIR@/revdep.d/*.conf 2>/dev/null
+        cat @LIBDIR@/revdep.d/*.conf 2>/dev/null
     } | awk '/^[[:space:]]*$/ || /^#/ {
         next;
     } /\/$/ {

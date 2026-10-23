@@ -33,6 +33,8 @@ Show help.
 .SH FILES
 .I @SYSCONFDIR@/revdep.conf
 .br
+.I @LIBDIR@/revdep.d/*.conf
+.br
 .I @SYSCONFDIR@/revdep.d/*.conf
 .SH EXIT STATUS
 Zero when no problem is found or the requested operation succeeds; non-zero when broken dependencies are found or the operation fails.

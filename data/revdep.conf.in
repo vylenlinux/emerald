@@ -9,5 +9,6 @@
 # - libs  : library name (any libs or bins depends on this library will be ignored)
 #
 # dirs/files/libs is separated by new line
-# separated config can placed in @SYSCONFDIR@/revdep.d/ directory and with .conf suffix
+# vendor config can be placed in @LIBDIR@/revdep.d/ with .conf suffix
+# local package config can be placed in @SYSCONFDIR@/revdep.d/ with .conf suffix
 #
