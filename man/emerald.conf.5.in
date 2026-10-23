@@ -15,9 +15,6 @@ Built-package cache directory. Default is the configured cache directory followe
 .B WORK_DIR
 Temporary build directory. Default is the configured cache directory followed by \fBwork\fR.
 .TP
-.B CBUILD_DIR
-Directory for saved C build state. Default is the configured state directory followed by \fBcbuild\fR.
-.TP
 .B CURL_OPTS
 Additional options passed to curl when fetching sources.
 .TP
