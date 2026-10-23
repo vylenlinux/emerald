@@ -5,7 +5,6 @@
 # vars
 BUILD_SCRIPT="@BUILD_SCRIPT@"
 PKGDB_DIR="$(pkgadd --print-db-dir)"
-CBUILD_DIR="@STATE_DIR@/cbuild"
 WORLD_FILE="@STATE_DIR@/world"
 REPO_FILE="${REPO_FILE:-@SYSCONFDIR@/emerald.repo}"
 MASK_FILE="${MASK_FILE:-@SYSCONFDIR@/emerald.mask}"
@@ -184,9 +183,8 @@ deps_alias() {
 
 get_depends() {
     PPATH=$(get_port_path "$1") || return 0
-    deps_file="$PPATH/depends"
 
-    [ -f "$CBUILD_DIR/${1}.dep" ] && deps_file="$CBUILD_DIR/$1.dep"
+    deps_file="$PPATH/depends"
     [ -f "$deps_file" ] || return 0
 
     deps=$(grep -v '^$' "$deps_file")
@@ -664,7 +662,7 @@ deplist() {
     # Resolve in a single awk pass, visiting dependencies in post-order exactly like
     # the former recursive shell version (no forks per port, ~90x faster resolution).
     # Args:  "<ports>"  (space separated; may be passed as one quoted string)
-    # Reads: quick, exclude, skip_root, ALIAS_PORT, PORT_REPO, CBUILD_DIR, PKGDB_DIR
+    # Reads: quick, exclude, skip_root, ALIAS_PORT, PORT_REPO, PKGDB_DIR
     # Appends to: DEP, MISSING_DEP
     _dl_alias=""
 
@@ -675,7 +673,6 @@ deplist() {
     _dl_out=$(awk \
         -v repos="$PORT_REPO" \
         -v build_script="$BUILD_SCRIPT" \
-        -v cbuild_dir="$CBUILD_DIR" \
         -v pkgdb_dir="$PKGDB_DIR" \
         -v alias_file="$_dl_alias" \
         -v quick="$quick" \
@@ -718,17 +715,13 @@ deplist() {
     # Load package dependencies.
     function load_deps(package, dep_file, port_path, line, word_count, word_idx, dependency, dep_idx) {
         if (package in dep_count) return;
-
         dep_count[package] = 0;
-        dep_file = sprintf("%s/%s.dep", cbuild_dir, package);
 
-        if (!file_exists(dep_file)) {
-            port_path = find_port(package);
-            if (port_path == "") return;
+        port_path = find_port(package);
+        if (port_path == "") return;
 
-            dep_file = sprintf("%s/depends", port_path);
-            if (!file_exists(dep_file)) return;
-        }
+        dep_file = sprintf("%s/depends", port_path);
+        if (!file_exists(dep_file)) return;
 
         while ((getline line < dep_file) > 0) {
             word_count = split(line, words);
@@ -1995,7 +1988,6 @@ emerald_redeps() {
 
                     if [ "$fix" = 1 ]; then
                         deps_file="$PPATH/depends"
-                        [ -f "$CBUILD_DIR/$i.dep" ] && deps_file="$CBUILD_DIR/$i.dep"
 
                         sed -i "/^$dd$/d" "$deps_file"
                         msg_info "$dd removed from $i ${deps_file##*/}"

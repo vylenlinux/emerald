@@ -749,55 +749,6 @@ check_dir() {
     done
 }
 
-# cbuild - custom build option
-cbuild_restore() {
-    _rs_dest="$1"
-    _rs_cfg="$CBUILD_DIR/${2:-$name}.cfg"
-
-    if [ -z "$_rs_dest" ]; then
-        msg_error "cbuild_restore: destination path required"
-        return 1
-    fi
-
-    [ -f "$_rs_cfg" ] || return 1
-
-    cp "$_rs_cfg" "$_rs_dest" || {
-        msg_error "cbuild_restore: failed to copy to '$_rs_dest'"
-        return 1
-    }
-
-    return 0
-}
-
-cbuild_save() {
-    _sv_src="$1"
-    _sv_cfg="$CBUILD_DIR/${2:-$name}.cfg"
-
-    if [ -z "$_sv_src" ]; then
-        msg_error "cbuild_save: source path required"
-        return 1
-    fi
-
-    [ -f "$_sv_src" ] || {
-        msg_error "cbuild_save: '$_sv_src' not found"
-        return 1
-    }
-
-    cp "$_sv_src" "$_sv_cfg" || {
-        msg_error "cbuild_save: failed to write '$_sv_cfg'"
-        return 1
-    }
-}
-
-cbuild_options() {
-    _op_cfg="$CBUILD_DIR/${1:-$name}.opt"
-
-    if [ -f "$_op_cfg" ]; then
-        # shellcheck source=$_op_cfg
-        . "$_op_cfg"
-    fi
-}
-
 pkg_cleanup() {
     if [ "$KEEP_WORK" != "yes" ] && [ -n "$name" ]; then
         _pkg_work_dir="$WORK_DIR/$name"
@@ -953,8 +904,6 @@ main() {
         exit 0
     fi
 
-    # Ensure cbuild directory exists; non-fatal if it cannot be created
-    [ -d "$CBUILD_DIR" ] || mkdir -p "$CBUILD_DIR" 2>/dev/null
     check_dir "$SOURCE_DIR" "$PACKAGE_DIR" "$WORK_DIR"
 
     [ -f "$PKGBUILD_BSCRIPT" ] || {
@@ -1059,7 +1008,6 @@ PKGFILES_FILE="@PKGFILES_FILE@"
 SOURCE_DIR="@CACHE_DIR@/sources"
 PACKAGE_DIR="@CACHE_DIR@/packages"
 WORK_DIR="@CACHE_DIR@/work"
-CBUILD_DIR="@STATE_DIR@/cbuild"
 CURL_OPTS=""
 COMPRESSION_MODE="xz"
 NO_STRIP="no"
