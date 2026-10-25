@@ -1080,14 +1080,14 @@ emerald_version() {
 }
 
 format_deps() {
-    _dep="$1"
+    _deps="$1"
 
-    if [ -z "$_dep" ]; then
+    if [ -z "$_deps" ]; then
         printf 'None'
         return
     fi
 
-    for pkg in $_dep; do
+    for pkg in $_deps; do
         color="$(emerald_is_installed "$pkg" && printf '%b' "$COLOR2" || printf '%b' "$COLOR1")"
         printf "%b%s%b " "$color" "$pkg" "$CRESET"
     done
