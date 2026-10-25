@@ -1088,7 +1088,12 @@ format_deps() {
     fi
 
     for pkg in $_deps; do
-        color="$(emerald_is_installed "$pkg" && printf '%b' "$COLOR2" || printf '%b' "$COLOR1")"
+        color="$COLOR1"
+
+        if emerald_is_installed "$pkg"; then
+            color="$COLOR2"
+        fi
+
         printf "%b%s%b " "$color" "$pkg" "$CRESET"
     done
 }
