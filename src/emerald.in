@@ -1597,33 +1597,46 @@ emerald_installed() {
     done
 }
 
+check_pkg_integrity() {
+    _integrity_pkg="$1"
+    _integrity_db="$PKGDB_DIR/$_integrity_pkg"
+    _integrity_found=0
+
+    [ -f "$_integrity_db" ] || return 0
+
+    {
+        read -r _ # skip header
+
+        while IFS= read -r _integrity_path; do
+            [ -e "/$_integrity_path" ] && continue
+            _integrity_found=1
+
+            [ -L "/$_integrity_path" ] || {
+                printf "file missing %s: /%s\n" "$_integrity_pkg" "$_integrity_path"
+                continue
+            }
+
+            printf "broken symlink %s: /%s\n" "$_integrity_pkg" "$_integrity_path"
+        done
+    } < "$_integrity_db"
+
+    return "$_integrity_found"
+}
+
 emerald_integrity() {
     require_root
 
     if [ -n "$1" ]; then
-        pkg="$1"
-        printf "Checking '%s' integrity...\n" "$pkg"
+        _integrity_pkg="$1"
+        printf "Checking '%s' integrity...\n" "$_integrity_pkg"
 
-        [ -f "$PKGDB_DIR/$pkg" ] || {
-            msg_port_not_installed "$pkg"
+        [ -f "$PKGDB_DIR/$_integrity_pkg" ] || {
+            msg_port_not_installed "$_integrity_pkg"
             return 1
         }
 
-        found=0
-
-        {
-            read -r _ # skip header
-
-            while IFS= read -r line; do
-                [ -e "/$line" ] && continue
-                found=1
-
-                [ -L "/$line" ] && printf "broken symlink %s: /%s\n" "$pkg" "$line" || printf "file missing %s: /%s\n" "$pkg" "$line"
-            done
-        } < "$PKGDB_DIR/$pkg"
-
-        if [ "$found" -eq 0 ]; then
-            msg_info "'$pkg' integrity is OK!"
+        if check_pkg_integrity "$_integrity_pkg"; then
+            msg_info "'$_integrity_pkg' integrity is OK!"
             return 0
         fi
 
@@ -1631,39 +1644,17 @@ emerald_integrity() {
     fi
 
     printf "Checking ports integrity...\n"
-    interr=$(mktemp) || return 1
+    _integrity_status=0
 
-    # shellcheck disable=SC2016
-    all_installed | xargs -P "$(nproc)" -I{} sh -c '
-        pkg="$1"
-        db="$2/$pkg"
-        interr="$3"
+    for _integrity_pkg in $(all_installed); do
+        check_pkg_integrity "$_integrity_pkg" || _integrity_status=1
+    done
 
-        [ -f "$db" ] || exit 0
-
-        {
-            read -r _
-
-            while IFS= read -r line; do
-                [ -e "/$line" ] && continue
-
-                # mark error
-                printf 1 >> "$interr"
-
-                [ -L "/$line" ] && printf "broken symlink %s: /%s\n" "$pkg" "$line" || printf "file missing %s: /%s\n" "$pkg" "$line"
-            done
-        } < "$db"
-    ' _ {} "$PKGDB_DIR" "$interr"
-
-    status=1
-
-    [ -s "$interr" ] || {
+    if [ "$_integrity_status" -eq 0 ]; then
         msg_info "No integrity issues found!"
-        status=0
-    }
+    fi
 
-    rm -f "$interr"
-    return "$status"
+    return "$_integrity_status"
 }
 
 emerald_is_installed() {
