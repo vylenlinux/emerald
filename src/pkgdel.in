@@ -68,13 +68,13 @@ while [ -n "$1" ]; do
             exit 1
         ;;
 
-        *) RMNAME=$1 ;;
+        *) PKG_NAME="$1" ;;
     esac
 
     shift
 done
 
-if [ -z "$RMNAME" ]; then
+if [ -z "$PKG_NAME" ]; then
     help
     exit 0
 fi
@@ -103,16 +103,15 @@ touch "$ROOT_DIR/$LOCK_FILE" 2>/dev/null || {
     exit 1
 }
 
-[ -s "$ROOT_DIR/$PKGDB_DIR/$RMNAME" ] || {
-    msg_error "Package '$RMNAME' not installed."
+[ -s "$ROOT_DIR/$PKGDB_DIR/$PKG_NAME" ] || {
+    msg_error "Package '$PKG_NAME' not installed."
     ret 1
 }
 
-name=$RMNAME
-read -r version release < "$ROOT_DIR/$PKGDB_DIR/$name"
+read -r version release < "$ROOT_DIR/$PKGDB_DIR/$PKG_NAME"
 
 if [ -z "$version" ] && [ -z "$release" ]; then
-    msg_error "Package '$RMNAME' is not installed but exists in database."
+    msg_error "Package '$PKG_NAME' is not installed but exists in database."
     ret 1
 fi
 
@@ -120,7 +119,7 @@ fi
 # Used later to detect directories still owned by other packages.
 tmpdb=$(mktemp)
 
-find "$ROOT_DIR/$PKGDB_DIR" -type f ! -name "$name" -exec cat {} + 2>/dev/null > "$tmpdb" || {
+find "$ROOT_DIR/$PKGDB_DIR" -type f ! -name "$PKG_NAME" -exec cat {} + 2>/dev/null > "$tmpdb" || {
     msg_error "Failed to build temporary DB file."
     rm -f "$tmpdb"
 
@@ -134,7 +133,7 @@ _rm_dirs=$(mktemp)
 
 awk -v rm_files="$_rm_files" -v rm_dirs="$_rm_dirs" 'NR > 1 {
     print > ((substr($0, length($0), 1) == "/") ? rm_dirs : rm_files);
-}' "$ROOT_DIR/$PKGDB_DIR/$name"
+}' "$ROOT_DIR/$PKGDB_DIR/$PKG_NAME"
 
 # Remove regular files in one xargs batch
 if [ -s "$_rm_files" ]; then
@@ -160,7 +159,7 @@ if [ -s "$_rm_dirs" ]; then
 fi
 
 # Remove files, dirs, tmpdb and the package entry from the database
-rm -f "$_rm_files" "$_rm_dirs" "$tmpdb" "$ROOT_DIR/$PKGDB_DIR/$name"
+rm -f "$_rm_files" "$_rm_dirs" "$tmpdb" "$ROOT_DIR/$PKGDB_DIR/$PKG_NAME"
 
 # Refresh the dynamic linker cache if available
 [ -x "$ROOT_DIR/usr/bin/ldconfig" ] && "$ROOT_DIR/usr/bin/ldconfig" -r "$ROOT_DIR/"
