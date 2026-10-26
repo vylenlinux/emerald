@@ -307,13 +307,13 @@ emerald_build() {
             --log) LOG=1 ;;
             -k) KEEP_GOING_LOCAL=1 ;;
             -*) OPTS="$OPTS $1" ;;
-            *) PKGNAME="$PKGNAME $1" ;;
+            *) PKG_NAME="$PKG_NAME $1" ;;
         esac
 
         shift
     done
 
-    for pkg in $PKGNAME; do
+    for pkg in $PKG_NAME; do
         PPATH=$(get_port_path "$pkg") || {
             msg_port_not_found "$pkg"
 
@@ -497,9 +497,9 @@ EOF
         # Keep packages - use get_iversion function
         if [ "$clean_pkg" -eq 1 ]; then
             pvr=$(get_iversion "$portname")
-            [ -z "$pvr" ] || pkgname="${portname}-${pvr}.epkg.tar.${COMPRESSION_MODE}"
+            [ -z "$pvr" ] || package="${portname}-${pvr}.epkg.tar.${COMPRESSION_MODE}"
 
-            keep_pkg="${keep_pkg}${keep_pkg:+|}$pkgname"
+            keep_pkg="${keep_pkg}${keep_pkg:+|}$package"
         fi
 
         # Keep sources - read from @CHECKSUMS_FILE@ file
@@ -1104,14 +1104,14 @@ emerald_info() {
     while [ -n "$1" ]; do
         case $1 in
             --field=*) FIELD="${1#*=}" ;;
-            *) PKGNAME="$1" ;;
+            *) PKG_NAME="$1" ;;
         esac
 
         shift
     done
 
-    PPATH=$(get_port_path "$PKGNAME") || {
-        msg_port_not_found "$PKGNAME"
+    PPATH=$(get_port_path "$PKG_NAME") || {
+        msg_port_not_found "$PKG_NAME"
         return 1
     }
 
@@ -1150,26 +1150,26 @@ $(awk '/^version=/ {
 EOF
 
     # Read installed version
-    iver="$(get_iversion "$PKGNAME")"
+    iver="$(get_iversion "$PKG_NAME")"
     [ -z "$iver" ] && iver="Not installed"
 
     # Read depends file
-    deps=$(get_depends "$PKGNAME" | tr '\n' ' ')
+    deps=$(get_depends "$PKG_NAME" | tr '\n' ' ')
     deps_out=$(format_deps "$deps")
 
     # Check conflicts
-    conflicts=$(get_conflicts "$PKGNAME" | tr '\n' ' ')
+    conflicts=$(get_conflicts "$PKG_NAME" | tr '\n' ' ')
     conflicts_out=$(format_deps "$conflicts")
 
     # Check dependent (required by)
-    required_by=$(get_dependent "$PKGNAME" | tr '\n' ' ')
+    required_by=$(get_dependent "$PKG_NAME" | tr '\n' ' ')
     required_by_out=$(format_deps "$required_by")
 
     # Check alias: the queried port can appear as either the 'real' name
     # (1st field) or the 'alias' name (2nd field) in $ALIAS_FILE, e.g. for
     # a line "rust rust-lang", both '@PROJECT_NAME@ info rust' and '@PROJECT_NAME@ info rust-lang'
     # must report the relationship.
-    port_alias=$(awk -v pkg="$PKGNAME" '!/^[[:space:]]*$/ && !/^#/ {
+    port_alias=$(awk -v pkg="$PKG_NAME" '!/^[[:space:]]*$/ && !/^#/ {
         if ($1 == pkg) {
             print $2;
             exit;
@@ -1185,7 +1185,7 @@ EOF
 
     # Check masked (exact first-field match, '-' is not a word char so grep -w won't do)
     masked="No"
-    grep -qE "^$PKGNAME([[:space:]]|$)" "$MASK_FILE" 2>/dev/null && masked="Yes"
+    grep -qE "^$PKG_NAME([[:space:]]|$)" "$MASK_FILE" 2>/dev/null && masked="Yes"
 
     if [ -n "$FIELD" ]; then
         case "$FIELD" in
@@ -1193,7 +1193,7 @@ EOF
             maintainer) printf '%s\n' "$maintainer" ;;
             homepage) printf '%s\n' "$homepage" ;;
             path) printf '%s\n' "$PPATH" ;;
-            name) printf '%s\n' "$PKGNAME" ;;
+            name) printf '%s\n' "$PKG_NAME" ;;
             version) printf '%s\n' "$version" ;;
             release) printf '%s\n' "$release" ;;
             commit) [ -z "$commit" ] || printf '%s\n' "$commit" ;;
@@ -1217,7 +1217,7 @@ EOF
     printf '%bMaintainer:%b %s\n' "$COLOR5" "$CRESET" "$maintainer"
     printf '%bHomepage:%b %s\n' "$COLOR5" "$CRESET" "$homepage"
     printf '%bPath:%b %s\n' "$COLOR5" "$CRESET" "$PPATH"
-    printf '%bName:%b %b%s%b\n' "$COLOR5" "$CRESET" "$COLOR2" "$PKGNAME" "$CRESET"
+    printf '%bName:%b %b%s%b\n' "$COLOR5" "$CRESET" "$COLOR2" "$PKG_NAME" "$CRESET"
     printf '%bVersion:%b %b%s%b\n' "$COLOR5" "$CRESET" "$COLOR4" "$version" "$CRESET"
     printf '%bRelease:%b %b%s%b\n' "$COLOR5" "$CRESET" "$COLOR4" "$release" "$CRESET"
     [ -z "$commit" ] || printf '%bCommit:%b %s\n' "$COLOR5" "$CRESET" "$commit"
@@ -1342,7 +1342,7 @@ emerald_install() {
             -k) KEEP_GOING_LOCAL=1 ;;
             --exclude=*) EXOPT=$1 ;;
             -*) OPTS="$OPTS $1" ;;
-            *) PKGNAME="$PKGNAME $1" ;;
+            *) PKG_NAME="$PKG_NAME $1" ;;
         esac
 
         shift
@@ -1352,7 +1352,7 @@ emerald_install() {
     if [ "$REINSTALL" = 1 ]; then
         error=0
 
-        for ii in $PKGNAME; do
+        for ii in $PKG_NAME; do
             PPATH=$(get_port_path "$ii") || {
                 msg_port_not_found "$ii"
 
@@ -1423,7 +1423,7 @@ emerald_install() {
     if [ "$NO_DEP" = 1 ]; then
         error=0
 
-        for ii in $PKGNAME; do
+        for ii in $PKG_NAME; do
             PPATH=$(get_port_path "$ii") || {
                 msg_port_not_found "$ii"
 
@@ -1485,7 +1485,7 @@ emerald_install() {
 
     _in_err=0
 
-    for i in $PKGNAME; do
+    for i in $PKG_NAME; do
         get_port_path "$i" >/dev/null 2>&1 || {
             msg_port_not_found "$i"
             _in_err=1
@@ -1765,25 +1765,25 @@ check_outdated() {
     [ -n "$_vmap" ] || return 0
 
     # Pipe installed map (built with shell read builtins, zero extra forks) into
-    # a single awk that loads portver[] from _vmap and joins in memory.
+    # a single awk that loads versions[] from _vmap and joins in memory.
     for _pkg in $(all_installed); do
         read -r _v _r _ < "$PKGDB_DIR/$_pkg" && printf '%s %s-%s\n' "$_pkg" "$_v" "$_r"
     done | awk -v vmap="$_vmap" 'BEGIN {
         n = split(vmap, lines, "\n");
 
         for (i = 1; i <= n; i++) {
-            if (split(lines[i], a, " ") == 2) portver[a[1]] = a[2];
+            if (split(lines[i], a, " ") == 2) versions[a[1]] = a[2];
         }
-    } ($1 in portver) && (portver[$1] != $2) {
-        printf "%s#%s#%s\n", $1, $2, portver[$1];
-    }' | while IFS='#' read -r pkgname ivr pvr; do
+    } ($1 in versions) && (versions[$1] != $2) {
+        printf "%s#%s#%s\n", $1, $2, versions[$1];
+    }' | while IFS='#' read -r name ivr pvr; do
         NEW_INSTALLED=0
 
-        pversion=${pvr%-*}
-        prelease=${pvr#*-}
+        pversion="${pvr%-*}"
+        prelease="${pvr#*-}"
 
-        iversion=${ivr%-*}
-        irelease=${ivr#*-}
+        iversion="${ivr%-*}"
+        irelease="${ivr#*-}"
 
         if [ "$pversion" != "$iversion" ]; then
             version_compare "$pversion" "$iversion"
@@ -1796,11 +1796,11 @@ check_outdated() {
         MASKED=0
 
         case " $_MASKED_LIST " in
-            *" $pkgname "*) MASKED=1 ;;
+            *" $name "*) MASKED=1 ;;
         esac
 
         # Example: 'glib#2.87.0-1#2.88.1-1#1#0'
-        printf "%s#%s#%s#%s#%s\n" "$pkgname" "$ivr" "$pvr" "$NEW_INSTALLED" "$MASKED"
+        printf "%s#%s#%s#%s#%s\n" "$name" "$ivr" "$pvr" "$NEW_INSTALLED" "$MASKED"
     done
 }
 
@@ -2046,7 +2046,7 @@ emerald_remove() {
         case $1 in
             -y | --yes) NOCONFIRM=1 ;;
             -*) OPTS="$OPTS $1" ;;
-            *) PKGNAME="$PKGNAME $1" ;;
+            *) PKG_NAME="$PKG_NAME $1" ;;
         esac
 
         shift
@@ -2054,7 +2054,7 @@ emerald_remove() {
 
     error=0
 
-    for i in $PKGNAME; do
+    for i in $PKG_NAME; do
         emerald_is_installed "$i" || {
             msg_port_not_installed "$i"
             error=1
@@ -2564,7 +2564,7 @@ emerald_upgrade() {
             -k) KEEP_GOING_LOCAL=1 ;;
             --exclude=*) EXOPT=$1 ;;
             -*) OPTS="$OPTS $1" ;;
-            *) PKGNAME="$PKGNAME $1" ;;
+            *) PKG_NAME="$PKG_NAME $1" ;;
         esac
 
         shift
@@ -2572,7 +2572,7 @@ emerald_upgrade() {
 
     _up_err=0
 
-    for pkg in $PKGNAME; do
+    for pkg in $PKG_NAME; do
         emerald_is_installed "$pkg" || {
             msg_port_not_installed "$pkg"
             _up_err=1
