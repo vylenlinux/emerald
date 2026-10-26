@@ -13,21 +13,18 @@ export LC_ALL=C
 get_realpath() {
     case "$1" in
         */*)
-            _dir=${1%/*}
-            _file=${1##*/}
+            _dir="${1%/*}"
+            _file="${1##*/}"
         ;;
 
         *)
             _dir=.
-            _file=$1
+            _file="$1"
         ;;
     esac
 
     # Use a subshell to avoid changing the current directory permanently
-    (
-        CDPATH=
-        cd -P -- "$_dir" && printf '%s/%s\n' "$(pwd -P)" "$_file"
-    )
+    (CDPATH='' cd -P -- "$_dir" && printf '%s/%s\n' "$(pwd -P)" "$_file")
 }
 
 interrupted() {
@@ -237,7 +234,7 @@ if [ "$IGNORE_CONFLICT" != "yes" ]; then
 
             # Find which installed package owns this file
             owner=$(grep -lFx "$line" "$ROOT_DIR/$PKGDB_DIR"/* 2>/dev/null | head -n1)
-            [ -n "$owner" ] && owner=${owner##*/} || owner="(none)"
+            [ -n "$owner" ] && owner="${owner##*/}" || owner="(none)"
 
             printf '%s %s\n' "$owner" "$line"
             conflicts=1
