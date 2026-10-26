@@ -2506,8 +2506,9 @@ trigger_fontcache() {
 
             [ -d "$dir" ] || continue
 
-            mkfontdir "$dir"
+            # mkfontdir merges fonts.scale into fonts.dir, so scale first
             mkfontscale "$dir"
+            mkfontdir "$dir"
         done
     fi
 }
