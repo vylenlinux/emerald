@@ -608,7 +608,7 @@ pkg_package() {
             }
         done
 
-        [ "$FORCE_REBUILD" = "yes" ] && rm -f "$PACKAGE_DIR/$PKGNAME"
+        [ "$FORCE_REBUILD" = "yes" ] && rm -f "$PACKAGE_DIR/$PKG_NAME"
 
         case "$COMPRESSION_MODE" in
             xz) COMPRESS="xz -T0" ;;
@@ -619,26 +619,26 @@ pkg_package() {
         esac
 
         # shellcheck disable=SC2035
-        tar -c -I "$COMPRESS" -f "$PACKAGE_DIR/$PKGNAME" * || {
-            rm -f "$PACKAGE_DIR/$PKGNAME"
-            msg_error "Packaging failed: $PKGNAME"
+        tar -c -I "$COMPRESS" -f "$PACKAGE_DIR/$PKG_NAME" * || {
+            rm -f "$PACKAGE_DIR/$PKG_NAME"
+            msg_error "Packaging failed: $PKG_NAME"
 
             abort 1
         }
 
         # Capture listing once; reuse for display and pkgfiles (avoids re-reading the archive)
-        _tar_list=$(tar --quoting-style=literal -tvf "$PACKAGE_DIR/$PKGNAME")
+        _tar_list=$(tar --quoting-style=literal -tvf "$PACKAGE_DIR/$PKG_NAME")
         [ "$QUIET" != "yes" ] && printf '%s\n' "$_tar_list" | sort -k 6
 
-        msg_info "Packaging success: $PKGNAME ($(ls -lh "$PACKAGE_DIR/$PKGNAME" | awk '{print $5;}'))"
+        msg_info "Packaging success: $PKG_NAME ($(ls -lh "$PACKAGE_DIR/$PKG_NAME" | awk '{print $5;}'))"
     cd - >/dev/null || return 1
 
     [ -f "${PKGFILES_FILE}" ] || pkg_gen_pkgfiles "$_tar_list"
 }
 
 pkg_gen_pkgfiles() {
-    [ -f "$PACKAGE_DIR/$PKGNAME" ] || {
-        msg_error "Package not found: $PKGNAME"
+    [ -f "$PACKAGE_DIR/$PKG_NAME" ] || {
+        msg_error "Package not found: $PKG_NAME"
         exit 1
     }
 
@@ -646,7 +646,7 @@ pkg_gen_pkgfiles() {
     if [ -n "$1" ]; then
         printf '%s\n' "$1"
     else
-        tar --quoting-style=literal -tvf "$PACKAGE_DIR/$PKGNAME"
+        tar --quoting-style=literal -tvf "$PACKAGE_DIR/$PKG_NAME"
     fi | awk '{
         $3 = $4 = $5 = "";
         print $0;
@@ -659,9 +659,9 @@ pkg_gen_pkgfiles() {
 }
 
 pkg_clean() {
-    if [ -e "$PACKAGE_DIR/$PKGNAME" ]; then
-        rm -f "$PACKAGE_DIR/$PKGNAME"
-        msg_info "Package removed: $PACKAGE_DIR/$PKGNAME"
+    if [ -e "$PACKAGE_DIR/$PKG_NAME" ]; then
+        rm -f "$PACKAGE_DIR/$PKG_NAME"
+        msg_info "Package removed: $PACKAGE_DIR/$PKG_NAME"
     fi
 
     for i in $(get_filepath); do
@@ -926,7 +926,7 @@ main() {
     check_build_script
 
     case "$COMPRESSION_MODE" in
-        gz | bz2 | xz | lz4 | zstd) PKGNAME="$name-$version-$release.epkg.tar.$COMPRESSION_MODE" ;;
+        gz | bz2 | xz | lz4 | zstd) PKG_NAME="$name-$version-$release.epkg.tar.$COMPRESSION_MODE" ;;
 
         *)
             msg_error "Invalid compression mode: $COMPRESSION_MODE"
@@ -983,9 +983,9 @@ main() {
     }
 
     # build package
-    if [ -f "$PACKAGE_DIR/$PKGNAME" ] && [ "$FORCE_REBUILD" != "yes" ]; then
+    if [ -f "$PACKAGE_DIR/$PKG_NAME" ] && [ "$FORCE_REBUILD" != "yes" ]; then
         if [ "$INSTALL_PKG" != "yes" ] && [ "$REINSTALL_PKG" != "yes" ] && [ "$UPGRADE_PKG" != "yes" ]; then
-            msg_info "Package is up-to-date: $PKGNAME"
+            msg_info "Package is up-to-date: $PKG_NAME"
             abort 0
         fi
     else
@@ -1001,7 +1001,7 @@ main() {
 
     # install package
     if [ "$INSTALL_PKG" = "yes" ] || [ "$REINSTALL_PKG" = "yes" ] || [ "$UPGRADE_PKG" = "yes" ]; then
-        pkgadd "$PACKAGE_DIR/$PKGNAME" $OPTS || abort 1
+        pkgadd "$PACKAGE_DIR/$PKG_NAME" $OPTS || abort 1
     fi
 
     abort 0
