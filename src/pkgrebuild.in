@@ -78,16 +78,16 @@ toolchain_rebuild() {
         # Skip if package already rebuilt (recorded in tracking list)
         grep -Fx "$tc" "$LIST" >/dev/null 2>&1 || {
             # Remove -pass1 suffix to get actual package name
-            pkgname="$(printf "%s" "$tc" | sed 's/-pass1//')"
+            name="$(printf "%s" "$tc" | sed 's/-pass1//')"
 
             # Force rebuild of package
-            emerald build -f "$pkgname" || exit 1
+            emerald build -f "$name" || exit 1
 
             # Record package as rebuilt (prevents duplicate builds)
             printf "%s\n" "$tc" >> "$LIST"
 
             # Install rebuilt package to system
-            emerald install -r "$pkgname" || exit 1
+            emerald install -r "$name" || exit 1
         }
     done
 
