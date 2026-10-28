@@ -331,11 +331,24 @@ emerald_build() {
 
             # Run pkgbuild and capture the result
             case "$LOG" in
-                1) pkgbuild $OPTS | tee "/var/log/$pkg-$(get_version "$pkg")-build-$(date +%Y%m%d-%H%M).log" ;;
-                *) pkgbuild $OPTS ;;
-            esac
+                1)
+                    _build_status="$(mktemp)" || return 1
+                    _log_file="/var/log/$pkg-$(get_version "$pkg")-build-$(date +%Y%m%d-%H%M).log"
 
-            _build_ret="$?"
+                    {
+                        portbuild $OPTS
+                        printf '%s\n' "$?" > "$_build_status"
+                    } | tee "$_log_file"
+
+                    read -r _build_ret <"$_build_status"
+                    rm -f "$_build_status"
+                ;;
+
+                *)
+                    pkgbuild $OPTS
+                    _build_ret="$?"
+                ;;
+            esac
 
             if [ "$_build_ret" -ne 0 ]; then
                 set_term_title "Building $pkg failed."
