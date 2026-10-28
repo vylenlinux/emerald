@@ -639,7 +639,7 @@ pkg_package() {
 pkg_gen_pkgfiles() {
     [ -f "$PACKAGE_DIR/$PKG_NAME" ] || {
         msg_error "Package not found: $PKG_NAME"
-        exit 1
+        abort 1
     }
 
     # If a pre-captured listing is passed as $1, use it; otherwise read the archive
