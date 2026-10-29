@@ -282,37 +282,37 @@ emerald_build() {
             return 1
         }
 
-        cd "$PPATH" || return 1
-            set_term_title "Building $pkg..."
+        set_term_title "Building $pkg..."
 
-            # Run pkgbuild and capture the result
-            case "$LOG" in
-                1)
-                    _build_status="$(mktemp)" || return 1
-                    _log_file="/var/log/$pkg-$(get_version "$pkg")-build-$(date +%Y%m%d-%H%M).log"
+        # Run pkgbuild and capture the result
+        case "$LOG" in
+            1)
+                _build_status="$(mktemp)" || return 1
+                _log_file="/var/log/$pkg-$(get_version "$pkg")-build-$(date +%Y%m%d-%H%M).log"
 
-                    {
+                (
+                    cd "$PPATH" && {
                         portbuild $OPTS
-                        printf '%s\n' "$?" > "$_build_status"
+                        printf '%d\n' "$?" > "$_build_status"
                     } | tee "$_log_file"
+                )
 
-                    read -r _build_ret <"$_build_status"
-                    rm -f "$_build_status"
-                ;;
+                read -r _build_ret <"$_build_status"
+                rm -f "$_build_status"
+            ;;
 
-                *)
-                    pkgbuild $OPTS
-                    _build_ret="$?"
-                ;;
-            esac
+            *)
+                (cd "$PPATH" && pkgbuild $OPTS)
+                _build_ret="$?"
+            ;;
+        esac
 
-            if [ "$_build_ret" -ne 0 ]; then
-                set_term_title "Building $pkg failed."
-                return 1
-            fi
+        if [ "$_build_ret" -ne 0 ]; then
+            set_term_title "Building $pkg failed."
+            return 1
+        fi
 
-            set_term_title "Building $pkg done."
-        cd - >/dev/null || return 1
+        set_term_title "Building $pkg done."
     done
 
     return 0
@@ -1308,19 +1308,14 @@ emerald_install() {
             }
 
             check_conflicts "$ii"
+            set_term_title "Reinstalling $ii..."
 
-            cd "$PPATH" || return 1
-                set_term_title "Reinstalling $ii..."
+            (cd "$PPATH" && pkgbuild -r $OPTS) || {
+                error=1
+                break
+            }
 
-                pkgbuild -r $OPTS || {
-                    error=1
-
-                    cd - >/dev/null || return 1
-                    break
-                }
-
-                done_pkg="$done_pkg $ii"
-            cd - >/dev/null || return 1
+            done_pkg="$done_pkg $ii"
         done
 
         if [ -n "$done_pkg" ]; then
@@ -1347,20 +1342,15 @@ emerald_install() {
             fi
 
             check_conflicts "$ii"
+            set_term_title "Installing $ii..."
 
-            cd "$PPATH" || return 1
-                set_term_title "Installing $ii..."
+            (cd "$PPATH" && pkgbuild -i $OPTS) || {
+                error=1
+                break
+            }
 
-                pkgbuild -i $OPTS || {
-                    error=1
-
-                    cd - >/dev/null || return 1
-                    break
-                }
-
-                done_pkg="$done_pkg $ii"
-                world_add "$ii"
-            cd - >/dev/null || return 1
+            done_pkg="$done_pkg $ii"
+            world_add "$ii"
         done
 
         if [ -n "$done_pkg" ]; then
@@ -1428,27 +1418,22 @@ emerald_install() {
             }
 
             check_conflicts "$inst"
+            install_version=$(get_version "$inst")
 
-            cd "$PPATH" || return 1
-                install_version=$(get_version "$inst")
+            set_term_title "[ $count/$total ] installing $inst..."
+            hook pre install "$inst" "" "$install_version"
 
-                set_term_title "[ $count/$total ] installing $inst..."
-                hook pre install "$inst" "" "$install_version"
+            (cd "$PPATH" && pkgbuild -i $OPTS) || {
+                error=1
+                break
+            }
 
-                pkgbuild -i $OPTS || {
-                    error=1
+            case " $IPKG " in
+                *" $inst "*) world_add "$inst" ;;
+            esac
 
-                    cd - >/dev/null || return 1
-                    break
-                }
-
-                case " $IPKG " in
-                    *" $inst "*) world_add "$inst" ;;
-                esac
-
-                hook post install "$inst" "$install_version" "$install_version"
-                done_pkg="$done_pkg $inst"
-            cd - >/dev/null || return 1
+            hook post install "$inst" "$install_version" "$install_version"
+            done_pkg="$done_pkg $inst"
         done
 
         if [ -n "$done_pkg" ]; then
