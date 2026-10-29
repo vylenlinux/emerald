@@ -82,6 +82,16 @@ fi
 PKGDB_DIR="$(pkgadd --print-db-dir)"
 PKGDB_DIR="${PKGDB_DIR#/}"
 
+if [ -z "$PKGDB_DIR" ]; then
+	msg_error "Package database directory is not specified"
+	exit 1
+fi
+
+[ -d "$ROOT_DIR/$PKGDB_DIR" ] || {
+	msg_error "Package database directory not found: '$ROOT_DIR/$PKGDB_DIR'"
+	exit 1
+}
+
 LOCK_FILE="@STATE_DIR@/epkg.lock"
 
 if [ "$(id -u)" -ne 0 ]; then
