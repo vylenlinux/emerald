@@ -2193,15 +2193,21 @@ emerald_sysup() {
     printf "Checking for outdated packages...\n"
     PKG_OUTDATE=$(check_outdated)
 
-    # filter out masked (format: name#ivr#pvr#newer_installed#masked)
-    for i in $PKG_OUTDATE; do
-        case $i in
-            *#1) continue ;; # masked: skip, example: 'glib#2.87.0-1#2.88.1-1#1#1'
-            *) ii="$ii ${i%%#*}" ;;
-        esac
-    done
+    # Filter out masked and "newer installed" (format: name#ivr#pvr#newer#masked)
+    while IFS='#' read -r _p _ivr _pvr _new _masked; do
+        [ "$_masked" = 1 ] && continue
 
-    EXPKG=${EXOPT#*=}
+        if [ "$_new" = 1 ]; then
+            msg_warning "$_p: installed version ($_ivr) is newer than repo ($_pvr), skipping."
+            continue
+        fi
+
+        ii="$ii $_p"
+    done <<EOF
+${PKG_OUTDATE}
+EOF
+
+    EXPKG="${EXOPT#*=}"
 
     for i in $ii; do
         # Wrap list and item with commas so first/last entries are always surrounded by delimiters.
