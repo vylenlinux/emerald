@@ -18,7 +18,7 @@ Options:
     -b <builder>  Specify build system (default: autotools)
                   Available: autotools, meson, cmake, go, python, rust, gpep517
 
-    -h            Show this help message
+    <no args>     Show this help message
 
 Examples:
     portcreate myport            # Creates autotools template

@@ -35,9 +35,6 @@ Build ports using \fBpkgbuild\fR.
 .B -f
 Force package rebuild.
 .TP
-.B -k
-Continue building the next package after an error.
-.TP
 .B -m
 Skip checksum checking.
 .TP
@@ -72,9 +69,6 @@ Ignore conflicts when installing packages.
 .TP
 .B -f
 Force package rebuild.
-.TP
-.B -k
-Continue installing the next package after an error.
 .TP
 .B -m
 Skip checksum checking.
@@ -117,9 +111,6 @@ Ignore conflicts when installing packages.
 .B -f
 Force package rebuild.
 .TP
-.B -k
-Continue upgrading the next package after an error.
-.TP
 .B -m
 Skip checksum checking.
 .TP
@@ -157,9 +148,6 @@ Ignore conflicts when installing packages.
 .TP
 .B -f
 Force package rebuild.
-.TP
-.B -k
-Continue upgrading the next package after an error.
 .TP
 .B -m
 Skip checksum checking.

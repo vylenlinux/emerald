@@ -30,9 +30,6 @@ Set to \fByes\fR to skip source checksum verification.
 .B KEEP_DOC, KEEP_LIBTOOL, KEEP_LOCALE, KEEP_MAN, KEEP_INFO, KEEP_HELP
 Set to \fByes\fR to retain the corresponding files during packaging. The default policy is defined by the installed template.
 .TP
-.B KEEP_GOING
-Set to \fByes\fR to continue after recoverable failures where supported.
-.TP
 .B NOCOLOR
 Set to \fByes\fR to disable colored output.
 .TP

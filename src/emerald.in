@@ -19,7 +19,6 @@ COMPRESSION_MODE="xz"
 NO_STRIP="no"
 IGNORE_CHECKSUM="no"
 KEEP_DOC="no"
-KEEP_GOING="no"
 KEEP_LIBTOOL="no"
 KEEP_LOCALE="yes"
 KEEP_MAN="yes"
@@ -241,42 +240,8 @@ need_arg() {
     fi
 }
 
-keep_going() {
-    [ "$KEEP_GOING" = "yes" ] || [ "$KEEP_GOING_LOCAL" = 1 ]
-}
-
 set_term_title() {
     printf "\033]0;%s\a" "$1"
-}
-
-summary_show() {
-    failed="$1"  # $1 -> list of failed packages
-    skipped="$2" # $2 -> list of skipped packages (may be empty)
-    action="$3"  # $3 -> action: install, upgrade, build, ...
-
-    # If there is nothing to report, return silently
-    [ -n "$failed" ] || [ -n "$skipped" ] || return 0
-
-    # Separate summary from previous output
-    printf '\n'
-
-    # Report failed packages
-    if [ -n "$failed" ]; then
-        msg_error "The following packages failed to $action:"
-
-        for p in $failed; do
-            printf "  - %s\n" "$p"
-        done
-    fi
-
-    # Report skipped packages (if any)
-    if [ -n "$skipped" ]; then
-        msg_warning "The following packages were skipped:"
-
-        for p in $skipped; do
-            printf "  - %s\n" "$p"
-        done
-    fi
 }
 
 summary_title() {
@@ -299,13 +264,11 @@ summary_title() {
 
 emerald_build() {
     need_arg "${@}"
-    failed_builds=""
 
     while [ -n "$1" ]; do
         case $1 in
             -i | -u | -r | -g | -p) ;;
             --log) LOG=1 ;;
-            -k) KEEP_GOING_LOCAL=1 ;;
             -*) OPTS="$OPTS $1" ;;
             *) PKG_NAME="$PKG_NAME $1" ;;
         esac
@@ -316,13 +279,6 @@ emerald_build() {
     for pkg in $PKG_NAME; do
         PPATH=$(get_port_path "$pkg") || {
             msg_port_not_found "$pkg"
-
-            # If keep going is enabled, log and continue
-            if keep_going; then
-                failed_builds="$failed_builds $pkg"
-                continue
-            fi
-
             return 1
         }
 
@@ -352,28 +308,12 @@ emerald_build() {
 
             if [ "$_build_ret" -ne 0 ]; then
                 set_term_title "Building $pkg failed."
-
-                if keep_going; then
-                    msg_warning "Build failed for '$pkg', continuing with next package..."
-                    failed_builds="$failed_builds $pkg"
-
-                    cd - >/dev/null || return 1
-                    continue
-                fi
-
                 return 1
             fi
 
             set_term_title "Building $pkg done."
         cd - >/dev/null || return 1
     done
-
-    # Show error summary if exist
-    FAILED_PKGS="$failed_builds"
-    SKIPPED_PKGS=""
-
-    summary_show "$FAILED_PKGS" "$SKIPPED_PKGS" "build"
-    [ -n "$FAILED_PKGS" ] && return 1
 
     return 0
 }
@@ -587,7 +527,6 @@ emerald_config() {
     printf '%bKEEP_INFO:%b %b%s%b\n' "$COLOR5" "$CRESET" "$COLOR4" "$KEEP_INFO" "$CRESET"
     printf '%bKEEP_DOC:%b %b%s%b\n' "$COLOR5" "$CRESET" "$COLOR4" "$KEEP_DOC" "$CRESET"
     printf '%bKEEP_HELP:%b %b%s%b\n' "$COLOR5" "$CRESET" "$COLOR4" "$KEEP_HELP" "$CRESET"
-    printf '%bKEEP_GOING:%b %b%s%b\n' "$COLOR5" "$CRESET" "$COLOR4" "$KEEP_GOING" "$CRESET"
     printf '%bSOURCE_DIR:%b %s\n' "$COLOR5" "$CRESET" "$SOURCE_DIR"
     printf '%bPACKAGE_DIR:%b %s\n\n' "$COLOR5" "$CRESET" "$PACKAGE_DIR"
     printf '%bPORT_REPO:%b\n' "$COLOR5" "$CRESET"
@@ -974,7 +913,6 @@ Options:
 
     build        <ports>   <arg>   build ports (use pkgbuild arg, except '-i', '-u', '-r', '-g', & '-p')
                                    -f           force rebuild package
-                                   -k           keep going building next package on error
                                    -m           skip checksum checking
                                    -o           fetch sources only
                                    -q, --quiet  show only status messages and errors
@@ -987,7 +925,6 @@ Options:
     install      <ports>   <arg>   install ports (use pkgbuild arg, except '-i' & '-u')
                                    -c           ignore conflict when installing package
                                    -f           force rebuild package
-                                   -k           keep going installing next package on error
                                    -m           skip checksum checking
                                    -n           skip dependencies
                                    -o           fetch sources only
@@ -1002,7 +939,6 @@ Options:
     upgrade      <ports>   <arg>   upgrade ports (use pkgbuild arg, except '-i' & '-r')
                                    -c           ignore conflict when installing package
                                    -f           force rebuild package
-                                   -k           keep going upgrading next package on error
                                    -m           skip checksum checking
                                    -n           skip dependencies
                                    -o           fetch sources only
@@ -1016,7 +952,6 @@ Options:
     sysup                  <arg>   full system upgrade (use pkgbuild arg, except '-i', '-r'  & '-u')
                                    -c           ignore conflict when installing package
                                    -f           force rebuild package
-                                   -k           keep going upgrading next package on error
                                    -m           skip checksum checking
                                    -n           skip dependencies
                                    -o           fetch sources only
@@ -1337,9 +1272,6 @@ emerald_install() {
     require_root "Installing package"
     need_arg "${@}"
 
-    failed_installs=""
-    skipped_installs=""
-
     while [ -n "$1" ]; do
         case $1 in
             -i | -u) ;;
@@ -1352,7 +1284,6 @@ emerald_install() {
 
             -y | --yes) NOCONFIRM=1 ;;
             -n) NO_DEP=1 ;;
-            -k) KEEP_GOING_LOCAL=1 ;;
             --exclude=*) EXOPT=$1 ;;
             -*) OPTS="$OPTS $1" ;;
             *) PKG_NAME="$PKG_NAME $1" ;;
@@ -1368,27 +1299,11 @@ emerald_install() {
         for ii in $PKG_NAME; do
             PPATH=$(get_port_path "$ii") || {
                 msg_port_not_found "$ii"
-
-                if keep_going; then
-                    failed_installs="$failed_installs $ii"
-                    error=1
-
-                    continue
-                fi
-
                 return 1
             }
 
             emerald_is_installed "$ii" || {
                 msg_port_not_installed "$ii"
-
-                if keep_going; then
-                    failed_installs="$failed_installs $ii"
-                    error=1
-
-                    continue
-                fi
-
                 return 1
             }
 
@@ -1399,16 +1314,6 @@ emerald_install() {
 
                 pkgbuild -r $OPTS || {
                     error=1
-
-                    if keep_going; then
-                        msg_warning "Reinstall failed for '$ii', continuing with next package..."
-
-                        failed_installs="$failed_installs $ii"
-                        error=1
-
-                        cd - >/dev/null || return 1
-                        continue
-                    fi
 
                     cd - >/dev/null || return 1
                     break
@@ -1422,13 +1327,7 @@ emerald_install() {
             emerald_trigger "$done_pkg" || error=1
         fi
 
-        # Show error summary if exist
-        FAILED_PKGS="$failed_installs"
-        SKIPPED_PKGS="$skipped_installs"
-
-        summary_show "$FAILED_PKGS" "$SKIPPED_PKGS" "reinstall"
         set_term_title "Package(s) reinstalled."
-
         return "$error"
     fi
 
@@ -1439,21 +1338,11 @@ emerald_install() {
         for ii in $PKG_NAME; do
             PPATH=$(get_port_path "$ii") || {
                 msg_port_not_found "$ii"
-
-                if keep_going; then
-                    failed_installs="$failed_installs $ii"
-                    error=1
-
-                    continue
-                fi
-
                 return 1
             }
 
             if emerald_is_installed "$ii"; then
                 msg_port_already_installed "$ii"
-                skipped_installs="$skipped_installs $ii"
-
                 continue
             fi
 
@@ -1464,14 +1353,6 @@ emerald_install() {
 
                 pkgbuild -i $OPTS || {
                     error=1
-
-                    if keep_going; then
-                        msg_warning "Install failed for '$ii', continuing with next package..."
-                        failed_installs="$failed_installs $ii"
-
-                        cd - >/dev/null || return 1
-                        continue
-                    fi
 
                     cd - >/dev/null || return 1
                     break
@@ -1486,13 +1367,7 @@ emerald_install() {
             emerald_trigger "$done_pkg" || error=1
         fi
 
-        # Show error summary if exist
-        FAILED_PKGS="$failed_installs"
-        SKIPPED_PKGS=""
-
-        summary_show "$FAILED_PKGS" "$SKIPPED_PKGS" "install"
         set_term_title "Package(s) installed."
-
         return "$error"
     fi
 
@@ -1549,8 +1424,6 @@ emerald_install() {
 
             PPATH=$(get_port_path "$inst") || {
                 msg_warning "Skipping missing package: $inst"
-                skipped_installs="$skipped_installs $inst"
-
                 continue
             }
 
@@ -1564,14 +1437,6 @@ emerald_install() {
 
                 pkgbuild -i $OPTS || {
                     error=1
-
-                    if keep_going; then
-                        msg_warning "Install failed for '$inst', continuing with next package..."
-                        failed_installs="$failed_installs $inst"
-
-                        cd - >/dev/null || return 1
-                        continue
-                    fi
 
                     cd - >/dev/null || return 1
                     break
@@ -1590,13 +1455,7 @@ emerald_install() {
             emerald_trigger "$done_pkg" || error=1
         fi
 
-        # Show error summary if exist
-        FAILED_PKGS="$failed_installs"
-        SKIPPED_PKGS="$skipped_installs"
-
-        summary_show "$FAILED_PKGS" "$SKIPPED_PKGS" "install"
         summary_title "$error" "$done_pkg" "$count" "$total" "installed"
-
         return "$error"
     fi
 
@@ -2198,8 +2057,8 @@ emerald_sync() {
 # do_upgrade_install - resolve deps for $1, confirm, install/upgrade set
 # and run trigger + summary. Shared by 'emerald_sysup' and 'emerald_upgrade'.
 # Args: $1  space separated list of target ports to upgrade/install
-# Reads (set by caller): $NO_DEP, $EXOPT, $NOCONFIRM, $OPTS, $failed_upgrades
-# Returns: 0 on success, 1 if any package failed (unless keep_going)
+# Reads (set by caller): $NO_DEP, $EXOPT, $NOCONFIRM, $OPTS
+# Returns: 0 on success, 1 if any package failed
 do_upgrade_install() {
     targets="$1"
     install_msg="ACTION#PORTNAME#VERSION#INSTALLED"
@@ -2273,14 +2132,6 @@ do_upgrade_install() {
                 pkgbuild -i $OPTS || {
                     error=1
 
-                    if keep_going; then
-                        msg_warning "Install failed for '$inst', continuing with next package..."
-                        failed_upgrades="$failed_upgrades $inst"
-
-                        cd - >/dev/null || return 1
-                        continue
-                    fi
-
                     cd - >/dev/null || return 1
                     break
                 }
@@ -2301,14 +2152,6 @@ do_upgrade_install() {
             pkgbuild -u $OPTS || {
                 error=1
 
-                if keep_going; then
-                    msg_warning "Upgrade failed for '$inst', continuing with next package..."
-                    failed_upgrades="$failed_upgrades $inst"
-
-                    cd - >/dev/null || return 1
-                    continue
-                fi
-
                 cd - >/dev/null || return 1
                 break
             }
@@ -2322,19 +2165,12 @@ do_upgrade_install() {
         emerald_trigger "$done_pkg" || error=1
     fi
 
-    # Show error summary if exist
-    FAILED_PKGS="$failed_upgrades"
-    SKIPPED_PKGS=""
-
-    summary_show "$FAILED_PKGS" "$SKIPPED_PKGS" "upgrade"
     summary_title "$error" "$done_pkg" "$count" "$total" "upgraded"
-
     return "$error"
 }
 
 emerald_sysup() {
     require_root "Upgrading package"
-    failed_upgrades=""
 
     while [ -n "$1" ]; do
         case $1 in
@@ -2347,7 +2183,6 @@ emerald_sysup() {
 
             -y | --yes) NOCONFIRM=1 ;;
             -n) NO_DEP=1 ;;
-            -k) KEEP_GOING_LOCAL=1 ;;
             --exclude=*) EXOPT=$1 ;;
             -*) OPTS="$OPTS $1" ;;
         esac
@@ -2561,8 +2396,6 @@ emerald_upgrade() {
     require_root "Upgrading package"
     need_arg "${@}"
 
-    failed_upgrades=""
-
     while [ -n "$1" ]; do
         case $1 in
             -i | -r) ;;
@@ -2574,7 +2407,6 @@ emerald_upgrade() {
             ;;
 
             -n) NO_DEP=1 ;;
-            -k) KEEP_GOING_LOCAL=1 ;;
             --exclude=*) EXOPT=$1 ;;
             -*) OPTS="$OPTS $1" ;;
             *) PKG_NAME="$PKG_NAME $1" ;;
@@ -2590,22 +2422,12 @@ emerald_upgrade() {
             msg_port_not_installed "$pkg"
             _up_err=1
 
-            if keep_going; then
-                failed_upgrades="$failed_upgrades $pkg"
-                continue
-            fi
-
             continue
         }
 
         get_port_path "$pkg" >/dev/null 2>&1 || {
             printf "Package '%s' not exist.\n" "$pkg"
             _up_err=1
-
-            if keep_going; then
-                failed_upgrades="$failed_upgrades $pkg"
-                continue
-            fi
 
             continue
         }
