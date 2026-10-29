@@ -1969,7 +1969,9 @@ emerald_remove() {
         printf "remove: %s %s...\n" "$pkg" "$(get_iversion "$pkg")"
 
         pkgdel "$pkg" $OPTS || {
+            msg_error "Remove failed for '$pkg', aborting removal."
             error=1
+
             break
         }
 
