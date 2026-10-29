@@ -652,7 +652,7 @@ pkg_gen_pkgfiles() {
         print $0;
     }' | sort -k 3 > "${PKGFILES_FILE}" || {
         msg_error "Failed to write ${PKGFILES_FILE}"
-        exit 1
+        abort 1
     }
 
     msg_info "${PKGFILES_FILE} updated"
@@ -1014,7 +1014,7 @@ main() {
     abort 0
 }
 
-trap "interrupted" 1 2 3 15
+trap "interrupted" HUP INT QUIT PIPE TERM
 export LC_ALL=C
 
 PKGBUILD_CONF="@SYSCONFDIR@/emerald.conf"
