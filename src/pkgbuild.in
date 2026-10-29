@@ -678,6 +678,13 @@ pkg_clean() {
             rm -f "$i.partial"
             msg_info "File removed: $i.partial"
         fi
+
+        if [ -d "$WORK_DIR/$name" ]; then
+        	KEEP_WORK=no
+        	pkg_cleanup
+
+        	msg_info "Work directory removed: $WORK_DIR/$name"
+        fi
     done
 }
 
