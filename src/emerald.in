@@ -2106,46 +2106,40 @@ do_upgrade_install() {
     total=$(printf "%s\n" "$WILL_INSTALL" | wc -w)
 
     for inst in $WILL_INSTALL; do # install all required dependencies and target packages itself
-        count=$(( count + 1 ))
+        count="$(( count + 1 ))"
+        PPATH="$(get_port_path "$inst")"
 
-        cd "$(get_port_path "$inst")" || return 1
-            emerald_is_installed "$inst" || {
-                check_conflicts "$inst"
-                install_version=$(get_version "$inst")
+        emerald_is_installed "$inst" || {
+            check_conflicts "$inst"
+            install_version="$(get_version "$inst")"
 
-                hook pre install "$inst" "" "$install_version"
-                set_term_title "[ $count/$total ] Installing $inst..."
+            hook pre install "$inst" "" "$install_version"
+            set_term_title "[ $count/$total ] Installing $inst..."
 
-                pkgbuild -i $OPTS || {
-                    error=1
-
-                    cd - >/dev/null || return 1
-                    break
-                }
-
-                hook post install "$inst" "$install_version" "$install_version"
-                done_pkg="$done_pkg $inst"
-
-                cd - >/dev/null || return 1
-                continue
-            }
-
-            current_version=$(get_iversion "$inst")
-            upgrade_version=$(get_version "$inst")
-
-            hook pre upgrade "$inst" "$current_version" "$upgrade_version"
-            set_term_title "[ $count/$total ] Upgrading $inst..."
-
-            pkgbuild -u $OPTS || {
+            (cd "$PPATH" && pkgbuild -i $OPTS) || {
                 error=1
-
-                cd - >/dev/null || return 1
                 break
             }
 
-            hook post upgrade "$inst" "$current_version" "$upgrade_version"
+            hook post install "$inst" "$install_version" "$install_version"
             done_pkg="$done_pkg $inst"
-        cd - >/dev/null || return 1
+
+            continue
+        }
+
+        current_version="$(get_iversion "$inst")"
+        upgrade_version="$(get_version "$inst")"
+
+        hook pre upgrade "$inst" "$current_version" "$upgrade_version"
+        set_term_title "[ $count/$total ] Upgrading $inst..."
+
+        (cd "$PPATH" && pkgbuild -u $OPTS) || {
+            error=1
+            break
+        }
+
+        hook post upgrade "$inst" "$current_version" "$upgrade_version"
+        done_pkg="$done_pkg $inst"
     done
 
     if [ -n "$done_pkg" ]; then
