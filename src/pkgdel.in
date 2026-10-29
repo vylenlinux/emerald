@@ -80,7 +80,7 @@ if [ -z "$PKG_NAME" ]; then
 fi
 
 PKGDB_DIR="$(pkgadd --print-db-dir)"
-PKGDB_DIR="${PKGDB_DIR##/}"
+PKGDB_DIR="${PKGDB_DIR#/}"
 
 LOCK_FILE="@STATE_DIR@/epkg.lock"
 
@@ -110,26 +110,26 @@ touch "$ROOT_DIR/$LOCK_FILE" 2>/dev/null || {
 
 read -r version release < "$ROOT_DIR/$PKGDB_DIR/$PKG_NAME"
 
-if [ -z "$version" ] && [ -z "$release" ]; then
+if [ -z "$version" ] || [ -z "$release" ]; then
     msg_error "Package '$PKG_NAME' is not installed but exists in database."
     ret 1
 fi
 
 # Build a merged DB from all packages except the one being removed.
 # Used later to detect directories still owned by other packages.
-tmpdb=$(mktemp)
+tmp_db="$(mktemp)"
 
-find "$ROOT_DIR/$PKGDB_DIR" -type f ! -name "$PKG_NAME" -exec cat {} + 2>/dev/null > "$tmpdb" || {
+find "$ROOT_DIR/$PKGDB_DIR" -type f ! -name "$PKG_NAME" -exec cat {} + 2>/dev/null > "$tmp_db" || {
     msg_error "Failed to build temporary DB file."
-    rm -f "$tmpdb"
+    rm -f "$tmp_db"
 
     ret 1
 }
 
 # Split the package's file list (skipping the version/release header on line 1)
 # into plain files and directories using a single awk pass.
-_rm_files=$(mktemp)
-_rm_dirs=$(mktemp)
+_rm_files="$(mktemp)"
+_rm_dirs="$(mktemp)"
 
 awk -v rm_files="$_rm_files" -v rm_dirs="$_rm_dirs" 'NR > 1 {
     print > ((substr($0, length($0), 1) == "/") ? rm_dirs : rm_files);
@@ -143,7 +143,7 @@ fi
 
 # Remove directories deepest-first; skip any still referenced by another package
 if [ -s "$_rm_dirs" ]; then
-    # Single pass over tmpdb: drop from the candidate set every dir
+    # Single pass over tmp_db: drop from the candidate set every dir
     # still owned by another package; what remains is safe to remove.
     awk 'NR == FNR {
         candidate[$0];
@@ -152,14 +152,14 @@ if [ -s "$_rm_dirs" ]; then
         delete candidate[$0];
     } END {
         for (d in candidate) print d;
-    }' "$_rm_dirs" "$tmpdb" | sort -r | while IFS= read -r d; do
+    }' "$_rm_dirs" "$tmp_db" | sort -r | while IFS= read -r d; do
         [ "$VERBOSE_REMOVE" = "yes" ] && printf "removing directory '%s'\n" "${ROOT_DIR}/${d}"
         rmdir "${ROOT_DIR}/${d}" 2>/dev/null
     done
 fi
 
-# Remove files, dirs, tmpdb and the package entry from the database
-rm -f "$_rm_files" "$_rm_dirs" "$tmpdb" "$ROOT_DIR/$PKGDB_DIR/$PKG_NAME"
+# Remove files, dirs, tmp_db and the package entry from the database
+rm -f "$_rm_files" "$_rm_dirs" "$tmp_db" "$ROOT_DIR/$PKGDB_DIR/$PKG_NAME"
 
 # Refresh the dynamic linker cache if available
 [ -x "$ROOT_DIR/usr/bin/ldconfig" ] && "$ROOT_DIR/usr/bin/ldconfig" -r "$ROOT_DIR/"
