@@ -2490,12 +2490,12 @@ world_del() {
 
 emerald_world() {
     if [ -z "$1" ]; then
-        if [ -s "$WORLD_FILE" ]; then
-            cat "$WORLD_FILE"
+        [ -s "$WORLD_FILE" ] || {
+            msg_info "world is empty"
             return 0
-        fi
+        }
 
-        msg_info "world is empty"
+        cat "$WORLD_FILE"
         return 0
     fi
 
