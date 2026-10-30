@@ -292,7 +292,7 @@ emerald_build() {
 
                 (
                     cd "$PPATH" && {
-                        portbuild $OPTS
+                        pkgbuild $OPTS
                         printf '%d\n' "$?" > "$_build_status"
                     } | tee "$_log_file"
                 )
