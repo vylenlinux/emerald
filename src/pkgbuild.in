@@ -201,10 +201,7 @@ do_dkms() {
 
     install -d "$PKG/var/lib/dkms"
 
-    sed \
-        -e "s/@name@/$name/g" \
-        -e "s/@version@/$version/g" \
-    "$_file" > "$PKG/var/lib/dkms/buildmodules-$name.sh" || {
+    sed "s|%version%|$version|g" "$_file" > "$PKG/var/lib/dkms/buildmodules-$name.sh" || {
         msg_error "Failed to install DKMS script for $name"
         exit 1
     }
