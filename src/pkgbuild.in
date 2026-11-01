@@ -239,7 +239,7 @@ pkg_gen_checksums() {
 generate_checksum() {
     for s in $(get_filepath); do
         [ -f "$s" ] || continue
-        b3sum "$s" | sed -e 's|  .*/|  |'
+        b3sum "$s" | sed 's|  .*/|  |'
     done | sort -k 2
 }
 
