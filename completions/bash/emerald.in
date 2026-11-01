@@ -1,9 +1,5 @@
 # bash completion for @PROJECT_NAME@
 
-_emerald_installed() {
-    @PROJECT_NAME@ installed 2>/dev/null | cut -d' ' -f1
-}
-
 _emerald_option_value() {
     local opt=$1
     local cur=$2
@@ -59,7 +55,7 @@ _emerald_positional() {
 
     case $cmd in
         build | redeps | install | is-installed | deplist | cat | depends | conflicts | dependent | path | info) words=$(@PROJECT_NAME@ list 2>/dev/null) ;;
-        upgrade | remove | purge | files | trigger | world | integrity) words=$(_emerald_installed) ;;
+        upgrade | remove | purge | files | trigger | world | integrity) words=$(@PROJECT_NAME@ installed 2>/dev/null | cut -d' ' -f1) ;;
 
         locate | provide)
             compopt -o filenames 2>/dev/null
