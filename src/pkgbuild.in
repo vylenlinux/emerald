@@ -191,6 +191,28 @@ do_revdep() {
     msg_info "Installed: /usr/lib/revdep.d/$name.conf"
 }
 
+do_dkms() {
+    _file="$SRC/files/buildmodules-$name.sh"
+
+    [ -f "$_file" ] || {
+        msg_error "DKMS script not found: $_file"
+        exit 1
+    }
+
+    install -d "$PKG/var/lib/dkms"
+
+    sed \
+        -e "s/%(name)/$name/g" \
+        -e "s/%(version)/$version/g" \
+    "$_file" > "$PKG/var/lib/dkms/buildmodules-$name.sh" || {
+        msg_error "Failed to install DKMS script for $name"
+        exit 1
+    }
+
+    chmod 755 "$PKG/var/lib/dkms/buildmodules-$name.sh"
+    msg_info "Installed: /var/lib/dkms/buildmodules-$name.sh"
+}
+
 get_filepath() {
     for i in $source; do
         case $i in
