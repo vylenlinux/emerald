@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # portcreate - Create port templates with different build systems
-# Usage: portcreate [-b builder] <portname>
+# Usage: portcreate [-b builder] <name>
 
 msg_error() {
     printf "ERROR: %s\n" "$1" >&2
@@ -10,7 +10,7 @@ msg_error() {
 usage() {
     cat <<'EOF'
 Usage:
-    portcreate [-b builder] <portname>
+    portcreate [-b builder] <name>
 
 Create a port template directory with @BUILD_SCRIPT@ file.
 
@@ -41,11 +41,9 @@ description=""
 homepage=""
 maintainer="@MAINTAINER@"
 
-name=%name%
+name=%(name)
 version=
 release=1
-noextract=""
-backup=""
 source=""
 
 build() {
@@ -68,11 +66,9 @@ description=""
 homepage=""
 maintainer="@MAINTAINER@"
 
-name=%name%
+name=%(name)
 version=
 release=1
-noextract=""
-backup=""
 source=""
 
 build() {
@@ -92,11 +88,9 @@ description=""
 homepage=""
 maintainer="@MAINTAINER@"
 
-name=%name%
+name=%(name)
 version=
 release=1
-noextract=""
-backup=""
 source=""
 
 build() {
@@ -124,11 +118,9 @@ description=""
 homepage=""
 maintainer="@MAINTAINER@"
 
-name=%name%
+name=%(name)
 version=
 release=1
-noextract=""
-backup=""
 source=""
 
 build() {
@@ -157,11 +149,9 @@ description=""
 homepage=""
 maintainer="@MAINTAINER@"
 
-name=%name%
+name=%(name)
 version=
 release=1
-noextract=""
-backup=""
 source=""
 
 build() {
@@ -185,11 +175,9 @@ description=""
 homepage=""
 maintainer="@MAINTAINER@"
 
-name=%name%
+name=%(name)
 version=
 release=1
-noextract=""
-backup=""
 source=""
 
 build() {
@@ -214,11 +202,9 @@ description=""
 homepage=""
 maintainer="@MAINTAINER@"
 
-name=%name%
+name=%(name)
 version=
 release=1
-noextract=""
-backup=""
 source=""
 
 build() {
@@ -235,7 +221,7 @@ EOF
 }
 
 # Default builder
-BUILDER="autotools"
+BUILDER=autotools
 
 # Parse options
 while getopts "b:h" opt; do
@@ -247,23 +233,23 @@ done
 
 shift $((OPTIND - 1))
 
-# Check if portname is provided
+# Check if name is provided
 if [ -z "${1}" ]; then
     msg_error "Port name is required!"
     usage
 fi
 
-PORTNAME="${1}"
+name="${1}"
 
 # Check if directory already exists
-if [ -d "${PORTNAME}" ]; then
-    msg_error "Directory '${PORTNAME}' already exists!"
+if [ -d "${name}" ]; then
+    msg_error "Directory '${name}' already exists!"
     exit 1
 fi
 
 # Create directory
-mkdir "${PORTNAME}" || {
-    msg_error "Failed to create directory '${PORTNAME}'!"
+mkdir "${name}" || {
+    msg_error "Failed to create directory '${name}'!"
     exit 1
 }
 
@@ -281,13 +267,13 @@ case "${BUILDER}" in
         msg_error "Unknown builder '${BUILDER}'!"
         printf "Available builders: autotools, meson, cmake, go, python, rust, gpep517\n" >&2
 
-        rm -rf "${PORTNAME}"
+        rm -rf "${name}"
         exit 1
     ;;
 esac
 
-# Replace PORTNAME placeholder and write to file
-printf "%s\n" "${TEMPLATE}" | sed "s/%name%/${PORTNAME}/" > "${PORTNAME}/@BUILD_SCRIPT@"
-printf "Template port created for '%s' using '%s' build system.\n" "${PORTNAME}" "${BUILDER}"
+# Replace name placeholder and write to file
+printf "%s\n" "${TEMPLATE}" | sed "s/%(name)/${name}/" > "${name}/@BUILD_SCRIPT@"
+printf "Template port created for '%s' using '%s' build system.\n" "${name}" "${BUILDER}"
 
 exit 0
