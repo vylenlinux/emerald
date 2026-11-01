@@ -182,8 +182,8 @@ _emerald() {
                 ;;
 
                 locate | provide) _arguments '1:file:_files' && ret=0 ;;
-                files | is-installed | trigger | integrity | world) _arguments '*:installed port:->installed' && ret=0 ;;
-                cat | depends | conflicts | dependent | path) _arguments '*:port:->ports' && ret=0 ;;
+                files | trigger | integrity | world) _arguments '*:installed port:->installed' && ret=0 ;;
+                cat | depends | conflicts | dependent | path | is-installed) _arguments '*:port:->ports' && ret=0 ;;
             esac
 
             case $state in
