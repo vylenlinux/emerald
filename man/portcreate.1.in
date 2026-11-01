@@ -4,7 +4,7 @@ portcreate \- create a port template
 .SH SYNOPSIS
 .B portcreate
 .RB [ -b	type ]
-.I portname
+.I name
 .SH DESCRIPTION
 .B portcreate
 creates a port directory containing the configured build script template. The generated template is intended to be edited before use with \fBpkgbuild\fR.
