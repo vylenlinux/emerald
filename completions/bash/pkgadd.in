@@ -7,9 +7,9 @@ _pkgadd() {
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    prev=${COMP_WORDS[COMP_CWORD-1]}
+    prev=${COMP_WORDS[COMP_CWORD - 1]}
 
-    if [[ $prev == "=" && ${COMP_WORDS[COMP_CWORD-2]} == --root ]]; then
+    if [[ $prev == "=" && ${COMP_WORDS[COMP_CWORD - 2]} == --root ]]; then
         compopt -o dirnames 2>/dev/null
         COMPREPLY=($(compgen -d -- "$cur"))
 
