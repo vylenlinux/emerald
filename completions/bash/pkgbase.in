@@ -10,7 +10,7 @@ _pkgbase() {
         return
     fi
 
-    COMPREPLY=($(compgen -W "$(emerald installed 2>/dev/null | cut -d' ' -f1)" -- "$cur"))
+    COMPREPLY=($(compgen -W "$(@PROJECT_NAME@ installed 2>/dev/null | cut -d' ' -f1)" -- "$cur"))
 }
 
 complete -F _pkgbase pkgbase

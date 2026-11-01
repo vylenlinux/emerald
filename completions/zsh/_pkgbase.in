@@ -11,7 +11,7 @@ _pkgbase() {
         '*:installed port:->installed' && ret=0
 
     case $state in
-        installed) compadd -- ${${(f)"$(emerald installed 2>/dev/null)"}%% *} && ret=0 ;;
+        installed) compadd -- ${${(f)"$(@PROJECT_NAME@ installed 2>/dev/null)"}%% *} && ret=0 ;;
     esac
 
     return ret

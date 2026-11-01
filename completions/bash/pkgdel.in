@@ -1,7 +1,9 @@
 # bash completion for pkgdel
 
 _pkgdel() {
-    local cur prev
+    local cur
+    local prev
+
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
     prev=${COMP_WORDS[COMP_CWORD-1]}

@@ -1,7 +1,7 @@
-# bash completion for emerald
+# bash completion for @PROJECT_NAME@
 
 _emerald_installed() {
-    emerald installed 2>/dev/null | cut -d' ' -f1
+    @PROJECT_NAME@ installed 2>/dev/null | cut -d' ' -f1
 }
 
 _emerald_option_value() {
@@ -30,7 +30,7 @@ _emerald_option_value() {
                 last="${cur##*,}"
             fi
 
-            COMPREPLY=($(compgen -P "$head" -W "$(emerald list 2>/dev/null)" -- "$last"))
+            COMPREPLY=($(compgen -P "$head" -W "$(@PROJECT_NAME@ list 2>/dev/null)" -- "$last"))
         ;;
     esac
 }
@@ -58,7 +58,7 @@ _emerald_positional() {
     local words=""
 
     case $cmd in
-        build | install | deplist | cat | depends | conflicts | dependent | path | info) words=$(emerald list 2>/dev/null) ;;
+        build | install | deplist | cat | depends | conflicts | dependent | path | info) words=$(@PROJECT_NAME@ list 2>/dev/null) ;;
         upgrade | remove | purge | redeps | files | is-installed | trigger | world | integrity) words=$(_emerald_installed) ;;
 
         locate | provide)
@@ -72,7 +72,7 @@ _emerald_positional() {
             if [[ $n -eq 0 ]]; then
                 words="list add remove help"
             elif [[ $first == add || $first == remove ]]; then
-                words=$(emerald list 2>/dev/null)
+                words=$(@PROJECT_NAME@ list 2>/dev/null)
             else
                 return
             fi
@@ -82,7 +82,7 @@ _emerald_positional() {
             case $n in
                 0) words="pre post" ;;
                 1) words="install upgrade remove" ;;
-                2) words=$(emerald list 2>/dev/null) ;;
+                2) words=$(@PROJECT_NAME@ list 2>/dev/null) ;;
 
                 *) return ;;
             esac
@@ -160,4 +160,4 @@ _emerald() {
     _emerald_positional "$cmd" "$cur" "${#pos[@]}" "${pos[0]-}"
 }
 
-complete -F _emerald emerald
+complete -F _@PROJECT_NAME@ @PROJECT_NAME@

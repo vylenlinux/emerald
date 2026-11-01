@@ -4,11 +4,15 @@ _portsync_repos() {
     awk '!/^[[:space:]]*(#|$)/ {
         n = split($1, a, "/");
         print a[n];
-    }' /etc/emerald.repo 2>/dev/null
+    }' @SYSCONFDIR@/@PROJECT_NAME@.repo 2>/dev/null
 }
 
 _portsync() {
-    local cur w in_source=0 i
+    local cur
+    local w
+    local i
+    local in_source=0
+
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
 

@@ -17,7 +17,7 @@ _portsync() {
             repos=(${(f)"$(awk '!/^[[:space:]]*(#|$)/ {
                 n = split($1, a, "/");
                 print a[n];
-            }' /etc/emerald.repo 2>/dev/null)"})
+            }' @SYSCONFDIR@/@PROJECT_NAME@.repo 2>/dev/null)"})
 
             compadd -- $repos && ret=0
         ;;

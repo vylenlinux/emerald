@@ -1,19 +1,21 @@
 # bash completion for revdep
 
 _revdep() {
-    local cur prev
+    local cur
+    local prev
+
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
     prev=${COMP_WORDS[COMP_CWORD-1]}
 
     case $prev in
         -p | --package)
-            COMPREPLY=($(compgen -W "$(emerald installed 2>/dev/null | cut -d' ' -f1)" -- "$cur"))
+            COMPREPLY=($(compgen -W "$(@PROJECT_NAME@ installed 2>/dev/null | cut -d' ' -f1)" -- "$cur"))
             return
         ;;
 
         -e | --exclude)
-            COMPREPLY=($(compgen -W "$(emerald list 2>/dev/null)" -- "$cur"))
+            COMPREPLY=($(compgen -W "$(@PROJECT_NAME@ list 2>/dev/null)" -- "$cur"))
             return
         ;;
     esac

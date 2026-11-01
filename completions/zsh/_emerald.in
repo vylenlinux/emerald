@@ -1,4 +1,4 @@
-#compdef emerald
+#compdef @PROJECT_NAME@
 
 _emerald() {
     local state
@@ -18,7 +18,7 @@ _emerald() {
         'redeps:find redundant dependencies'
         'cache:clean packages and sources cache'
         'cat:print build script of a port'
-        'config:print emerald config'
+        'config:print @PROJECT_NAME@ config'
         'dependent:print reverse dependencies'
         'depends:print dependencies'
         'conflicts:print conflicting ports'
@@ -58,7 +58,7 @@ _emerald() {
         '*:: :->args' && ret=0
 
     case $state in
-        command) _describe -t commands 'emerald command' cmds && ret=0 ;;
+        command) _describe -t commands '@PROJECT_NAME@ command' cmds && ret=0 ;;
 
         args)
             case $words[1] in
@@ -187,8 +187,8 @@ _emerald() {
             esac
 
             case $state in
-                ports) compadd -- ${(f)"$(emerald list 2>/dev/null)"} && ret=0 ;;
-                installed) compadd -- ${${(f)"$(emerald installed 2>/dev/null)"}%% *} && ret=0 ;;
+                ports) compadd -- ${(f)"$(@PROJECT_NAME@ list 2>/dev/null)"} && ret=0 ;;
+                installed) compadd -- ${${(f)"$(@PROJECT_NAME@ installed 2>/dev/null)"}%% *} && ret=0 ;;
             esac
         ;;
     esac
@@ -196,4 +196,4 @@ _emerald() {
     return ret
 }
 
-_emerald "$@"
+_@PROJECT_NAME@ "$@"
