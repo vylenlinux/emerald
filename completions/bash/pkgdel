@@ -1,0 +1,23 @@
+# bash completion for pkgdel
+
+_pkgdel() {
+    local cur prev
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+    prev=${COMP_WORDS[COMP_CWORD-1]}
+
+    if [[ $prev == "=" && ${COMP_WORDS[COMP_CWORD-2]} == --root ]]; then
+        compopt -o dirnames 2>/dev/null
+        COMPREPLY=($(compgen -d -- "$cur"))
+        return
+    fi
+
+    if [[ $cur == -* ]]; then
+        COMPREPLY=($(compgen -W "-h --help -v --verbose --root=" -- "$cur"))
+        return
+    fi
+
+    COMPREPLY=($(compgen -W "$(ls "$(pkgadd --print-db-dir 2>/dev/null)" 2>/dev/null)" -- "$cur"))
+}
+
+complete -F _pkgdel pkgdel

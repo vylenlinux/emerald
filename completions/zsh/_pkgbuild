@@ -1,0 +1,29 @@
+#compdef pkgbuild
+
+_pkgbuild() {
+    _arguments \
+        '(-q --quiet)'{-q,--quiet}'[show only status messages and errors]' \
+        '(-i --install)'{-i,--install}'[install package after build]' \
+        '(-u --upgrade)'{-u,--upgrade}'[upgrade package after build]' \
+        '(-r --reinstall)'{-r,--reinstall}'[reinstall package after build]' \
+        '(-c --ignore-conflict)'{-c,--ignore-conflict}'[ignore conflicts when installing package]' \
+        '(-v --verbose)'{-v,--verbose}'[print files installed]' \
+        '(-f --force-rebuild)'{-f,--force-rebuild}'[force rebuild package]' \
+        '(-m --skip-checksum)'{-m,--skip-checksum}'[skip checksum checking]' \
+        '(-g --gen-checksum)'{-g,--gen-checksum}'[generate checksums]' \
+        '(-o --download)'{-o,--download}'[download sources only]' \
+        '(-x --extract)'{-x,--extract}'[extract sources only]' \
+        '(-p --pkgfiles)'{-p,--pkgfiles}'[generate package file list]' \
+        '(-w --keep-work)'{-w,--keep-work}'[keep working directory]' \
+        '(-C --clean)'{-C,--clean}'[remove downloaded sources and prebuilt packages]' \
+        '(-h --help)'{-h,--help}'[show help message]' \
+        '--config=[use custom config file]:config file:_files' \
+        '--srcdir=[use custom source directory]:directory:_directories' \
+        '--pkgdir=[use custom package directory]:directory:_directories' \
+        '--workdir=[use custom work directory]:directory:_directories' \
+        '--jobs=[override parallel build jobs]:jobs:' \
+        '--no-backup[skip backup when upgrading package]' \
+        '--root=[install to custom root directory]:root directory:_directories'
+}
+
+_pkgbuild "$@"

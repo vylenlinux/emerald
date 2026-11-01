@@ -1,0 +1,33 @@
+# bash completion for pkgadd
+
+_pkgadd() {
+    local cur
+    local prev
+    local f
+
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+    prev=${COMP_WORDS[COMP_CWORD-1]}
+
+    if [[ $prev == "=" && ${COMP_WORDS[COMP_CWORD-2]} == --root ]]; then
+        compopt -o dirnames 2>/dev/null
+        COMPREPLY=($(compgen -d -- "$cur"))
+
+        return
+    fi
+
+    if [[ $cur == -* ]]; then
+        COMPREPLY=($(compgen -W "-u --upgrade -r --reinstall -c --ignore-conflict -v --verbose -h --help --no-backup --print-db-dir --root=" -- "$cur"))
+        return
+    fi
+
+    compopt -o filenames 2>/dev/null
+
+    for f in $(compgen -f -- "$cur"); do
+        if [[ -d $f || $f == *.epkg.tar.* ]]; then
+            COMPREPLY+=("$f")
+        fi
+    done
+}
+
+complete -F _pkgadd pkgadd

@@ -1,0 +1,199 @@
+#compdef emerald
+
+_emerald() {
+    local state
+    local ret=1
+
+    local -a cmds
+
+    cmds=(
+        'search:find ports in repo'
+        'sync:update ports database'
+        'build:build ports'
+        'install:install ports'
+        'upgrade:upgrade ports'
+        'sysup:full system upgrade'
+        'remove:remove installed ports'
+        'deplist:print all dependencies for ports'
+        'redeps:find redundant dependencies'
+        'cache:clean packages and sources cache'
+        'cat:print build script of a port'
+        'config:print emerald config'
+        'dependent:print reverse dependencies'
+        'depends:print dependencies'
+        'conflicts:print conflicting ports'
+        'dup:print duplicate ports'
+        'files:print files installed'
+        'foreign:print foreign ports'
+        'help:print help'
+        'hook:run port hook on demand'
+        'info:print information about a port'
+        'installed:print all installed ports'
+        'integrity:check installed port integrity'
+        'is-installed:check whether port is installed'
+        'locate:print location of file in ports repo'
+        'alias:manage aliased ports'
+        'mask:manage masked ports'
+        'missing-deps:print missing dependencies'
+        'orphan:print orphan installed ports'
+        'outdated:print outdated ports'
+        'path:print path of port in repo'
+        'provide:print port that provides file'
+        'purge:remove installed ports and their orphan dependencies'
+        'trigger:run system trigger'
+        'world:print, add or remove world list'
+        'list:print all available ports'
+        'version:print version information'
+    )
+
+    _arguments -C \
+        '--append-repo=[append custom local repo path]:directory:_directories' \
+        '--prepend-repo=[prepend custom local repo path]:directory:_directories' \
+        '--override-repo=[override repo file with custom local repo]:directory:_directories' \
+        '--repo-file=[use custom repo file]:file:_files' \
+        '--config-file=[use custom config file]:file:_files' \
+        '--alias-file=[use custom alias file]:file:_files' \
+        '--mask-file=[use custom mask file]:file:_files' \
+        '1: :->command' \
+        '*:: :->args' && ret=0
+
+    case $state in
+        command) _describe -t commands 'emerald command' cmds && ret=0 ;;
+
+        args)
+            case $words[1] in
+                search)
+                    _arguments \
+                        '(-n --name)'{-n,--name}'[search in port names only]' \
+                        '1:pattern:' && ret=0
+                ;;
+
+                sync)
+                    _arguments \
+                        '(-p --prune)'{-p,--prune}'[prune local git repository]' \
+                        '(-r --reset)'{-r,--reset}'[reset git repositories]' && ret=0
+                ;;
+
+                build)
+                    _arguments \
+                        '-f[force rebuild package]' \
+                        '-m[skip checksum checking]' \
+                        '-o[fetch sources only]' \
+                        '(-q --quiet)'{-q,--quiet}'[show only status messages and errors]' \
+                        '-w[keep working directory]' \
+                        '-y[skip ask user confirmation]' \
+                        '(-C --clean)'{-C,--clean}'[remove downloaded sources and prebuilt packages]' \
+                        '--log[log build process]' \
+                        '--jobs=[override parallel build jobs]:jobs:' \
+                        '*:port:->ports' && ret=0
+                ;;
+
+                install)
+                    _arguments \
+                        '-c[ignore conflict when installing package]' \
+                        '-f[force rebuild package]' \
+                        '-m[skip checksum checking]' \
+                        '-n[skip dependencies]' \
+                        '-o[fetch sources only]' \
+                        '(-q --quiet)'{-q,--quiet}'[show only status messages and errors]' \
+                        '-r[reinstall]' \
+                        '-w[keep working directory]' \
+                        '(-y --yes)'{-y,--yes}'[skip ask user confirmation]' \
+                        '--exclude=[exclude dependencies, comma separated]:ports:->ports' \
+                        '--no-backup[skip backup when reinstalling package]' \
+                        '--jobs=[override parallel build jobs]:jobs:' \
+                        '*:port:->ports' && ret=0
+                ;;
+
+                upgrade)
+                    _arguments \
+                        '-c[ignore conflict when installing package]' \
+                        '-f[force rebuild package]' \
+                        '-m[skip checksum checking]' \
+                        '-n[skip dependencies]' \
+                        '-o[fetch sources only]' \
+                        '(-q --quiet)'{-q,--quiet}'[show only status messages and errors]' \
+                        '-w[keep working directory]' \
+                        '(-y --yes)'{-y,--yes}'[skip ask user confirmation]' \
+                        '--exclude=[exclude dependencies, comma separated]:ports:->ports' \
+                        '--no-backup[skip backup when upgrading package]' \
+                        '--jobs=[override parallel build jobs]:jobs:' \
+                        '*:port:->installed' && ret=0
+                ;;
+
+                sysup)
+                    _arguments \
+                        '-c[ignore conflict when installing package]' \
+                        '-f[force rebuild package]' \
+                        '-m[skip checksum checking]' \
+                        '-n[skip dependencies]' \
+                        '-o[fetch sources only]' \
+                        '(-q --quiet)'{-q,--quiet}'[show only status messages and errors]' \
+                        '-w[keep working directory]' \
+                        '(-y --yes)'{-y,--yes}'[skip ask user confirmation]' \
+                        '--exclude=[exclude dependencies, comma separated]:ports:->ports' \
+                        '--no-backup[skip backup when upgrading package]' \
+                        '--jobs=[override parallel build jobs]:jobs:' && ret=0
+                ;;
+
+                remove | purge)
+                    _arguments \
+                        '(-y --yes)'{-y,--yes}'[skip ask user confirmation]' \
+                        '*:installed port:->installed' && ret=0
+                ;;
+
+                deplist)
+                    _arguments \
+                        '(-q --quick)'{-q,--quick}'[skip installed ports]' \
+                        '--exclude=[exclude dependencies, comma separated]:ports:->ports' \
+                        '*:port:->ports' && ret=0
+                ;;
+
+                redeps)
+                    _arguments \
+                        '(-w --world)'{-w,--world}'[check redundant entries in world]' \
+                        '(-f --fix)'{-f,--fix}'[fix (remove) redundant entries]' \
+                        '*:installed port:->installed' && ret=0
+                ;;
+
+                cache)
+                    _arguments \
+                        '(-p --pkg)'{-p,--pkg}'[clean packages cache only]' \
+                        '(-s --src)'{-s,--src}'[clean sources cache only]' && ret=0
+                ;;
+
+                info)
+                    _arguments \
+                        '--field=[print only this field]:field:(description maintainer homepage path name version release commit installed aliased masked depends conflicts required-by)' \
+                        '*:port:->ports' && ret=0
+                ;;
+
+                hook)
+                    _arguments \
+                        '1:stage:(pre post)' \
+                        '2:action:(install upgrade remove)' \
+                        '3:port:->ports' && ret=0
+                ;;
+
+                alias | mask)
+                    _arguments \
+                        '1:command:(list add remove help)' \
+                        '*:port:->ports' && ret=0
+                ;;
+
+                locate | provide) _arguments '1:file:_files' && ret=0 ;;
+                files | is-installed | trigger | integrity | world) _arguments '*:installed port:->installed' && ret=0 ;;
+                cat | depends | conflicts | dependent | path) _arguments '*:port:->ports' && ret=0 ;;
+            esac
+
+            case $state in
+                ports) compadd -- ${(f)"$(emerald list 2>/dev/null)"} && ret=0 ;;
+                installed) compadd -- ${${(f)"$(emerald installed 2>/dev/null)"}%% *} && ret=0 ;;
+            esac
+        ;;
+    esac
+
+    return ret
+}
+
+_emerald "$@"

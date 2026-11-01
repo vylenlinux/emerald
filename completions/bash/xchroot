@@ -1,0 +1,17 @@
+# bash completion for xchroot
+
+_xchroot() {
+    COMPREPLY=()
+    local cur=${COMP_WORDS[COMP_CWORD]}
+
+    if [[ $COMP_CWORD -eq 1 ]]; then
+        compopt -o dirnames 2>/dev/null
+        COMPREPLY=($(compgen -d -- "$cur"))
+    elif [[ $COMP_CWORD -eq 2 ]]; then
+        COMPREPLY=($(compgen -c -- "$cur"))
+    else
+        compopt -o default 2>/dev/null
+    fi
+}
+
+complete -F _xchroot xchroot

@@ -1,0 +1,10 @@
+#compdef xchroot
+
+_xchroot() {
+    _arguments \
+        '1:chroot directory:_directories' \
+        '2:command:_command_names -e' \
+        '*::command arguments:_normal'
+}
+
+_xchroot "$@"

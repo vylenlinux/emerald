@@ -1,0 +1,15 @@
+#compdef portcreate
+
+_portcreate() {
+    local state
+    local ret=1
+
+    _arguments -C \
+        '-b[build system of the new port]:builder:(autotools make meson cmake go golang python python3 rust rs gpep517 gpep)' \
+        '(-h --help)'{-h,--help}'[show help message]' \
+        '1:new port name:' && ret=0
+
+    return ret
+}
+
+_portcreate "$@"

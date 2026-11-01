@@ -1,0 +1,163 @@
+# bash completion for emerald
+
+_emerald_installed() {
+    emerald installed 2>/dev/null | cut -d' ' -f1
+}
+
+_emerald_option_value() {
+    local opt=$1
+    local cur=$2
+
+    case $opt in
+        --repo-file | --alias-file | --config-file | --mask-file)
+            compopt -o filenames 2>/dev/null
+            COMPREPLY=($(compgen -f -- "$cur"))
+        ;;
+
+        --append-repo | --prepend-repo | --override-repo)
+            compopt -o filenames 2>/dev/null
+            COMPREPLY=($(compgen -d -- "$cur"))
+        ;;
+
+        --field) COMPREPLY=($(compgen -W "description maintainer homepage path name version release commit installed aliased masked depends conflicts required-by" -- "$cur")) ;;
+
+        --exclude)
+            local head=""
+            local last="$cur"
+
+            if [[ $cur == *,* ]]; then
+                head="${cur%,*},"
+                last="${cur##*,}"
+            fi
+
+            COMPREPLY=($(compgen -P "$head" -W "$(emerald list 2>/dev/null)" -- "$last"))
+        ;;
+    esac
+}
+
+_emerald_opts() {
+    case $1 in
+        search) printf "-n --name\n" ;;
+        sync) printf "-p --prune -r --reset\n" ;;
+        build) printf "-f -m -o -q --quiet -w -y -C --clean --log --jobs=\n" ;;
+        install) printf "-c -f -m -n -o -q --quiet -r -w -y --yes --exclude= --no-backup --jobs=\n" ;;
+        upgrade | sysup) printf "-c -f -m -n -o -q --quiet -w -y --yes --exclude= --no-backup --jobs=\n" ;;
+        remove | purge) printf "-y --yes\n" ;;
+        deplist) printf "-q --quick --exclude=\n" ;;
+        redeps) printf "-w --world -f --fix\n" ;;
+        cache) printf "-p --pkg -s --src\n" ;;
+        info) printf "--field=\n" ;;
+    esac
+}
+
+_emerald_positional() {
+    local cmd=$1
+    local cur=$2
+    local n=$3
+    local first=$4
+    local words=""
+
+    case $cmd in
+        build | install | deplist | cat | depends | conflicts | dependent | path | info) words=$(emerald list 2>/dev/null) ;;
+        upgrade | remove | purge | redeps | files | is-installed | trigger | world | integrity) words=$(_emerald_installed) ;;
+
+        locate | provide)
+            compopt -o filenames 2>/dev/null
+            COMPREPLY=($(compgen -f -- "$cur"))
+
+            return
+        ;;
+
+        alias | mask)
+            if [[ $n -eq 0 ]]; then
+                words="list add remove help"
+            elif [[ $first == add || $first == remove ]]; then
+                words=$(emerald list 2>/dev/null)
+            else
+                return
+            fi
+        ;;
+
+        hook)
+            case $n in
+                0) words="pre post" ;;
+                1) words="install upgrade remove" ;;
+                2) words=$(emerald list 2>/dev/null) ;;
+
+                *) return ;;
+            esac
+        ;;
+        *) return ;;
+    esac
+
+    COMPREPLY=($(compgen -W "$words" -- "$cur"))
+}
+
+_emerald() {
+    local cur
+    local prev
+    local w
+    local i
+    local cmd=""
+    local cmd_idx=0
+
+    local -a pos=()
+
+    local subcmds="search sync build install upgrade sysup remove deplist redeps cache cat config dependent depends conflicts dup files foreign help hook info installed integrity is-installed locate alias mask missing-deps orphan outdated path provide purge trigger world list version"
+    local globals="--append-repo= --prepend-repo= --override-repo= --repo-file= --config-file= --alias-file= --mask-file="
+
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+    prev=${COMP_WORDS[COMP_CWORD-1]}
+
+    if [[ $prev == "=" ]]; then
+        _emerald_option_value "${COMP_WORDS[COMP_CWORD-2]}" "$cur"
+        return
+    fi
+
+    for ((i = 1; i < COMP_CWORD; i++)); do
+        w=${COMP_WORDS[i]}
+
+        case $w in
+            =) i=$((i + 1)) ;;
+            -*) ;;
+
+            *)
+                cmd=$w
+                cmd_idx=$i
+
+                break
+            ;;
+        esac
+    done
+
+    if [[ -z $cmd ]]; then
+        if [[ $cur == -* ]]; then
+            compopt -o nospace 2>/dev/null
+            COMPREPLY=($(compgen -W "$globals" -- "$cur"))
+        else
+            COMPREPLY=($(compgen -W "$subcmds" -- "$cur"))
+        fi
+
+        return
+    fi
+
+    if [[ $cur == -* ]]; then
+        COMPREPLY=($(compgen -W "$(_emerald_opts "$cmd")" -- "$cur"))
+        return
+    fi
+
+    for ((i = cmd_idx + 1; i < COMP_CWORD; i++)); do
+        w=${COMP_WORDS[i]}
+
+        case $w in
+            =) i=$((i + 1)) ;;
+            -*) ;;
+            *) pos+=("$w") ;;
+        esac
+    done
+
+    _emerald_positional "$cmd" "$cur" "${#pos[@]}" "${pos[0]-}"
+}
+
+complete -F _emerald emerald

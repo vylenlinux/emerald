@@ -1,0 +1,19 @@
+# bash completion for portcreate
+
+_portcreate() {
+    local cur prev
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+    prev=${COMP_WORDS[COMP_CWORD-1]}
+
+    if [[ $prev == -b ]]; then
+        COMPREPLY=($(compgen -W "autotools make meson cmake go golang python python3 rust rs gpep517 gpep" -- "$cur"))
+        return
+    fi
+
+    if [[ $cur == -* ]]; then
+        COMPREPLY=($(compgen -W "-b -h" -- "$cur"))
+    fi
+}
+
+complete -F _portcreate portcreate

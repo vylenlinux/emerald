@@ -1,0 +1,29 @@
+#compdef portsync
+
+_portsync() {
+    local state
+    local ret=1
+
+    _arguments -C \
+        '(-p --prune)'{-p,--prune}'[prune local git repository]' \
+        '(-r --reset)'{-r,--reset}'[reset git repositories]' \
+        '*'{-s,--source}'[sync only the given repositories]:repository:->repos' \
+        '(-h --help)'{-h,--help}'[show help message]' && ret=0
+
+    case $state in
+        repos)
+            local -a repos
+
+            repos=(${(f)"$(awk '!/^[[:space:]]*(#|$)/ {
+                n = split($1, a, "/");
+                print a[n];
+            }' /etc/emerald.repo 2>/dev/null)"})
+
+            compadd -- $repos && ret=0
+        ;;
+    esac
+
+    return ret
+}
+
+_portsync "$@"

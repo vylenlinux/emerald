@@ -24,6 +24,7 @@ conf_data.set('EPKGNEW_EXT', get_option('epkgnew-ext'))
 conf_data.set('MAINTAINER', get_option('maintainer'))
 conf_data.set('SEARCH_DIRS', get_option('search-dirs'))
 
+subdir('completions')
 subdir('data')
 subdir('man')
 subdir('src')
