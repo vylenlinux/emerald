@@ -1882,7 +1882,7 @@ emerald_redeps() {
                     if [ "$fix" = 1 ]; then
                         deps_file="$PPATH/depends"
 
-                        sed -i "/^$dd$/d" "$deps_file"
+                        sed "/^$dd$/d" -i "$deps_file"
                         msg_info "$dd removed from $i ${deps_file##*/}"
                     fi
                 fi
@@ -2455,7 +2455,7 @@ list_add() {
 
     _la_key=$(printf '%s' "$_la_entry" | awk '{print $1;}')
     # drop any existing entry for this key first, so add == "add or update"
-    grep -qE "^$_la_key([[:space:]]|$)" "$_la_file" 2>/dev/null && sed -i "/^$_la_key\([[:space:]]\|\$\)/d" "$_la_file"
+    grep -qE "^$_la_key([[:space:]]|$)" "$_la_file" 2>/dev/null && sed "/^$_la_key\([[:space:]]\|\$\)/d" -i "$_la_file"
 
     printf "%s\n" "$_la_entry" >> "$_la_file"
     sort -u "$_la_file" -o "$_la_file"
@@ -2468,7 +2468,7 @@ list_del() {
     _ld_key="$2"
 
     grep -qE "^$_ld_key([[:space:]]|$)" "$_ld_file" 2>/dev/null || return 1
-    sed -i "/^$_ld_key\([[:space:]]\|\$\)/d" "$_ld_file"
+    sed "/^$_ld_key\([[:space:]]\|\$\)/d" -i "$_ld_file"
 }
 
 world_add() {
