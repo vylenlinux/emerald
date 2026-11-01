@@ -83,6 +83,7 @@ _emerald_positional() {
                 *) return ;;
             esac
         ;;
+
         *) return ;;
     esac
 
@@ -149,6 +150,7 @@ _emerald() {
         case $w in
             =) i=$((i + 1)) ;;
             -*) ;;
+
             *) pos+=("$w") ;;
         esac
     done
