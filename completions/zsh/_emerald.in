@@ -153,7 +153,7 @@ _emerald() {
                     _arguments \
                         '(-w --world)'{-w,--world}'[check redundant entries in world]' \
                         '(-f --fix)'{-f,--fix}'[fix (remove) redundant entries]' \
-                        '*:installed port:->installed' && ret=0
+                        '*:port:->ports' && ret=0
                 ;;
 
                 cache)

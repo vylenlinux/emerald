@@ -58,8 +58,8 @@ _emerald_positional() {
     local words=""
 
     case $cmd in
-        build | install | deplist | cat | depends | conflicts | dependent | path | info) words=$(@PROJECT_NAME@ list 2>/dev/null) ;;
-        upgrade | remove | purge | redeps | files | is-installed | trigger | world | integrity) words=$(_emerald_installed) ;;
+        build | redeps | install | deplist | cat | depends | conflicts | dependent | path | info) words=$(@PROJECT_NAME@ list 2>/dev/null) ;;
+        upgrade | remove | purge | files | is-installed | trigger | world | integrity) words=$(_emerald_installed) ;;
 
         locate | provide)
             compopt -o filenames 2>/dev/null
