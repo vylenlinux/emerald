@@ -9,7 +9,7 @@ _portcreate() {
     prev=${COMP_WORDS[COMP_CWORD - 1]}
 
     if [[ $prev == -b ]]; then
-        COMPREPLY=($(compgen -W "autotools make meson cmake go golang python python3 rust rs gpep517 gpep" -- "$cur"))
+        COMPREPLY=($(compgen -W "autotools meson cmake golang python3 rust gpep517" -- "$cur"))
         return
     fi
 

@@ -5,7 +5,7 @@ _portcreate() {
     local ret=1
 
     _arguments -C \
-        '-b[build system of the new port]:builder:(autotools make meson cmake go golang python python3 rust rs gpep517 gpep)' \
+        '-b[build system of the new port]:builder:(autotools meson cmake golang python3 rust gpep517)' \
         '(-h --help)'{-h,--help}'[show help message]' \
         '1:new port name:' && ret=0
 
