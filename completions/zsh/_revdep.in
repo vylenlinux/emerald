@@ -9,7 +9,7 @@ _revdep() {
         '(-r --rebuild)'{-r,--rebuild}'[rebuild ports with broken dependencies]' \
         '(-p --package)'{-p,--package}'[check reverse dependencies of this package]:installed port:->installed' \
         '(-f --no-filter)'{-f,--no-filter}'[do not filter results]' \
-        '*'{-e,--exclude}'[exclude ports from rebuild]:port:->ports' \
+        '*'{-e,--exclude}'[exclude ports from rebuild]:installed port:->installed' \
         '(-y --yes)'{-y,--yes}'[do not ask for confirmation]' \
         '(-h --help)'{-h,--help}'[show help message]' && ret=0
 

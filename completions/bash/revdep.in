@@ -9,13 +9,8 @@ _revdep() {
     prev=${COMP_WORDS[COMP_CWORD - 1]}
 
     case $prev in
-        -p | --package)
+        -p | --package | -e | --exclude)
             COMPREPLY=($(compgen -W "$(@PROJECT_NAME@ installed 2>/dev/null | cut -d' ' -f1)" -- "$cur"))
-            return
-        ;;
-
-        -e | --exclude)
-            COMPREPLY=($(compgen -W "$(@PROJECT_NAME@ list 2>/dev/null)" -- "$cur"))
             return
         ;;
     esac
