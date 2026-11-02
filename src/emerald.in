@@ -1994,10 +1994,7 @@ emerald_search() {
     for repo in $PORT_REPO; do
         [ -d "$repo" ] || continue
 
-        _sr_out=$(awk \
-            -v pat="$PATTERN" \
-            -v nonly="$NAME_ONLY" \
-        'FNR == 1 {
+        _sr_out=$(awk -v pat="$PATTERN" -v nonly="$NAME_ONLY" 'FNR == 1 {
             if ((NR > 1) && matched) printf "%s|%s|%s|%s\n", name, ver, rel, desc;
             name = ver = rel = desc = "";
             matched = 0;
