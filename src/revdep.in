@@ -202,8 +202,8 @@ parse_opts() {
 }
 
 rebuild() {
-    # Preserve topological order from emerald deplist, keeping only broken packages.
-    for all_pkg in $(emerald deplist $ALL_PKG | awk '!seen[$2]++ {
+    # Preserve topological order from @PROJECT_NAME@ deplist, keeping only broken packages.
+    for all_pkg in $(@PROJECT_NAME@ deplist $ALL_PKG | awk '!seen[$2]++ {
         print $2;
     }'); do
         case " $ALL_PKG " in
@@ -234,7 +234,7 @@ rebuild() {
         fi
 
         for p in $order; do
-            emerald install -fr "$p" || {
+            @PROJECT_NAME@ install -fr "$p" || {
                 cleanup
                 exit 1
             }
@@ -321,7 +321,7 @@ check_python_modules() {
         [ -d "$i" ] || continue
         [ "$i" = "$python_lib_path" ] && continue
 
-        broken_pkg="$broken_pkg $(emerald provide "$i/" | awk '{print $1;}')"
+        broken_pkg="$broken_pkg $(@PROJECT_NAME@ provide "$i/" | awk '{print $1;}')"
     done
 }
 
@@ -335,7 +335,7 @@ check_perl_modules() {
         [ "$perl_path" = "$i" ] && continue
         [ -d "$i" ] || continue
 
-        broken_pkg="$broken_pkg $(emerald provide "$i/" | awk '{print $1;}')"
+        broken_pkg="$broken_pkg $(@PROJECT_NAME@ provide "$i/" | awk '{print $1;}')"
     done
 }
 
@@ -345,7 +345,7 @@ check_ruby_gem() {
 
     for i in "${gem_path%/*}"/*; do
         [ "$gem_path" = "$i" ] && continue
-        broken_pkg="$broken_pkg $(emerald provide "$i/" | awk '{print $1;}')"
+        broken_pkg="$broken_pkg $(@PROJECT_NAME@ provide "$i/" | awk '{print $1;}')"
     done
 }
 

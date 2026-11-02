@@ -4,7 +4,7 @@
 #
 # pkgrebuild - Rebuild base packages in correct toolchain order
 #
-# This script rebuilds system toolchain and base packages for emerald package
+# This script rebuilds system toolchain and base packages for @PROJECT_NAME@ package
 # manager, ensuring proper build order and dependency resolution.
 # POSIX-compliant implementation for maximum portability.
 
@@ -81,13 +81,13 @@ toolchain_rebuild() {
             name="$(printf "%s" "$tc" | sed 's/-pass1//')"
 
             # Force rebuild of package
-            emerald build -f "$name" || exit 1
+            @PROJECT_NAME@ build -f "$name" || exit 1
 
             # Record package as rebuilt (prevents duplicate builds)
             printf "%s\n" "$tc" >> "$LIST"
 
             # Install rebuilt package to system
-            emerald install -r "$name" || exit 1
+            @PROJECT_NAME@ install -r "$name" || exit 1
         }
     done
 
@@ -110,7 +110,7 @@ base_rebuild() {
     msg_info "Rebuilding $BASE..."
 
     # Get dependency list for base package and process each dependency
-    for pkg in $(emerald deplist "$BASE" | awk '{print $2;}'); do
+    for pkg in $(@PROJECT_NAME@ deplist "$BASE" | awk '{print $2;}'); do
         # Skip toolchain packages - these are handled by toolchain_rebuild()
         case " $TOOLCHAIN " in
             *" $pkg "*) continue ;;
@@ -119,13 +119,13 @@ base_rebuild() {
         # Skip if package already rebuilt (recorded in tracking list)
         grep -Fx "$pkg" "$LIST" >/dev/null 2>&1 || {
             # Force rebuild of package
-            emerald build -f "$pkg" || exit 1
+            @PROJECT_NAME@ build -f "$pkg" || exit 1
 
             # Record package as rebuilt (prevents duplicate builds)
             printf "%s\n" "$pkg" >> "$LIST"
 
             # Install rebuilt package to system
-            emerald install -r "$pkg" || exit 1
+            @PROJECT_NAME@ install -r "$pkg" || exit 1
         }
     done
 

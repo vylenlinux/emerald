@@ -1,4 +1,4 @@
-.TH REVDEP.CONF 5 "2026-09-07" "emerald" "File Formats"
+.TH REVDEP.CONF 5 "2026-09-07" "@PROJECT_NAME@" "File Formats"
 .SH NAME
 revdep.conf \- reverse-dependency scan exclusions
 .SH DESCRIPTION

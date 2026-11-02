@@ -1,4 +1,4 @@
-.TH PKGDEL 1 "2026-09-07" "emerald" "User Commands"
+.TH PKGDEL 1 "2026-09-07" "@PROJECT_NAME@" "User Commands"
 .SH NAME
 pkgdel \- remove an installed Emerald package
 .SH SYNOPSIS
@@ -23,4 +23,4 @@ Zero on success; non-zero if the package is absent, protected, or removal fails.
 .SH SEE ALSO
 .BR pkgadd (1),
 .BR pkgbase (1),
-.BR emerald (1)
+.BR @PROJECT_NAME@ (1)

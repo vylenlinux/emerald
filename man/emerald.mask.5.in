@@ -1,9 +1,9 @@
-.TH EMERALD.MASK 5 "2026-09-07" "emerald" "File Formats"
+.TH EMERALD.MASK 5 "2026-09-07" "@PROJECT_NAME@" "File Formats"
 .SH NAME
-emerald.mask \- ports excluded from system upgrades
+@PROJECT_NAME@.mask \- ports excluded from system upgrades
 .SH DESCRIPTION
-.I @SYSCONFDIR@/emerald.mask
-contains package or port names that \fBemerald sysup\fR must not upgrade. Each entry is a single name on its own line.
+.I @SYSCONFDIR@/@PROJECT_NAME@.mask
+contains package or port names that \fB@PROJECT_NAME@ sysup\fR must not upgrade. Each entry is a single name on its own line.
 .SH FORMAT
 .EX
 # one port per line
@@ -11,8 +11,8 @@ linux-firmware
 some-port
 .EE
 .PP
-Blank lines and lines beginning with \fB#\fR are ignored. Names are matched as package names; an installed version may be shown by \fBemerald mask list\fR.
+Blank lines and lines beginning with \fB#\fR are ignored. Names are matched as package names; an installed version may be shown by \fB@PROJECT_NAME@ mask list\fR.
 .SH MANAGEMENT
-Use \fBemerald mask list\fR, \fBemerald mask add PORT...\fR, and \fBemerald mask remove PORT...\fR. Changes require root privileges.
+Use \fB@PROJECT_NAME@ mask list\fR, \fB@PROJECT_NAME@ mask add PORT...\fR, and \fB@PROJECT_NAME@ mask remove PORT...\fR. Changes require root privileges.
 .SH SEE ALSO
-.BR emerald (1)
+.BR @PROJECT_NAME@ (1)

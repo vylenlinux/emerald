@@ -1,8 +1,8 @@
-.TH EMERALD.CONF 5 "2026-09-07" "emerald" "File Formats"
+.TH EMERALD.CONF 5 "2026-09-07" "@PROJECT_NAME@" "File Formats"
 .SH NAME
-emerald.conf \- Emerald build and runtime configuration
+@PROJECT_NAME@.conf \- Emerald build and runtime configuration
 .SH DESCRIPTION
-.I @SYSCONFDIR@/emerald.conf
+.I @SYSCONFDIR@/@PROJECT_NAME@.conf
 is sourced as a POSIX shell file by Emerald. Assignments may override build flags, cache locations, package handling, output theme, and cleanup behavior. Values are commonly written as shell strings such as \fByes\fR or \fBno\fR.
 .SH VARIABLES
 .TP
@@ -49,5 +49,5 @@ THEME="nord"
 .SH SECURITY
 This file is executed by the shell. Only trusted administrators should edit it; do not place untrusted input in assignments or command substitutions.
 .SH SEE ALSO
-.BR emerald (1),
+.BR @PROJECT_NAME@ (1),
 .BR pkgbuild (1)

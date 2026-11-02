@@ -1,8 +1,8 @@
-.TH EMERALD.REPO 5 "2026-09-07" "emerald" "File Formats"
+.TH EMERALD.REPO 5 "2026-09-07" "@PROJECT_NAME@" "File Formats"
 .SH NAME
-emerald.repo \- Emerald ports repository definitions
+@PROJECT_NAME@.repo \- Emerald ports repository definitions
 .SH DESCRIPTION
-.I @SYSCONFDIR@/emerald.repo
+.I @SYSCONFDIR@/@PROJECT_NAME@.repo
 lists local destinations and their Git remotes. Emerald and \fBportsync\fR use it to construct and synchronize the ports tree.
 .SH FORMAT
 Each non-empty, non-comment line contains up to three whitespace-separated fields:
@@ -23,4 +23,4 @@ Lines beginning with \fB#\fR are disabled. The installed template may contain co
 Run \fBportsync\fR to fetch and check out the configured repositories. Use its \fB--source\fR option to limit synchronization and \fB--reset\fR to recover a repository whose local state cannot be updated.
 .SH SEE ALSO
 .BR portsync (1),
-.BR emerald (1)
+.BR @PROJECT_NAME@ (1)

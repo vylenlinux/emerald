@@ -56,13 +56,13 @@ PKGDB_DIR="$(pkgadd --print-db-dir)"
 # Parse command line options
 parse_opts "$@"
 
-emerald is-installed base || {
+@PROJECT_NAME@ is-installed base || {
     printf "Error: base package is not installed\n" >&2
     exit 1
 }
 
 printf "Calculate packages to keep...\n"
-keep=$(emerald deplist base $pkg | awk '{print $2;}')
+keep=$(@PROJECT_NAME@ deplist base $pkg | awk '{print $2;}')
 
 [ -n "$keep" ] || printf "Warning: no packages marked to keep\n" >&2
 printf "Calculate selected packages to remove...\n"
@@ -79,7 +79,7 @@ if [ -z "$remove" ]; then
 fi
 
 if [ "$dryrun" -eq 0 ]; then
-    emerald remove "$yes" $remove || error=1
+    @PROJECT_NAME@ remove "$yes" $remove || error=1
     exit "$error"
 fi
 

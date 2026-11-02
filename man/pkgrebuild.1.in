@@ -1,4 +1,4 @@
-.TH PKGREBUILD 1 "2026-09-07" "emerald" "User Commands"
+.TH PKGREBUILD 1 "2026-09-07" "@PROJECT_NAME@" "User Commands"
 .SH NAME
 pkgrebuild \- rebuild the toolchain and base packages
 .SH SYNOPSIS
@@ -21,4 +21,4 @@ Show help.
 Zero on successful rebuild; non-zero on permission, build, or installation failure.
 .SH SEE ALSO
 .BR pkgbuild (1),
-.BR emerald (1)
+.BR @PROJECT_NAME@ (1)

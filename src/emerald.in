@@ -6,10 +6,10 @@
 BUILD_SCRIPT="@BUILD_SCRIPT@"
 PKGDB_DIR="$(pkgadd --print-db-dir)"
 WORLD_FILE="@STATE_DIR@/world"
-REPO_FILE="${REPO_FILE:-@SYSCONFDIR@/emerald.repo}"
-MASK_FILE="${MASK_FILE:-@SYSCONFDIR@/emerald.mask}"
-CONFIG_FILE="${CONFIG_FILE:-@SYSCONFDIR@/emerald.conf}"
-ALIAS_FILE="${ALIAS_FILE:-@SYSCONFDIR@/emerald.alias}"
+REPO_FILE="${REPO_FILE:-@SYSCONFDIR@/@PROJECT_NAME@.repo}"
+MASK_FILE="${MASK_FILE:-@SYSCONFDIR@/@PROJECT_NAME@.mask}"
+CONFIG_FILE="${CONFIG_FILE:-@SYSCONFDIR@/@PROJECT_NAME@.conf}"
+ALIAS_FILE="${ALIAS_FILE:-@SYSCONFDIR@/@PROJECT_NAME@.alias}"
 
 # default value from pkgbuild
 SOURCE_DIR="@CACHE_DIR@/sources"
@@ -2730,8 +2730,8 @@ done
 # check alias port
 grep -qEv '^(#|[[:space:]]*$)' "$ALIAS_FILE" 2>/dev/null && ALIAS_PORT="yes" || ALIAS_PORT="no"
 
-# apply emerald.conf
-# shellcheck source=@SYSCONFDIR@/emerald.conf
+# apply @PROJECT_NAME@.conf
+# shellcheck source=@SYSCONFDIR@/@PROJECT_NAME@.conf
 . "${CONFIG_FILE}"
 
 # apply color theme

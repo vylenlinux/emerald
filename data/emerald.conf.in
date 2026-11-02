@@ -1,5 +1,5 @@
 #
-# @SYSCONFDIR@/emerald.conf: emerald configuration file
+# @SYSCONFDIR@/@PROJECT_NAME@.conf: @PROJECT_NAME@ configuration file
 #
 
 export CFLAGS="-O2 -march=x86-64 -pipe"

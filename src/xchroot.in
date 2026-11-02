@@ -52,7 +52,7 @@ Description:
 Examples:
     xchroot /mnt/mysystem
     xchroot /mnt/mysystem portsync
-    xchroot /mnt/mysystem emerald sysup -y
+    xchroot /mnt/mysystem @PROJECT_NAME@ sysup -y
     xchroot /mnt/mysystem /usr/bin/bash
     xchroot /mnt/mysystem /usr/bin/mksh -c portsync
 

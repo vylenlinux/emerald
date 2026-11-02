@@ -909,7 +909,7 @@ main() {
         exit 1
     }
 
-    # shellcheck source=@SYSCONFDIR@/emerald.conf
+    # shellcheck source=@SYSCONFDIR@/@PROJECT_NAME@.conf
     . "$PKGBUILD_CONF"
 
     [ -z "$CUSTOM_SOURCE_DIR" ] || SOURCE_DIR="$CUSTOM_SOURCE_DIR"
@@ -917,7 +917,7 @@ main() {
     [ -z "$CUSTOM_WORK_DIR" ] || WORK_DIR="$CUSTOM_WORK_DIR"
 
     # Parallel build jobs
-    [ -z "$CUSTOM_JOBS" ] && CBUILD_JOBS="$MAKEFLAGS" || CBUILD_JOBS="$CUSTOM_JOBS" # from emerald.conf
+    [ -z "$CUSTOM_JOBS" ] && CBUILD_JOBS="$MAKEFLAGS" || CBUILD_JOBS="$CUSTOM_JOBS" # from @PROJECT_NAME@.conf
 
     # Fallback to nproc if CBUILD_JOBS wasn't set in config or via --jobs, or is not numeric
     case "$CBUILD_JOBS" in
@@ -1036,7 +1036,7 @@ main() {
 trap "interrupted" HUP INT QUIT PIPE TERM
 export LC_ALL=C
 
-PKGBUILD_CONF="@SYSCONFDIR@/emerald.conf"
+PKGBUILD_CONF="@SYSCONFDIR@/@PROJECT_NAME@.conf"
 PKGBUILD_BSCRIPT="@BUILD_SCRIPT@"
 CHECKSUMS_FILE="@CHECKSUMS_FILE@"
 PKGFILES_FILE="@PKGFILES_FILE@"

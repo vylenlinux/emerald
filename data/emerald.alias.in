@@ -1,5 +1,5 @@
 #
-# @SYSCONFDIR@/emerald.alias: emerald alias file
+# @SYSCONFDIR@/@PROJECT_NAME@.alias: @PROJECT_NAME@ alias file
 #
 # format:
 #    <real package> <aliased package>

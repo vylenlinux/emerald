@@ -1,4 +1,4 @@
-.TH PKGADD 1 "2026-09-07" "emerald" "User Commands"
+.TH PKGADD 1 "2026-09-07" "@PROJECT_NAME@" "User Commands"
 .SH NAME
 pkgadd \- install an Emerald package archive
 .SH SYNOPSIS
@@ -40,4 +40,4 @@ Zero on success; non-zero on invalid archives, conflicts, missing dependencies, 
 .SH SEE ALSO
 .BR pkgbuild (1),
 .BR pkgdel (1),
-.BR emerald (1)
+.BR @PROJECT_NAME@ (1)

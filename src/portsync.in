@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #
-# portsync - POSIX-compliant script for emerald that synchronizes ports
+# portsync - POSIX-compliant script for @PROJECT_NAME@ that synchronizes ports
 #
 
 # Vars
@@ -231,7 +231,7 @@ make_dir "$worktree" || {
 }
 
 # Check that configuration file exists
-repo_file="@SYSCONFDIR@/emerald.repo"
+repo_file="@SYSCONFDIR@/@PROJECT_NAME@.repo"
 
 [ -e "$repo_file" ] || {
     msg_error "Missing repo file: $repo_file"

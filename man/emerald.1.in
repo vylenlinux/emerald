@@ -1,17 +1,17 @@
-.TH EMERALD 1 "2026-10-06" "emerald" "User Commands"
+.TH @PROJECT_NAME@ 1 "2026-10-06" "@PROJECT_NAME@" "User Commands"
 .SH NAME
-emerald \- package and ports manager
+@PROJECT_NAME@ \- package and ports manager
 .SH SYNOPSIS
-.B emerald
+.B @PROJECT_NAME@
 .RI [ global-options ]
 .I command
 .RI [ command-options ]
 .RI [ arguments ]
 .SH DESCRIPTION
-.B emerald
+.B @PROJECT_NAME@
 manages ports, package installation, upgrades, removal, dependency inspection, repositories, and system updates. It uses the configured ports repositories and package database. Operations that modify the system require root privileges.
 .PP
-Use \fBemerald help\fR to print the built-in command summary.
+Use \fB@PROJECT_NAME@ help\fR to print the built-in command summary.
 .SH COMMANDS
 .TP
 .B search PATTERN
@@ -246,7 +246,7 @@ Print installed packages not provided by configured ports.
 Print built-in help.
 .TP
 .B hook STAGE ACTION PORT
-Run a port hook on demand. Run \fBemerald hook\fR without arguments for hook-specific help.
+Run a port hook on demand. Run \fB@PROJECT_NAME@ hook\fR without arguments for hook-specific help.
 .TP
 .B info PORT
 Print port information.
@@ -264,10 +264,10 @@ Check whether a port is installed. The exit status is 0 if installed and 1 other
 Print the location of a file in the ports repository.
 .TP
 .B alias ARG
-Manage aliased ports. Run \fBemerald alias help\fR for usage.
+Manage aliased ports. Run \fB@PROJECT_NAME@ alias help\fR for usage.
 .TP
 .B mask ARG
-Manage masked ports. Run \fBemerald mask help\fR for usage.
+Manage masked ports. Run \fB@PROJECT_NAME@ mask help\fR for usage.
 .TP
 .B missing-deps
 Print missing dependencies.
@@ -325,16 +325,16 @@ Use FILE as the alias file.
 Use FILE as the mask file.
 .SH FILES
 .TP
-.I @SYSCONFDIR@/emerald.conf
+.I @SYSCONFDIR@/@PROJECT_NAME@.conf
 Build and runtime configuration.
 .TP
-.I @SYSCONFDIR@/emerald.repo
+.I @SYSCONFDIR@/@PROJECT_NAME@.repo
 Repository definitions.
 .TP
-.I @SYSCONFDIR@/emerald.alias
+.I @SYSCONFDIR@/@PROJECT_NAME@.alias
 Package aliases.
 .TP
-.I @SYSCONFDIR@/emerald.mask
+.I @SYSCONFDIR@/@PROJECT_NAME@.mask
 Ports excluded from system upgrades.
 .SH EXIT STATUS
 Zero indicates success. A non-zero status indicates invalid input, an unavailable port/package, a failed operation, or a detected problem for a checking command.
@@ -344,4 +344,4 @@ Zero indicates success. A non-zero status indicates invalid input, an unavailabl
 .BR pkgdel (1),
 .BR portsync (1),
 .BR revdep (1),
-.BR emerald.conf (5)
+.BR @PROJECT_NAME@.conf (5)

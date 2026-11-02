@@ -1,4 +1,4 @@
-.TH PORTSYNC 1 "2026-09-07" "emerald" "User Commands"
+.TH PORTSYNC 1 "2026-09-07" "@PROJECT_NAME@" "User Commands"
 .SH NAME
 portsync \- synchronize Emerald port repositories
 .SH SYNOPSIS
@@ -30,5 +30,5 @@ portsync -r -s main
 .SH EXIT STATUS
 Zero when all selected repositories synchronize; non-zero when a repository cannot be created, fetched, or checked out.
 .SH SEE ALSO
-.BR emerald.repo (5),
-.BR emerald (1)
+.BR @PROJECT_NAME@.repo (5),
+.BR @PROJECT_NAME@ (1)
