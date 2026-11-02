@@ -1,12 +1,5 @@
 # bash completion for portsync
 
-_portsync_repos() {
-    awk '!/^[[:space:]]*(#|$)/ {
-        n = split($1, a, "/");
-        print a[n];
-    }' @SYSCONFDIR@/@PROJECT_NAME@.repo 2>/dev/null
-}
-
 _portsync() {
     local cur
     local w
@@ -26,7 +19,11 @@ _portsync() {
     done
 
     if [[ $cur != -* && $in_source -eq 1 ]]; then
-        COMPREPLY=($(compgen -W "$(_portsync_repos)" -- "$cur"))
+        COMPREPLY=($(compgen -W "$(awk '!/^[[:space:]]*(#|$)/ {
+            n = split($1, a, "/");
+            print a[n];
+        }' @SYSCONFDIR@/@PROJECT_NAME@.repo 2>/dev/null)" -- "$cur"))
+
         return
     fi
 
