@@ -24,10 +24,10 @@ KEEP_LOCALE="yes"
 KEEP_MAN="yes"
 KEEP_INFO="yes"
 KEEP_HELP="no"
-NOCOLOR="no"
+NO_COLOR="no"
 
 load_colors() {
-    [ "$NOCOLOR" = "yes" ] && return 0
+    [ "$NO_COLOR" = "yes" ] && return 0
 
     COLOR1='\033[38;5;1m' # red
     COLOR2='\033[38;5;2m' # green

@@ -30,7 +30,7 @@ Set to \fByes\fR to skip source checksum verification.
 .B KEEP_DOC, KEEP_LIBTOOL, KEEP_LOCALE, KEEP_MAN, KEEP_INFO, KEEP_HELP
 Set to \fByes\fR to retain the corresponding files during packaging. The default policy is defined by the installed template.
 .TP
-.B NOCOLOR
+.B NO_COLOR
 Set to \fByes\fR to disable colored output.
 .TP
 .B CFLAGS, CXXFLAGS, FCFLAGS, FFLAGS, LDFLAGS, MAKEFLAGS
@@ -40,7 +40,7 @@ Compiler, linker, and parallel-build settings exported to build scripts.
 COMPRESSION_MODE="xz"
 KEEP_DOC="yes"
 KEEP_MAN="yes"
-NOCOLOR="yes"
+NO_COLOR="yes"
 .fi
 .SH SECURITY
 This file is executed by the shell. Only trusted administrators should edit it; do not place untrusted input in assignments or command substitutions.
