@@ -17,6 +17,14 @@ _emerald_option_value() {
 
         --field) COMPREPLY=($(compgen -W "description maintainer homepage path name version release commit installed aliased masked depends conflicts required-by" -- "$cur")) ;;
 
+        --jobs) COMPREPLY=() ;;
+        --config) compopt -o filenames 2>/dev/null; COMPREPLY=($(compgen -f -- "$cur")) ;;
+
+        --srcdir | --pkgdir | --workdir | --root | --repo | --append-repo | --prepend-repo | --override-repo)
+            compopt -o filenames 2>/dev/null
+            COMPREPLY=($(compgen -d -- "$cur"))
+        ;;
+
         --exclude)
             local head=""
             local last="$cur"
@@ -33,16 +41,16 @@ _emerald_option_value() {
 
 _emerald_opts() {
     case $1 in
-        search) printf "-n --name\n" ;;
-        sync) printf "-p --prune -r --reset\n" ;;
-        build) printf "-f -m -o -q --quiet -w -y -C --clean --log --jobs=\n" ;;
-        install) printf "-c -f -m -n -o -q --quiet -r -w -y --yes --exclude= --no-backup --jobs=\n" ;;
-        upgrade | sysup) printf "-c -f -m -n -o -q --quiet -w -y --yes --exclude= --no-backup --jobs=\n" ;;
-        remove | purge) printf "-y --yes\n" ;;
-        deplist) printf "-q --quick --exclude=\n" ;;
-        redeps) printf "-w --world -f --fix\n" ;;
-        cache) printf "-p --pkg -s --src\n" ;;
-        info) printf "--field=\n" ;;
+        search) printf "-n --name" ;;
+        sync) printf "-p --prune -r --reset" ;;
+        build) printf "%s" "-c --ignore-conflict -f --force-rebuild -m --skip-checksum -o --download -x --extract -q --quiet -v --verbose -w --keep-work -C --clean --no-backup --root= --config= --srcdir= --pkgdir= --workdir= --jobs= --log -h --help" ;;
+        install) printf "-c -f -m -n -o -q --quiet -r -w -y --yes --exclude= --no-backup --jobs=" ;;
+        upgrade | sysup) printf "-c -f -m -n -o -q --quiet -w -y --yes --exclude= --no-backup --jobs=" ;;
+        remove | purge) printf "-y --yes" ;;
+        deplist) printf "-q --quick --exclude=" ;;
+        redeps) printf "-w --world -f --fix" ;;
+        cache) printf "-p --pkg -s --src" ;;
+        info) printf "--field=" ;;
     esac
 }
 
@@ -101,7 +109,7 @@ _emerald() {
     local -a pos=()
 
     local subcmds="search sync build install upgrade sysup remove deplist redeps cache cat config dependent depends conflicts dup files foreign help hook info installed integrity is-installed locate alias mask missing-deps orphan outdated path provide purge trigger world list version"
-    local globals="--append-repo= --prepend-repo= --override-repo= --repo-file= --config-file= --alias-file= --mask-file="
+    local globals="--repo= --append-repo= --prepend-repo= --override-repo= --repo-file= --config-file= --alias-file= --mask-file="
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}

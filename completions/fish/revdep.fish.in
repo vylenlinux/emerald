@@ -1,9 +1,9 @@
 # fish completion for revdep
 
-complete -c revdep -s a -l all -d 'check all installed ports'
-complete -c revdep -s r -l rebuild -d 'rebuild ports with broken dependencies'
-complete -c revdep -s p -l package -r -x -a '(@PROJECT_NAME@ installed 2>/dev/null | string replace -r " .*" "")' -d 'check reverse dependencies of this package'
-complete -c revdep -s f -l no-filter -d 'do not filter results'
-complete -c revdep -s e -l exclude -r -x -a '(@PROJECT_NAME@ installed 2>/dev/null | string replace -r " .*" "")' -d 'exclude ports from rebuild'
-complete -c revdep -s y -l yes -d 'do not ask for confirmation'
-complete -c revdep -s h -l help -d 'show help message'
+complete -c revdep -n 'not __fish_seen_argument -s h -l help' -s a -l all -d 'check all installed ports'
+complete -c revdep -n 'not __fish_seen_argument -s h -l help' -s r -l rebuild -d 'rebuild ports with broken dependencies'
+complete -c revdep -n 'not __fish_seen_argument -s h -l help' -s p -l package -r -x -a '(@PROJECT_NAME@ installed 2>/dev/null | string replace -r " .*" "")' -d 'check reverse dependencies of this package'
+complete -c revdep -n 'not __fish_seen_argument -s h -l help' -s f -l no-filter -d 'do not filter results'
+complete -c revdep -n 'not __fish_seen_argument -s h -l help' -s e -l exclude -r -x -a '(@PROJECT_NAME@ installed 2>/dev/null | string replace -r " .*" "")' -d 'exclude ports from rebuild'
+complete -c revdep -n 'not __fish_seen_argument -s h -l help' -s y -l yes -d 'do not ask for confirmation'
+complete -c revdep -n 'not __fish_seen_argument -s h -l help' -s h -l help -d 'show help message'
