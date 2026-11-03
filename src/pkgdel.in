@@ -171,7 +171,6 @@ fi
 # Remove files, dirs, tmp_db and the package entry from the database
 rm -f "$_rm_files" "$_rm_dirs" "$tmp_db" "$ROOT_DIR/$PKGDB_DIR/$PKG_NAME"
 
-# Refresh the dynamic linker cache if available
-[ -x "$ROOT_DIR/usr/bin/ldconfig" ] && "$ROOT_DIR/usr/bin/ldconfig" -r "$ROOT_DIR/"
-
+# Refresh the dynamic linker cache
+"$ROOT_DIR/usr/bin/ldconfig" -r "$ROOT_DIR/"
 ret 0
