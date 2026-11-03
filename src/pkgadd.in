@@ -304,6 +304,6 @@ fi
 printf '%s %s\n' "$version" "$release" > "$ROOT_DIR/$PKGDB_DIR/$name"
 cat "$TMP_PKGINSTALL" >> "$ROOT_DIR/$PKGDB_DIR/$name"
 
-# Running ldconfig
-[ -x "$ROOT_DIR/usr/bin/ldconfig" ] && "$ROOT_DIR/usr/bin/ldconfig" -r "$ROOT_DIR/"
+# Refresh the dynamic linker cache
+"$ROOT_DIR/usr/bin/ldconfig" -r "$ROOT_DIR/"
 ret 0
