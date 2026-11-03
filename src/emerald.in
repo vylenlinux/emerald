@@ -484,6 +484,7 @@ emerald_config() {
     printf '%bCURL_OPTS:%b %b%s%b\n' "$COLOR5" "$CRESET" "$COLOR4" "$CURL_OPTS" "$CRESET"
     printf '%bCOMPRESSION_MODE:%b %b%s%b\n' "$COLOR5" "$CRESET" "$COLOR4" "$COMPRESSION_MODE" "$CRESET"
     printf '%bNO_STRIP:%b %b%s%b\n' "$COLOR5" "$CRESET" "$COLOR4" "$NO_STRIP" "$CRESET"
+    printf '%bNO_COLOR:%b %b%s%b\n' "$COLOR5" "$CRESET" "$COLOR4" "$NO_COLOR" "$CRESET"
     printf '%bIGNORE_CHECKSUM:%b %b%s%b\n' "$COLOR5" "$CRESET" "$COLOR4" "$IGNORE_CHECKSUM" "$CRESET"
     printf '%bKEEP_LIBTOOL:%b %b%s%b\n' "$COLOR5" "$CRESET" "$COLOR4" "$KEEP_LIBTOOL" "$CRESET"
     printf '%bKEEP_LOCALE:%b %b%s%b\n' "$COLOR5" "$CRESET" "$COLOR4" "$KEEP_LOCALE" "$CRESET"
