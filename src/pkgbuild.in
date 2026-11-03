@@ -210,6 +210,29 @@ do_dkms() {
     msg_info "Installed: /var/lib/dkms/buildmodules-$name.sh"
 }
 
+do_man() {
+    _section=1
+
+    case "$1" in
+        [1-9])
+            _section="$1"
+            shift
+        ;;
+    esac
+
+    for _man in "$@"; do
+        _man_file="$SRC/files/man/$_man.$_section"
+
+        [ -f "$_man_file" ] || {
+            msg_error "Man page not found for $_man.$_section"
+            exit 1
+        }
+
+        install -Dm644 "$_man_file" -t "$PKG/usr/share/man/man$_section/"
+        msg_info "Installed: /usr/share/man/man$_section/$_man.$_section"
+    done
+}
+
 get_filepath() {
     for i in $source; do
         case $i in
