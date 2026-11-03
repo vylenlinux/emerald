@@ -3,7 +3,7 @@
 @PROJECT_NAME@.conf \- Emerald build and runtime configuration
 .SH DESCRIPTION
 .I @SYSCONFDIR@/@PROJECT_NAME@.conf
-is sourced as a POSIX shell file by Emerald. Assignments may override build flags, cache locations, package handling, output theme, and cleanup behavior. Values are commonly written as shell strings such as \fByes\fR or \fBno\fR.
+is sourced as a POSIX shell file by Emerald. Assignments may override build flags, cache locations, package handling, and cleanup behavior. Values are commonly written as shell strings such as \fByes\fR or \fBno\fR.
 .SH VARIABLES
 .TP
 .B SOURCE_DIR
@@ -33,9 +33,6 @@ Set to \fByes\fR to retain the corresponding files during packaging. The default
 .B NOCOLOR
 Set to \fByes\fR to disable colored output.
 .TP
-.B THEME
-Output color theme: \fBvylen\fR (default), \fBdracula\fR, or \fBnord\fR.
-.TP
 .B CFLAGS, CXXFLAGS, FCFLAGS, FFLAGS, LDFLAGS, MAKEFLAGS
 Compiler, linker, and parallel-build settings exported to build scripts.
 .SH EXAMPLE
@@ -44,7 +41,6 @@ COMPRESSION_MODE="xz"
 KEEP_DOC="yes"
 KEEP_MAN="yes"
 NOCOLOR="yes"
-THEME="nord"
 .fi
 .SH SECURITY
 This file is executed by the shell. Only trusted administrators should edit it; do not place untrusted input in assignments or command substitutions.
