@@ -47,7 +47,6 @@ _emerald() {
     )
 
     _arguments -C \
-        '--repo=[add custom local repo path]:directory:_directories' \
         '--append-repo=[append custom local repo path]:directory:_directories' \
         '--prepend-repo=[prepend custom local repo path]:directory:_directories' \
         '--override-repo=[override repo file with custom local repo]:directory:_directories' \
@@ -77,21 +76,13 @@ _emerald() {
 
                 build)
                     _arguments \
-                        '(-c --ignore-conflict)'{-c,--ignore-conflict}'[ignore installation conflicts]' \
-                        '(-f --force-rebuild)'{-f,--force-rebuild}'[force rebuild package]' \
-                        '(-m --skip-checksum)'{-m,--skip-checksum}'[skip checksum checking]' \
-                        '(-o --download)'{-o,--download}'[download source only]' \
-                        '(-x --extract)'{-x,--extract}'[download and extract source only]' \
+                        '-f[force rebuild package]' \
+                        '-m[skip checksum checking]' \
+                        '-o[fetch sources only]' \
                         '(-q --quiet)'{-q,--quiet}'[show only status messages and errors]' \
-                        '(-v --verbose)'{-v,--verbose}'[show verbose installation output]' \
-                        '(-w --keep-work)'{-w,--keep-work}'[keep working directory]' \
+                        '-w[keep working directory]' \
+                        '-y[skip ask user confirmation]' \
                         '(-C --clean)'{-C,--clean}'[remove downloaded sources and prebuilt packages]' \
-                        '--no-backup[skip backup when upgrading packages]' \
-                        '--root=[set installation root]:directory:_directories' \
-                        '--config=[use custom config file]:file:_files' \
-                        '--srcdir=[override source cache directory]:directory:_directories' \
-                        '--pkgdir=[override package cache directory]:directory:_directories' \
-                        '--workdir=[override working directory]:directory:_directories' \
                         '--log[log build process]' \
                         '--jobs=[override parallel build jobs]:jobs:' \
                         '*:port:->ports' && ret=0

@@ -1,6 +1,6 @@
 # fish completion for pkgbase
 
-complete -c pkgbase -n 'not __fish_seen_argument -s h -l help' -s n -l dryrun -d 'show what would be removed without removing'
-complete -c pkgbase -n 'not __fish_seen_argument -s h -l help' -s y -l yes -d 'do not ask for confirmation'
-complete -c pkgbase -n 'not __fish_seen_argument -s h -l help' -s h -l help -d 'show help message'
-complete -c pkgbase -n 'not __fish_seen_argument -s h -l help' -f -a '(@PROJECT_NAME@ installed 2>/dev/null | string replace -r " .*" "")' -d 'installed port'
+complete -c pkgbase -s n -l dryrun -d 'show what would be removed without removing'
+complete -c pkgbase -s y -l yes -d 'do not ask for confirmation'
+complete -c pkgbase -s h -l help -d 'show help message'
+complete -c pkgbase -f -a '(@PROJECT_NAME@ installed 2>/dev/null | string replace -r " .*" "")' -d 'installed port'
