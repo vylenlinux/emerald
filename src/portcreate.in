@@ -183,10 +183,11 @@ source=""
 build() {
     # shellcheck disable=SC2164
     cd "${name}-${version}"
+    cargo fetch --locked
 
     cargo build \
         --release \
-        --locked
+        --frozen
 
     install -Dm755 "target/release/${name}" -t "${PKG}/usr/bin/"
 }
