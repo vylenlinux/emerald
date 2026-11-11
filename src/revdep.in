@@ -459,7 +459,7 @@ find $SEARCH_DIRS $EXCLUDED_DIRS $EXCLUDED_FILES -type f \( \
 # Build an additional path list from the files revdep is actually scanning so
 # private libraries are resolved regardless of how deeply they are nested.
 REVDEP_LIBRARY_PATH=$(grep -E '(^|/)[^/]+\.so(\.[^/]*)?$' "$FILE_LIST" | while IFS= read -r _file; do
-    dirname "$_file"
+    printf '%s\n' "${_file%/*}"
 done | sort -u | tr '\n' ':')
 
 REVDEP_LIBRARY_PATH="${REVDEP_LIBRARY_PATH%:}"
