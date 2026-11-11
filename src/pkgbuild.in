@@ -233,6 +233,22 @@ do_man() {
     done
 }
 
+do_ld_so_conf() {
+    _ld_so_conf_dir="$SRC/files/ld.so.conf.d"
+
+    for _conf in "$@"; do
+        _conf_file="$_ld_so_conf_dir/$_conf.conf"
+
+        [ -f "$_conf_file" ] || {
+            msg_error "ld conf file not found: $_conf_file"
+            exit 1
+        }
+
+        install -Dm644 "$_conf_file" -t "$PKG/usr/lib/ld.so.conf.d/"
+        msg_info "Installed: /usr/lib/ld.so.conf.d/$_conf.conf"
+    done
+}
+
 get_filepath() {
     for i in $source; do
         case $i in
