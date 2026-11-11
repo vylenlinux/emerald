@@ -1,4 +1,4 @@
-project('emerald', 'c', version: '20261103')
+project('emerald', 'c', version: '20261111')
 
 PREFIX = get_option('prefix')
 SYSCONFDIR = get_option('sysconfdir')
