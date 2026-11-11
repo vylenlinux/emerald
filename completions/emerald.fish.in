@@ -54,7 +54,7 @@ complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from search' -s n -l name 
 
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from sync' -s p -l prune -d 'prune local git repository'
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from sync' -s r -l reset -d 'reset git repositories'
-complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from sync' -s s -l source -r -x -a '(cat @SYSCONFDIR@/@PROJECT_NAME@.repo 2>/dev/null | string match -rv '^\s*(#.*)?$' | string replace -r '\s.*' '' | string replace -r '.*/' '')' -d 'sync only the given repositories'
+complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from sync' -s s -l source -r -x -a '(cat @SYSCONFDIR@/@PROJECT_NAME@.repo 2>/dev/null | string match -rv \'^\s*(#.*)?$\' | string replace -r \'\s.*\' \'\' | string replace -r \'.*/\' \'\')' -d 'sync only the given repositories'
 
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from build' -s f -l force-rebuild -d 'force rebuild package'
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from build' -s m -l skip-checksum -d 'skip checksum checking'
@@ -220,7 +220,7 @@ complete -c portcreate -s h -d 'show help message'
 # {{{ portsync
 complete -c portsync -s p -l prune -d 'prune local git repository'
 complete -c portsync -s r -l reset -d 'reset git repositories'
-complete -c portsync -s s -l source -r -x -a '(cat @SYSCONFDIR@/@PROJECT_NAME@.repo 2>/dev/null | string match -rv '^\s*(#.*)?$' | string replace -r '\s.*' '' | string replace -r '.*/' '')' -d 'sync only the given repositories'
+complete -c portsync -s s -l source -r -x -a '(cat @SYSCONFDIR@/@PROJECT_NAME@.repo 2>/dev/null | string match -rv \'^\s*(#.*)?$\' | string replace -r \'\s.*\' \'\' | string replace -r \'.*/\' \'\')' -d 'sync only the given repositories'
 complete -c portsync -s h -l help -d 'show help message'
 # }}}
 
