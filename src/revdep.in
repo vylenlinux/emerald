@@ -88,6 +88,10 @@ REBUILD=0
 NOCONFIRM=0
 NO_FILTER=0
 
+cleanup() {
+    rm -f "$FILE_LIST" "$TMP_OUT"
+}
+
 interrupted() {
     cleanup
     printf '\n'
@@ -95,9 +99,7 @@ interrupted() {
     exit 1
 }
 
-cleanup() {
-    rm -f "$FILE_LIST" "$TMP_OUT"
-}
+trap "interrupted" 1 2 3 15
 
 help() {
     cat <<'EOF'
@@ -336,16 +338,6 @@ check_ruby_gem() {
     done
 }
 
-FILE_LIST=$(mktemp -t revdep.XXXXXXXXXX) || exit 1
-
-TMP_OUT=$(mktemp -t revdep.out.XXXXXXXXXX) || {
-    cleanup
-    exit 1
-}
-
-# Trap signals for cleanup
-trap "interrupted" 1 2 3 15
-
 # Get absolute path of the script with parameter expansion and command -v for PATH lookup
 case "$0" in
     /*) SELF="$0" ;;
@@ -444,10 +436,15 @@ if [ -n "$EXCLUDED_LIBS" ]; then
     done
 fi
 
-printf '\n'
+FILE_LIST=$(mktemp -t revdep.XXXXXXXXXX) || exit 1
+
+TMP_OUT=$(mktemp -t revdep.out.XXXXXXXXXX) || {
+    cleanup
+    exit 1
+}
 
 # Build file list to check
-printf 'Find all files... '
+printf '\nFind all files... '
 
 # shellcheck disable=SC2086
 find $SEARCH_DIRS $EXCLUDED_DIRS $EXCLUDED_FILES -type f \( \
