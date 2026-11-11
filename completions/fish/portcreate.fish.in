@@ -1,4 +1,0 @@
-# fish completion for portcreate
-
-complete -c portcreate -s b -x -a 'autotools meson cmake golang python3 rust gpep517' -d 'build system of the new port'
-complete -c portcreate -s h -d 'show help message'

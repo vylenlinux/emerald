@@ -1,0 +1,391 @@
+# bash completion for @PROJECT_NAME@
+
+# {{{ @PROJECT_NAME@
+_emerald_option_value() {
+    local opt=$1
+    local cur=$2
+
+    case $opt in
+        --repo-file | --alias-file | --config-file | --mask-file)
+            compopt -o filenames 2>/dev/null
+            COMPREPLY=($(compgen -f -- "$cur"))
+        ;;
+
+        --append-repo | --prepend-repo | --override-repo)
+            compopt -o filenames 2>/dev/null
+            COMPREPLY=($(compgen -d -- "$cur"))
+        ;;
+
+        --field) COMPREPLY=($(compgen -W "description maintainer homepage path name version release commit installed aliased masked depends conflicts required-by" -- "$cur")) ;;
+
+        --exclude)
+            local head=""
+            local last="$cur"
+
+            if [[ $cur == *,* ]]; then
+                head="${cur%,*},"
+                last="${cur##*,}"
+            fi
+
+            COMPREPLY=($(compgen -P "$head" -W "$(@PROJECT_NAME@ list 2>/dev/null)" -- "$last"))
+        ;;
+    esac
+}
+
+_emerald_opts() {
+    case $1 in
+        search) printf "-n --name\n" ;;
+        sync) printf "-p --prune -r --reset\n" ;;
+        build) printf "-f -m -o -q --quiet -w -y -C --clean --log --jobs=\n" ;;
+        install) printf "-c -f -m -n -o -q --quiet -r -w -y --yes --exclude= --no-backup --jobs=\n" ;;
+        upgrade | sysup) printf "-c -f -m -n -o -q --quiet -w -y --yes --exclude= --no-backup --jobs=\n" ;;
+        remove | purge) printf "-y --yes\n" ;;
+        deplist) printf "-q --quick --exclude=\n" ;;
+        redeps) printf "-w --world -f --fix\n" ;;
+        cache) printf "-p --pkg -s --src\n" ;;
+        info) printf "--field=\n" ;;
+    esac
+}
+
+_emerald_positional() {
+    local cmd=$1
+    local cur=$2
+    local n=$3
+    local first=$4
+    local words=""
+
+    case $cmd in
+        build | redeps | install | is-installed | deplist | cat | depends | conflicts | dependent | path | info) words=$(@PROJECT_NAME@ list 2>/dev/null) ;;
+        upgrade | remove | purge | files | trigger | world | integrity) words=$(@PROJECT_NAME@ installed 2>/dev/null | cut -d' ' -f1) ;;
+
+        locate | provide)
+            compopt -o filenames 2>/dev/null
+            COMPREPLY=($(compgen -f -- "$cur"))
+
+            return
+        ;;
+
+        alias | mask)
+            if [[ $n -eq 0 ]]; then
+                words="list add remove help"
+            elif [[ $first == add || $first == remove ]]; then
+                words=$(@PROJECT_NAME@ list 2>/dev/null)
+            else
+                return
+            fi
+        ;;
+
+        hook)
+            case $n in
+                0) words="pre post" ;;
+                1) words="install upgrade remove" ;;
+                2) words=$(@PROJECT_NAME@ list 2>/dev/null) ;;
+
+                *) return ;;
+            esac
+        ;;
+
+        *) return ;;
+    esac
+
+    COMPREPLY=($(compgen -W "$words" -- "$cur"))
+}
+
+_emerald() {
+    local cur
+    local prev
+    local w
+    local i
+    local cmd=""
+    local cmd_idx=0
+
+    local -a pos=()
+
+    local subcmds="search sync build install upgrade sysup remove deplist redeps cache cat config dependent depends conflicts dup files foreign help hook info installed integrity is-installed locate alias mask missing-deps orphan outdated path provide purge trigger world list version"
+    local globals="--append-repo= --prepend-repo= --override-repo= --repo-file= --config-file= --alias-file= --mask-file="
+
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+    prev=${COMP_WORDS[COMP_CWORD - 1]}
+
+    if [[ $prev == "=" ]]; then
+        _emerald_option_value "${COMP_WORDS[COMP_CWORD - 2]}" "$cur"
+        return
+    fi
+
+    for ((i = 1; i < COMP_CWORD; i++)); do
+        w=${COMP_WORDS[i]}
+
+        case $w in
+            =) i=$((i + 1)) ;;
+            -*) ;;
+
+            *)
+                cmd=$w
+                cmd_idx=$i
+
+                break
+            ;;
+        esac
+    done
+
+    if [[ -z $cmd ]]; then
+        if [[ $cur == -* ]]; then
+            compopt -o nospace 2>/dev/null
+            COMPREPLY=($(compgen -W "$globals" -- "$cur"))
+        else
+            COMPREPLY=($(compgen -W "$subcmds" -- "$cur"))
+        fi
+
+        return
+    fi
+
+    if [[ $cur == -* ]]; then
+        COMPREPLY=($(compgen -W "$(_emerald_opts "$cmd")" -- "$cur"))
+        return
+    fi
+
+    for ((i = cmd_idx + 1; i < COMP_CWORD; i++)); do
+        w=${COMP_WORDS[i]}
+
+        case $w in
+            =) i=$((i + 1)) ;;
+            -*) ;;
+
+            *) pos+=("$w") ;;
+        esac
+    done
+
+    _emerald_positional "$cmd" "$cur" "${#pos[@]}" "${pos[0]-}"
+}
+# }}}
+
+# {{{ pkgadd
+_pkgadd() {
+    local cur
+    local prev
+    local f
+
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+    prev=${COMP_WORDS[COMP_CWORD - 1]}
+
+    if [[ $prev == "=" && ${COMP_WORDS[COMP_CWORD - 2]} == --root ]]; then
+        compopt -o dirnames 2>/dev/null
+        COMPREPLY=($(compgen -d -- "$cur"))
+
+        return
+    fi
+
+    if [[ $cur == -* ]]; then
+        COMPREPLY=($(compgen -W "-u --upgrade -r --reinstall -c --ignore-conflict -v --verbose -h --help --no-backup --print-db-dir --root=" -- "$cur"))
+        return
+    fi
+
+    compopt -o filenames 2>/dev/null
+
+    for f in $(compgen -f -- "$cur"); do
+        if [[ -d $f || $f == *.epkg.tar.* ]]; then
+            COMPREPLY+=("$f")
+        fi
+    done
+}
+# }}}
+
+# {{{ pkgbase
+_pkgbase() {
+    local cur
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+
+    if [[ $cur == -* ]]; then
+        COMPREPLY=($(compgen -W "-n --dryrun -y --yes -h --help" -- "$cur"))
+        return
+    fi
+
+    COMPREPLY=($(compgen -W "$(@PROJECT_NAME@ installed 2>/dev/null | cut -d' ' -f1)" -- "$cur"))
+}
+# }}}
+
+# {{{ pkgbuild
+_pkgbuild() {
+    local cur
+    local prev
+
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+    prev=${COMP_WORDS[COMP_CWORD - 1]}
+
+    if [[ $prev == "=" ]]; then
+        case ${COMP_WORDS[COMP_CWORD - 2]} in
+            --config)
+                compopt -o filenames 2>/dev/null
+                COMPREPLY=($(compgen -f -- "$cur"))
+            ;;
+
+            --srcdir | --pkgdir | --workdir | --root)
+                compopt -o dirnames 2>/dev/null
+                COMPREPLY=($(compgen -d -- "$cur"))
+            ;;
+        esac
+
+        return
+    fi
+
+    if [[ $cur == -* ]]; then
+        COMPREPLY=($(compgen -W "-q --quiet -i --install -u --upgrade -r --reinstall -c --ignore-conflict -v --verbose -f --force-rebuild -m --skip-checksum -g --gen-checksum -o --download -x --extract -p --pkgfiles -w --keep-work -h --help -C --clean --config= --srcdir= --pkgdir= --workdir= --jobs= --no-backup --root=" -- "$cur"))
+    fi
+}
+# }}}
+
+# {{{ pkgdel
+_pkgdel() {
+    local cur
+    local prev
+
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+    prev=${COMP_WORDS[COMP_CWORD - 1]}
+
+    if [[ $prev == "=" && ${COMP_WORDS[COMP_CWORD - 2]} == --root ]]; then
+        compopt -o dirnames 2>/dev/null
+        COMPREPLY=($(compgen -d -- "$cur"))
+        return
+    fi
+
+    if [[ $cur == -* ]]; then
+        COMPREPLY=($(compgen -W "-h --help -v --verbose --root=" -- "$cur"))
+        return
+    fi
+
+    COMPREPLY=($(compgen -W "$(ls "$(pkgadd --print-db-dir 2>/dev/null)" 2>/dev/null)" -- "$cur"))
+}
+# }}}
+
+# {{{ pkgrebuild
+_pkgrebuild() {
+    local cur
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+
+    if [[ $cur == -* ]]; then
+        COMPREPLY=($(compgen -W "-t --toolchain -b --base -h --help" -- "$cur"))
+    fi
+}
+# }}}
+
+# {{{ portcreate
+_portcreate() {
+    local cur
+    local prev
+
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+    prev=${COMP_WORDS[COMP_CWORD - 1]}
+
+    if [[ $prev == -b ]]; then
+        COMPREPLY=($(compgen -W "autotools meson cmake golang python3 rust gpep517" -- "$cur"))
+        return
+    fi
+
+    if [[ $cur == -* ]]; then
+        COMPREPLY=($(compgen -W "-b -h" -- "$cur"))
+    fi
+}
+# }}}
+
+# {{{ portsync
+_portsync() {
+    local cur
+    local w
+    local i
+    local in_source=0
+
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+
+    for ((i = 1; i < COMP_CWORD; i++)); do
+        w=${COMP_WORDS[i]}
+
+        case $w in
+            -s | --source) in_source=1 ;;
+            -*) in_source=0 ;;
+        esac
+    done
+
+    if [[ $cur != -* && $in_source -eq 1 ]]; then
+        COMPREPLY=($(compgen -W "$(awk '!/^[[:space:]]*(#|$)/ {
+            n = split($1, a, "/");
+            print a[n];
+        }' @SYSCONFDIR@/@PROJECT_NAME@.repo 2>/dev/null)" -- "$cur"))
+
+        return
+    fi
+
+    if [[ $cur == -* ]]; then
+        COMPREPLY=($(compgen -W "-p --prune -r --reset -s --source -h --help" -- "$cur"))
+    fi
+}
+# }}}
+
+# {{{ revdep
+_revdep() {
+    local cur
+    local prev
+
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+    prev=${COMP_WORDS[COMP_CWORD - 1]}
+
+    case $prev in
+        -e | --exclude)
+            COMPREPLY=($(compgen -W "$(@PROJECT_NAME@ installed 2>/dev/null | cut -d' ' -f1)" -- "$cur"))
+            return
+        ;;
+    esac
+
+    if [[ $cur == -* ]]; then
+        COMPREPLY=($(compgen -W "-a --all -r --rebuild -p --package -f --no-filter -e --exclude -y --yes -h --help" -- "$cur"))
+    fi
+}
+# }}}
+
+# {{{ updateconf
+_updateconf() {
+    local cur
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+
+    if [[ $cur == -* ]]; then
+        COMPREPLY=($(compgen -W "-h --help" -- "$cur"))
+    fi
+}
+# }}}
+
+# {{{ xchroot
+_xchroot() {
+    COMPREPLY=()
+    local cur=${COMP_WORDS[COMP_CWORD]}
+
+    if [[ $COMP_CWORD -eq 1 ]]; then
+        compopt -o dirnames 2>/dev/null
+        COMPREPLY=($(compgen -d -- "$cur"))
+    elif [[ $COMP_CWORD -eq 2 ]]; then
+        COMPREPLY=($(compgen -c -- "$cur"))
+    else
+        compopt -o default 2>/dev/null
+    fi
+}
+# }}}
+
+complete -F _@PROJECT_NAME@ @PROJECT_NAME@
+complete -F _pkgadd pkgadd
+complete -F _pkgbase pkgbase
+complete -F _pkgbuild pkgbuild
+complete -F _pkgdel pkgdel
+complete -F _pkgrebuild pkgrebuild
+complete -F _portcreate portcreate
+complete -F _portsync portsync
+complete -F _revdep revdep
+complete -F _updateconf updateconf
+complete -F _xchroot xchroot

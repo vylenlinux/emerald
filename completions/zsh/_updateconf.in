@@ -1,7 +1,0 @@
-#compdef updateconf
-
-_updateconf() {
-    _arguments '(-h --help)'{-h,--help}'[show help message]'
-}
-
-_updateconf "$@"

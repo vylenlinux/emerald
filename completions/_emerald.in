@@ -1,5 +1,8 @@
-#compdef @PROJECT_NAME@
+#compdef @PROJECT_NAME@ pkgadd pkgbase pkgbuild pkgdel pkgrebuild portcreate portsync revdep updateconf xchroot
 
+# zsh completion for @PROJECT_NAME@
+
+# {{{ @PROJECT_NAME@
 _emerald() {
     local state
     local ret=1
@@ -195,5 +198,194 @@ _emerald() {
 
     return ret
 }
+# }}}
 
-_@PROJECT_NAME@ "$@"
+# {{{ pkgadd
+_pkgadd() {
+    _arguments \
+        '(-u --upgrade)'{-u,--upgrade}'[upgrade package]' \
+        '(-r --reinstall)'{-r,--reinstall}'[reinstall package]' \
+        '(-c --ignore-conflict)'{-c,--ignore-conflict}'[ignore conflicts when installing package]' \
+        '(-v --verbose)'{-v,--verbose}'[print files installed]' \
+        '(-h --help)'{-h,--help}'[show help message]' \
+        '--no-backup[skip backup when upgrading package]' \
+        '--print-db-dir[print package database path]' \
+        '--root=[install to custom root directory]:root directory:_directories' \
+        '1:package file:_files -g "*.epkg.tar.*"'
+}
+# }}}
+
+# {{{ pkgbase
+_pkgbase() {
+    local state
+    local ret=1
+
+    _arguments -C \
+        '(-n --dryrun)'{-n,--dryrun}'[show what would be removed without removing]' \
+        '(-y --yes)'{-y,--yes}'[do not ask for confirmation]' \
+        '(-h --help)'{-h,--help}'[show help message]' \
+        '*:installed port:->installed' && ret=0
+
+    case $state in
+        installed) compadd -- ${${(f)"$(@PROJECT_NAME@ installed 2>/dev/null)"}%% *} && ret=0 ;;
+    esac
+
+    return ret
+}
+# }}}
+
+# {{{ pkgbuild
+_pkgbuild() {
+    _arguments \
+        '(-q --quiet)'{-q,--quiet}'[show only status messages and errors]' \
+        '(-i --install)'{-i,--install}'[install package after build]' \
+        '(-u --upgrade)'{-u,--upgrade}'[upgrade package after build]' \
+        '(-r --reinstall)'{-r,--reinstall}'[reinstall package after build]' \
+        '(-c --ignore-conflict)'{-c,--ignore-conflict}'[ignore conflicts when installing package]' \
+        '(-v --verbose)'{-v,--verbose}'[print files installed]' \
+        '(-f --force-rebuild)'{-f,--force-rebuild}'[force rebuild package]' \
+        '(-m --skip-checksum)'{-m,--skip-checksum}'[skip checksum checking]' \
+        '(-g --gen-checksum)'{-g,--gen-checksum}'[generate checksums]' \
+        '(-o --download)'{-o,--download}'[download sources only]' \
+        '(-x --extract)'{-x,--extract}'[extract sources only]' \
+        '(-p --pkgfiles)'{-p,--pkgfiles}'[generate package file list]' \
+        '(-w --keep-work)'{-w,--keep-work}'[keep working directory]' \
+        '(-C --clean)'{-C,--clean}'[remove downloaded sources and prebuilt packages]' \
+        '(-h --help)'{-h,--help}'[show help message]' \
+        '--config=[use custom config file]:config file:_files' \
+        '--srcdir=[use custom source directory]:directory:_directories' \
+        '--pkgdir=[use custom package directory]:directory:_directories' \
+        '--workdir=[use custom work directory]:directory:_directories' \
+        '--jobs=[override parallel build jobs]:jobs:' \
+        '--no-backup[skip backup when upgrading package]' \
+        '--root=[install to custom root directory]:root directory:_directories'
+}
+# }}}
+
+# {{{ pkgdel
+_pkgdel() {
+    local state
+    local ret=1
+
+    _arguments -C \
+        '(-h --help)'{-h,--help}'[show help message]' \
+        '(-v --verbose)'{-v,--verbose}'[print files removed]' \
+        '--root=[remove from custom root directory]:root directory:_directories' \
+        '1:installed port:->installed' && ret=0
+
+    case $state in
+        installed)
+            local db_dir
+            local -a pkgs
+
+            db_dir=$(pkgadd --print-db-dir 2>/dev/null)
+            pkgs=(${db_dir}/*(N:t))
+
+            compadd -- $pkgs && ret=0
+        ;;
+    esac
+
+    return ret
+}
+# }}}
+
+# {{{ pkgrebuild
+_pkgrebuild() {
+    _arguments \
+        '(-t --toolchain)'{-t,--toolchain}'[rebuild toolchain packages]' \
+        '(-b --base)'{-b,--base}'[rebuild base packages]' \
+        '(-h --help)'{-h,--help}'[show help message]'
+}
+# }}}
+
+# {{{ portcreate
+_portcreate() {
+    local state
+    local ret=1
+
+    _arguments -C \
+        '-b[build system of the new port]:builder:(autotools meson cmake golang python3 rust gpep517)' \
+        '(-h --help)'{-h,--help}'[show help message]' \
+        '1:new port name:' && ret=0
+
+    return ret
+}
+# }}}
+
+# {{{ portsync
+_portsync() {
+    local state
+    local ret=1
+
+    _arguments -C \
+        '(-p --prune)'{-p,--prune}'[prune local git repository]' \
+        '(-r --reset)'{-r,--reset}'[reset git repositories]' \
+        '*'{-s,--source}'[sync only the given repositories]:repository:->repos' \
+        '(-h --help)'{-h,--help}'[show help message]' && ret=0
+
+    case $state in
+        repos)
+            local -a repos
+
+            repos=(${(f)"$(awk '!/^[[:space:]]*(#|$)/ {
+                n = split($1, a, "/");
+                print a[n];
+            }' @SYSCONFDIR@/@PROJECT_NAME@.repo 2>/dev/null)"})
+
+            compadd -- $repos && ret=0
+        ;;
+    esac
+
+    return ret
+}
+# }}}
+
+# {{{ revdep
+_revdep() {
+    local state
+    local ret=1
+
+    _arguments -C \
+        '(-a --all)'{-a,--all}'[check all installed ports]' \
+        '(-r --rebuild)'{-r,--rebuild}'[rebuild ports with broken dependencies]' \
+        '(-f --no-filter)'{-f,--no-filter}'[do not filter results]' \
+        '*'{-e,--exclude}'[exclude ports from rebuild]:installed port:->installed' \
+        '(-y --yes)'{-y,--yes}'[do not ask for confirmation]' \
+        '(-h --help)'{-h,--help}'[show help message]' && ret=0
+
+    case $state in
+        installed) compadd -- ${${(f)"$(@PROJECT_NAME@ installed 2>/dev/null)"}%% *} && ret=0 ;;
+    esac
+
+    return ret
+}
+# }}}
+
+# {{{ updateconf
+_updateconf() {
+    _arguments '(-h --help)'{-h,--help}'[show help message]'
+}
+# }}}
+
+# {{{ xchroot
+_xchroot() {
+    _arguments \
+        '1:chroot directory:_directories' \
+        '2:command:_command_names -e' \
+        '*::command arguments:_normal'
+}
+# }}}
+
+case $service in
+    @PROJECT_NAME@) _@PROJECT_NAME@ ;;
+    pkgadd) _pkgadd ;;
+    pkgbase) _pkgbase ;;
+    pkgbuild) _pkgbuild ;;
+    pkgdel) _pkgdel ;;
+    pkgrebuild) _pkgrebuild ;;
+    portcreate) _portcreate ;;
+    portsync) _portsync ;;
+    revdep) _revdep ;;
+    updateconf) _updateconf ;;
+    xchroot) _xchroot ;;
+esac

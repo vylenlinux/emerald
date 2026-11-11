@@ -1,5 +1,6 @@
 # fish completion for @PROJECT_NAME@
 
+# {{{ @PROJECT_NAME@
 complete -c @PROJECT_NAME@ -f
 
 complete -c @PROJECT_NAME@ -l append-repo -r -a '(__fish_complete_directories)' -d 'append custom local repo path'
@@ -110,3 +111,91 @@ complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from build install deplist
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from alias mask; and __fish_seen_subcommand_from add remove' -f -a '(@PROJECT_NAME@ list 2>/dev/null)' -d 'port'
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from redeps is-installed' -f -a '(@PROJECT_NAME@ list 2>/dev/null)' -d 'port'
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from upgrade remove purge files trigger world integrity' -f -a '(@PROJECT_NAME@ installed 2>/dev/null | string replace -r " .*" "")' -d 'installed port'
+# }}}
+
+# {{{ pkgadd
+complete -c pkgadd -s u -l upgrade -d 'upgrade package'
+complete -c pkgadd -s r -l reinstall -d 'reinstall package'
+complete -c pkgadd -s c -l ignore-conflict -d 'ignore conflicts when installing package'
+complete -c pkgadd -s v -l verbose -d 'print files installed'
+complete -c pkgadd -s h -l help -d 'show help message'
+complete -c pkgadd -l no-backup -d 'skip backup when upgrading package'
+complete -c pkgadd -l print-db-dir -d 'print package database path'
+complete -c pkgadd -l root -r -a '(__fish_complete_directories)' -d 'install to custom root directory'
+complete -c pkgadd -a '(__fish_complete_suffix .epkg.tar.zst .epkg.tar.xz .epkg.tar.gz .epkg.tar.bz2 .epkg.tar)' -d 'package file'
+# }}}
+
+# {{{ pkgbase
+complete -c pkgbase -s n -l dryrun -d 'show what would be removed without removing'
+complete -c pkgbase -s y -l yes -d 'do not ask for confirmation'
+complete -c pkgbase -s h -l help -d 'show help message'
+complete -c pkgbase -f -a '(@PROJECT_NAME@ installed 2>/dev/null | string replace -r " .*" "")' -d 'installed port'
+# }}}
+
+# {{{ pkgbuild
+complete -c pkgbuild -s q -l quiet -d 'show only status messages and errors'
+complete -c pkgbuild -s i -l install -d 'install package after build'
+complete -c pkgbuild -s u -l upgrade -d 'upgrade package after build'
+complete -c pkgbuild -s r -l reinstall -d 'reinstall package after build'
+complete -c pkgbuild -s c -l ignore-conflict -d 'ignore conflicts when installing package'
+complete -c pkgbuild -s v -l verbose -d 'print files installed'
+complete -c pkgbuild -s f -l force-rebuild -d 'force rebuild package'
+complete -c pkgbuild -s m -l skip-checksum -d 'skip checksum checking'
+complete -c pkgbuild -s g -l gen-checksum -d 'generate checksums'
+complete -c pkgbuild -s o -l download -d 'download sources only'
+complete -c pkgbuild -s x -l extract -d 'extract sources only'
+complete -c pkgbuild -s p -l pkgfiles -d 'generate package file list'
+complete -c pkgbuild -s w -l keep-work -d 'keep working directory'
+complete -c pkgbuild -s C -l clean -d 'remove downloaded sources and prebuilt packages'
+complete -c pkgbuild -s h -l help -d 'show help message'
+complete -c pkgbuild -l config -r -F -d 'use custom config file'
+complete -c pkgbuild -l srcdir -r -a '(__fish_complete_directories)' -d 'use custom source directory'
+complete -c pkgbuild -l pkgdir -r -a '(__fish_complete_directories)' -d 'use custom package directory'
+complete -c pkgbuild -l workdir -r -a '(__fish_complete_directories)' -d 'use custom work directory'
+complete -c pkgbuild -l jobs -r -d 'override parallel build jobs'
+complete -c pkgbuild -l no-backup -d 'skip backup when upgrading package'
+complete -c pkgbuild -l root -r -a '(__fish_complete_directories)' -d 'install to custom root directory'
+# }}}
+
+# {{{ pkgdel
+complete -c pkgdel -s h -l help -d 'show help message'
+complete -c pkgdel -s v -l verbose -d 'print files removed'
+complete -c pkgdel -l root -r -a '(__fish_complete_directories)' -d 'remove from custom root directory'
+complete -c pkgdel -f -a '(ls (pkgadd --print-db-dir 2>/dev/null) 2>/dev/null)' -d 'installed port'
+# }}}
+
+# {{{ pkgrebuild
+complete -c pkgrebuild -s t -l toolchain -d 'rebuild toolchain packages'
+complete -c pkgrebuild -s b -l base -d 'rebuild base packages'
+complete -c pkgrebuild -s h -l help -d 'show help message'
+# }}}
+
+# {{{ portcreate
+complete -c portcreate -s b -x -a 'autotools meson cmake golang python3 rust gpep517' -d 'build system of the new port'
+complete -c portcreate -s h -d 'show help message'
+# }}}
+
+# {{{ portsync
+complete -c portsync -s p -l prune -d 'prune local git repository'
+complete -c portsync -s r -l reset -d 'reset git repositories'
+complete -c portsync -s s -l source -r -x -a '(cat @SYSCONFDIR@/@PROJECT_NAME@.repo 2>/dev/null | string match -rv '^\s*(#.*)?$' | string replace -r '\s.*' '' | string replace -r '.*/' '')' -d 'sync only the given repositories'
+complete -c portsync -s h -l help -d 'show help message'
+# }}}
+
+# {{{ revdep
+complete -c revdep -s a -l all -d 'check all installed ports'
+complete -c revdep -s r -l rebuild -d 'rebuild ports with broken dependencies'
+complete -c revdep -s f -l no-filter -d 'do not filter results'
+complete -c revdep -s e -l exclude -r -x -a '(@PROJECT_NAME@ installed 2>/dev/null | string replace -r " .*" "")' -d 'exclude ports from rebuild'
+complete -c revdep -s y -l yes -d 'do not ask for confirmation'
+complete -c revdep -s h -l help -d 'show help message'
+# }}}
+
+# {{{ updateconf
+complete -c updateconf -s h -l help -d 'show help message'
+# }}}
+
+# {{{ xchroot
+complete -c xchroot -n 'test (count (commandline -opc)) -eq 1' -f -a '(__fish_complete_directories)'
+complete -c xchroot -n 'test (count (commandline -opc)) -eq 2' -f -a '(__fish_complete_command)'
+# }}}
