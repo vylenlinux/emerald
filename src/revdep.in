@@ -126,10 +126,6 @@ confirm() {
     esac
 }
 
-msg_error() {
-    printf "ERROR: %s\n" "$1" >&2
-}
-
 parse_opts() {
     while [ -n "$1" ]; do
         # shellcheck disable=SC2086
