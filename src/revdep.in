@@ -127,6 +127,10 @@ confirm() {
     esac
 }
 
+msg_error() {
+    printf "ERROR: %s\n" "$1" >&2
+}
+
 parse_opts() {
     while [ -n "$1" ]; do
         # shellcheck disable=SC2086
@@ -393,13 +397,21 @@ if [ "$(id -u)" -ne 0 ] && [ "$REBUILD" -eq 1 ]; then
     exit 1
 fi
 
-# Verify package is installed
-if [ -n "$PKG" ] && [ ! -f "$PKGDB_DIR/$PKG" ]; then
-    printf "ERROR: Package '%s' not installed\n" "$PKG" >&2
+# Verify package argument
+if [ -z "$PKG" ]; then
+    msg_error "No package specified"
     cleanup
 
     exit 1
 fi
+
+# Verify package is installed
+[ -f "$PKGDB_DIR/$PKG" ] || {
+    msg_error "Package '$PKG' not installed\n"
+    cleanup
+
+    exit 1
+}
 
 # Get extra search directories from ld.so.conf
 while read -r line; do
