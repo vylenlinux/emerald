@@ -326,7 +326,9 @@ check_perl_modules() {
 
 check_ruby_gem() {
     command -v gem >/dev/null 2>&1 || return
+
     gem_path=$(gem env gemdir)
+    [ -z "$gem_path" ] && return
 
     for i in "${gem_path%/*}"/*; do
         [ "$gem_path" = "$i" ] && continue
