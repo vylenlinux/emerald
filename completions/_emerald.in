@@ -53,6 +53,7 @@ _emerald() {
         '--append-repo=[append custom local repo path]:directory:_directories' \
         '--prepend-repo=[prepend custom local repo path]:directory:_directories' \
         '--override-repo=[override repo file with custom local repo]:directory:_directories' \
+        '--repo=[append custom repo path]:directory:_directories' \
         '--repo-file=[use custom repo file]:file:_files' \
         '--config-file=[use custom config file]:file:_files' \
         '--alias-file=[use custom alias file]:file:_files' \
@@ -74,74 +75,127 @@ _emerald() {
                 sync)
                     _arguments \
                         '(-p --prune)'{-p,--prune}'[prune local git repository]' \
-                        '(-r --reset)'{-r,--reset}'[reset git repositories]' && ret=0
+                        '(-r --reset)'{-r,--reset}'[reset git repositories]' \
+                        '*'{-s,--source}'[sync only the given repositories]:repository:->repos' && ret=0
                 ;;
 
                 build)
                     _arguments \
-                        '-f[force rebuild package]' \
-                        '-m[skip checksum checking]' \
-                        '-o[fetch sources only]' \
                         '(-q --quiet)'{-q,--quiet}'[show only status messages and errors]' \
-                        '-w[keep working directory]' \
+                        '(-i --install)'{-i,--install}'[install package after build]' \
+                        '(-u --upgrade)'{-u,--upgrade}'[upgrade package after build]' \
+                        '(-r --reinstall)'{-r,--reinstall}'[reinstall package after build]' \
+                        '(-c --ignore-conflict)'{-c,--ignore-conflict}'[ignore conflicts when installing package]' \
+                        '(-v --verbose)'{-v,--verbose}'[print files installed]' \
+                        '(-f --force-rebuild)'{-f,--force-rebuild}'[force rebuild package]' \
+                        '(-m --skip-checksum)'{-m,--skip-checksum}'[skip checksum checking]' \
+                        '(-g --gen-checksum)'{-g,--gen-checksum}'[generate checksums]' \
+                        '(-o --download)'{-o,--download}'[download sources only]' \
+                        '(-x --extract)'{-x,--extract}'[extract sources only]' \
+                        '(-p --pkgfiles)'{-p,--pkgfiles}'[generate package file list]' \
+                        '(-w --keep-work)'{-w,--keep-work}'[keep working directory]' \
                         '-y[skip ask user confirmation]' \
                         '(-C --clean)'{-C,--clean}'[remove downloaded sources and prebuilt packages]' \
+                        '--config=[use custom config file]:config file:_files' \
+                        '--srcdir=[use custom source directory]:directory:_directories' \
+                        '--pkgdir=[use custom package directory]:directory:_directories' \
+                        '--workdir=[use custom work directory]:directory:_directories' \
+                        '--root=[install to custom root directory]:root directory:_directories' \
                         '--log[log build process]' \
                         '--jobs=[override parallel build jobs]:jobs:' \
+                        '--no-backup[skip backup when upgrading package]' \
                         '*:port:->ports' && ret=0
                 ;;
 
                 install)
                     _arguments \
-                        '-c[ignore conflict when installing package]' \
-                        '-f[force rebuild package]' \
-                        '-m[skip checksum checking]' \
-                        '-n[skip dependencies]' \
-                        '-o[fetch sources only]' \
                         '(-q --quiet)'{-q,--quiet}'[show only status messages and errors]' \
-                        '-r[reinstall]' \
-                        '-w[keep working directory]' \
+                        '(-i --install)'{-i,--install}'[install package after build]' \
+                        '(-u --upgrade)'{-u,--upgrade}'[upgrade package after build]' \
+                        '(-r --reinstall)'{-r,--reinstall}'[reinstall package after build]' \
+                        '(-c --ignore-conflict)'{-c,--ignore-conflict}'[ignore conflicts when installing package]' \
+                        '(-v --verbose)'{-v,--verbose}'[print files installed]' \
+                        '(-f --force-rebuild)'{-f,--force-rebuild}'[force rebuild package]' \
+                        '(-m --skip-checksum)'{-m,--skip-checksum}'[skip checksum checking]' \
+                        '(-g --gen-checksum)'{-g,--gen-checksum}'[generate checksums]' \
+                        '(-o --download)'{-o,--download}'[download sources only]' \
+                        '(-x --extract)'{-x,--extract}'[extract sources only]' \
+                        '(-p --pkgfiles)'{-p,--pkgfiles}'[generate package file list]' \
+                        '(-w --keep-work)'{-w,--keep-work}'[keep working directory]' \
+                        '-n[skip dependencies]' \
                         '(-y --yes)'{-y,--yes}'[skip ask user confirmation]' \
                         '--exclude=[exclude dependencies, comma separated]:ports:->ports' \
                         '--no-backup[skip backup when reinstalling package]' \
+                        '--config=[use custom config file]:config file:_files' \
+                        '--srcdir=[use custom source directory]:directory:_directories' \
+                        '--pkgdir=[use custom package directory]:directory:_directories' \
+                        '--workdir=[use custom work directory]:directory:_directories' \
+                        '--root=[install to custom root directory]:root directory:_directories' \
                         '--jobs=[override parallel build jobs]:jobs:' \
                         '*:port:->ports' && ret=0
                 ;;
 
                 upgrade)
                     _arguments \
-                        '-c[ignore conflict when installing package]' \
-                        '-f[force rebuild package]' \
-                        '-m[skip checksum checking]' \
-                        '-n[skip dependencies]' \
-                        '-o[fetch sources only]' \
                         '(-q --quiet)'{-q,--quiet}'[show only status messages and errors]' \
-                        '-w[keep working directory]' \
+                        '(-i --install)'{-i,--install}'[install package after build]' \
+                        '(-u --upgrade)'{-u,--upgrade}'[upgrade package after build]' \
+                        '(-r --reinstall)'{-r,--reinstall}'[reinstall package after build]' \
+                        '(-c --ignore-conflict)'{-c,--ignore-conflict}'[ignore conflicts when installing package]' \
+                        '(-v --verbose)'{-v,--verbose}'[print files installed]' \
+                        '(-f --force-rebuild)'{-f,--force-rebuild}'[force rebuild package]' \
+                        '(-m --skip-checksum)'{-m,--skip-checksum}'[skip checksum checking]' \
+                        '(-g --gen-checksum)'{-g,--gen-checksum}'[generate checksums]' \
+                        '(-o --download)'{-o,--download}'[download sources only]' \
+                        '(-x --extract)'{-x,--extract}'[extract sources only]' \
+                        '(-p --pkgfiles)'{-p,--pkgfiles}'[generate package file list]' \
+                        '(-w --keep-work)'{-w,--keep-work}'[keep working directory]' \
+                        '-n[skip dependencies]' \
                         '(-y --yes)'{-y,--yes}'[skip ask user confirmation]' \
                         '--exclude=[exclude dependencies, comma separated]:ports:->ports' \
                         '--no-backup[skip backup when upgrading package]' \
+                        '--config=[use custom config file]:config file:_files' \
+                        '--srcdir=[use custom source directory]:directory:_directories' \
+                        '--pkgdir=[use custom package directory]:directory:_directories' \
+                        '--workdir=[use custom work directory]:directory:_directories' \
+                        '--root=[install to custom root directory]:root directory:_directories' \
                         '--jobs=[override parallel build jobs]:jobs:' \
-                        '*:port:->installed' && ret=0
+                        '*:installed port:->installed' && ret=0
                 ;;
 
                 sysup)
                     _arguments \
-                        '-c[ignore conflict when installing package]' \
-                        '-f[force rebuild package]' \
-                        '-m[skip checksum checking]' \
-                        '-n[skip dependencies]' \
-                        '-o[fetch sources only]' \
                         '(-q --quiet)'{-q,--quiet}'[show only status messages and errors]' \
-                        '-w[keep working directory]' \
+                        '(-i --install)'{-i,--install}'[install package after build]' \
+                        '(-u --upgrade)'{-u,--upgrade}'[upgrade package after build]' \
+                        '(-r --reinstall)'{-r,--reinstall}'[reinstall package after build]' \
+                        '(-c --ignore-conflict)'{-c,--ignore-conflict}'[ignore conflicts when installing package]' \
+                        '(-v --verbose)'{-v,--verbose}'[print files installed]' \
+                        '(-f --force-rebuild)'{-f,--force-rebuild}'[force rebuild package]' \
+                        '(-m --skip-checksum)'{-m,--skip-checksum}'[skip checksum checking]' \
+                        '(-g --gen-checksum)'{-g,--gen-checksum}'[generate checksums]' \
+                        '(-o --download)'{-o,--download}'[download sources only]' \
+                        '(-x --extract)'{-x,--extract}'[extract sources only]' \
+                        '(-p --pkgfiles)'{-p,--pkgfiles}'[generate package file list]' \
+                        '(-w --keep-work)'{-w,--keep-work}'[keep working directory]' \
+                        '-n[skip dependencies]' \
                         '(-y --yes)'{-y,--yes}'[skip ask user confirmation]' \
                         '--exclude=[exclude dependencies, comma separated]:ports:->ports' \
                         '--no-backup[skip backup when upgrading package]' \
+                        '--config=[use custom config file]:config file:_files' \
+                        '--srcdir=[use custom source directory]:directory:_directories' \
+                        '--pkgdir=[use custom package directory]:directory:_directories' \
+                        '--workdir=[use custom work directory]:directory:_directories' \
+                        '--root=[install to custom root directory]:root directory:_directories' \
                         '--jobs=[override parallel build jobs]:jobs:' && ret=0
                 ;;
 
                 remove | purge)
                     _arguments \
                         '(-y --yes)'{-y,--yes}'[skip ask user confirmation]' \
+                        '(-h --help)'{-h,--help}'[show help message]' \
+                        '(-v --verbose)'{-v,--verbose}'[print files removed]' \
+                        '--root=[remove from custom root directory]:root directory:_directories' \
                         '*:installed port:->installed' && ret=0
                 ;;
 
@@ -190,6 +244,17 @@ _emerald() {
             esac
 
             case $state in
+                repos)
+                    local -a repos
+
+                    repos=(${(f)"$(awk '!/^[[:space:]]*(#|$)/ {
+                        n = split($1, a, "/");
+                        print a[n];
+                    }' @SYSCONFDIR@/@PROJECT_NAME@.repo 2>/dev/null)"})
+
+                    compadd -- $repos && ret=0
+                ;;
+
                 ports) compadd -- ${(f)"$(@PROJECT_NAME@ list 2>/dev/null)"} && ret=0 ;;
                 installed) compadd -- ${${(f)"$(@PROJECT_NAME@ installed 2>/dev/null)"}%% *} && ret=0 ;;
             esac

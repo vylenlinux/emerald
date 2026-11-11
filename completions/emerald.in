@@ -11,8 +11,25 @@ _emerald_option_value() {
             COMPREPLY=($(compgen -f -- "$cur"))
         ;;
 
-        --append-repo | --prepend-repo | --override-repo)
+        --append-repo | --prepend-repo | --override-repo | --repo)
+            compopt -o dirnames 2>/dev/null
+            COMPREPLY=($(compgen -d -- "$cur"))
+        ;;
+
+        --source)
+            COMPREPLY=($(compgen -W "$(awk '!/^[[:space:]]*(#|$)/ {
+                n = split($1, a, "/");
+                print a[n];
+            }' @SYSCONFDIR@/@PROJECT_NAME@.repo 2>/dev/null)" -- "$cur"))
+        ;;
+
+        --config)
             compopt -o filenames 2>/dev/null
+            COMPREPLY=($(compgen -f -- "$cur"))
+        ;;
+
+        --srcdir | --pkgdir | --workdir | --root)
+            compopt -o dirnames 2>/dev/null
             COMPREPLY=($(compgen -d -- "$cur"))
         ;;
 
@@ -33,18 +50,26 @@ _emerald_option_value() {
 }
 
 _emerald_opts() {
+    local opts
+
     case $1 in
-        search) printf "-n --name\n" ;;
-        sync) printf "-p --prune -r --reset\n" ;;
-        build) printf "-f -m -o -q --quiet -w -y -C --clean --log --jobs=\n" ;;
-        install) printf "-c -f -m -n -o -q --quiet -r -w -y --yes --exclude= --no-backup --jobs=\n" ;;
-        upgrade | sysup) printf "-c -f -m -n -o -q --quiet -w -y --yes --exclude= --no-backup --jobs=\n" ;;
-        remove | purge) printf "-y --yes\n" ;;
-        deplist) printf "-q --quick --exclude=\n" ;;
-        redeps) printf "-w --world -f --fix\n" ;;
-        cache) printf "-p --pkg -s --src\n" ;;
-        info) printf "--field=\n" ;;
+        search) opts="-n --name" ;;
+        sync) opts="-p --prune -r --reset -s --source -h --help" ;;
+        build) opts="-q --quiet -i --install -u --upgrade -r --reinstall -c --ignore-conflict -v --verbose -f --force-rebuild -m --skip-checksum -g --gen-checksum -o --download -x --extract -p --pkgfiles -w --keep-work -y --clean -C --clean --log --jobs= --no-backup --root= --config= --srcdir= --pkgdir= --workdir=" ;;
+        install | upgrade | sysup) opts="-q --quiet -i --install -u --upgrade -r --reinstall -c --ignore-conflict -v --verbose -f --force-rebuild -m --skip-checksum -g --gen-checksum -o --download -x --extract -p --pkgfiles -w --keep-work -y --yes -n --exclude= --no-backup --jobs= --root= --config= --srcdir= --pkgdir= --workdir=" ;;
+        remove | purge) opts="-y --yes -h --help -v --verbose --root=" ;;
+        deplist) opts="-q --quick --exclude=" ;;
+        redeps) opts="-w --world -f --fix" ;;
+        cache) opts="-p --pkg -s --src" ;;
+        info) opts="--field=" ;;
     esac
+
+    printf '%s\n' "$opts"
+}
+
+_emerald_global_opts() {
+    local opts="--append-repo= --prepend-repo= --override-repo= --repo= --repo-file= --config-file= --alias-file= --mask-file="
+    printf '%s\n' "$opts"
 }
 
 _emerald_positional() {
@@ -102,11 +127,35 @@ _emerald() {
     local -a pos=()
 
     local subcmds="search sync build install upgrade sysup remove deplist redeps cache cat config dependent depends conflicts dup files foreign help hook info installed integrity is-installed locate alias mask missing-deps orphan outdated path provide purge trigger world list version"
-    local globals="--append-repo= --prepend-repo= --override-repo= --repo-file= --config-file= --alias-file= --mask-file="
-
     COMPREPLY=()
+
     cur=${COMP_WORDS[COMP_CWORD]}
     prev=${COMP_WORDS[COMP_CWORD - 1]}
+
+    if [[ $cur == --*=* ]]; then
+        local assignment=${cur%%=*}
+        local value=${cur#*=}
+        local -a value_replies
+
+        _emerald_option_value "$assignment" "$value"
+        value_replies=("${COMPREPLY[@]}")
+
+        COMPREPLY=()
+        local reply
+
+        for reply in "${value_replies[@]}"; do
+            COMPREPLY+=("${assignment}=${reply}")
+        done
+
+        return
+    fi
+
+    case $prev in
+        --append-repo | --prepend-repo | --override-repo | --repo | --repo-file | --config-file | --alias-file | --mask-file | --config | --srcdir | --pkgdir | --workdir | --root | --exclude | --field | --source)
+            _emerald_option_value "$prev" "$cur"
+            return
+        ;;
+    esac
 
     if [[ $prev == "=" ]]; then
         _emerald_option_value "${COMP_WORDS[COMP_CWORD - 2]}" "$cur"
@@ -132,7 +181,7 @@ _emerald() {
     if [[ -z $cmd ]]; then
         if [[ $cur == -* ]]; then
             compopt -o nospace 2>/dev/null
-            COMPREPLY=($(compgen -W "$globals" -- "$cur"))
+            COMPREPLY=($(compgen -W "$(_emerald_global_opts)" -- "$cur"))
         else
             COMPREPLY=($(compgen -W "$subcmds" -- "$cur"))
         fi
@@ -141,7 +190,9 @@ _emerald() {
     fi
 
     if [[ $cur == -* ]]; then
-        COMPREPLY=($(compgen -W "$(_emerald_opts "$cmd")" -- "$cur"))
+        compopt -o nospace 2>/dev/null
+        COMPREPLY=($(compgen -W "$(_emerald_opts "$cmd") $(_emerald_global_opts)" -- "$cur"))
+
         return
     fi
 
