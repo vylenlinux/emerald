@@ -337,7 +337,11 @@ check_ruby_gem() {
 }
 
 FILE_LIST=$(mktemp -t revdep.XXXXXXXXXX) || exit 1
-TMP_OUT=$(mktemp -t revdep.out.XXXXXXXXXX) || exit 1
+
+TMP_OUT=$(mktemp -t revdep.out.XXXXXXXXXX) || {
+    cleanup
+    exit 1
+}
 
 # Trap signals for cleanup
 trap "interrupted" 1 2 3 15
