@@ -102,12 +102,11 @@ cleanup() {
 help() {
     cat <<'EOF'
 Usage:
-    revdep <options> [<arg>]
+    revdep <options>
 
 Options:
     -a, --all                       print all affected files
     -r, --rebuild                   rebuild & reinstall broken package
-    -p, --package <pkg>             check for certain package
     -f, --no-filter                 skip filter (exclude) dirs, files and libraries
     -e, --exclude <pkg1 pkg2 pkgN>  exclude package when rebuild (use with -r/--rebuild)
     -y, --yes                       dont ask user confirmation to rebuild package (use with -r/--rebuild)
@@ -140,7 +139,7 @@ parse_opts() {
                 shift
 
                 # Expand combined flags left-to-right. Non-arg flags are collected in $_flags.
-                # When an arg-taking flag (e, p) is found, it is injected last so it naturally
+                # When an arg-taking flag 'e' is found, it is injected last so it naturally
                 # sees the original positional arguments.
                 _flags=""
 
@@ -149,7 +148,7 @@ parse_opts() {
                     _rest=${_rest#?}
 
                     case "$_chr" in
-                        e | p)
+                        e)
                             set -- ${_flags} "-$_chr" "$@"
                             _rest=""
                         ;;
@@ -178,16 +177,6 @@ parse_opts() {
 
                     shift
                 done
-            ;;
-
-            -p | --package)
-                if [ -z "$2" ]; then
-                    printf 'Option -p requires a package name\n' >&2
-                    exit 1
-                fi
-
-                PKG=$2
-                shift
             ;;
 
             -h | --help)
@@ -280,8 +269,6 @@ rev_exclude() {
 
                     *)
                         _DIRS="$_DIRS $_val"
-                        ged="$ged -e ^$_val"
-
                         EXCLUDED_DIRS="$EXCLUDED_DIRS -path $_val -prune -o "
                     ;;
                 esac
@@ -295,8 +282,6 @@ rev_exclude() {
 
                     *)
                         _FILES="$_FILES $_val"
-                        gef="$gef -e ^$_val\$"
-
                         EXCLUDED_FILES="$EXCLUDED_FILES ! -path $_val "
                     ;;
                 esac
@@ -397,22 +382,6 @@ if [ "$(id -u)" -ne 0 ] && [ "$REBUILD" -eq 1 ]; then
     exit 1
 fi
 
-# Verify package argument
-if [ -z "$PKG" ]; then
-    msg_error "No package specified"
-    cleanup
-
-    exit 1
-fi
-
-# Verify package is installed
-[ -f "$PKGDB_DIR/$PKG" ] || {
-    msg_error "Package '$PKG' not installed\n"
-    cleanup
-
-    exit 1
-}
-
 # Get extra search directories from ld.so.conf
 while read -r line; do
     case "$line" in
@@ -476,31 +445,15 @@ fi
 printf '\n'
 
 # Build file list to check
-if [ -n "$PKG" ]; then
-    # Build grep patterns for target directories
-    for D in $TARGET_SEARCH_DIRS; do
-        gx="$gx -e ^$D"
-    done
+printf 'Find all files... '
 
-    gx="$gx -e '*\.so' -e '*\.so\.*'"
-
-    # Set up filters
-    [ -n "$gef" ] && filterfile="grep -v $gef" || filterfile="cat"
-    [ -n "$ged" ] && filterdir="grep -v $ged" || filterdir="cat"
-
-    printf "Find '%s' files... " "$PKG"
-    tail -n +2 "$PKGDB_DIR/$PKG" | sed 's/^/\//' | grep $gx | $filterfile | $filterdir > "$FILE_LIST"
-else
-    printf 'Find all files... '
-
-    # shellcheck disable=SC2086
-    find $SEARCH_DIRS $EXCLUDED_DIRS $EXCLUDED_FILES -type f \( \
-        -perm /111 -o \
-        \
-        -name '*.so' -o \
-        -name '*.so.*' \
-    \) -print 2>/dev/null | sort -u > "$FILE_LIST"
-fi
+# shellcheck disable=SC2086
+find $SEARCH_DIRS $EXCLUDED_DIRS $EXCLUDED_FILES -type f \( \
+    -perm /111 -o \
+    \
+    -name '*.so' -o \
+    -name '*.so.*' \
+\) -print 2>/dev/null | sort -u > "$FILE_LIST"
 
 total=$(wc -l < "$FILE_LIST")
 printf '%s files found\n' "$total"
@@ -514,103 +467,34 @@ fi
 
 printf 'Checking for broken linkage...\n'
 
-if [ -n "$PKG" ]; then
-    # Single-package mode: sequential, with progress indicator
-    count=0
+# All-files mode: parallel via self-invocation, no temporary helper script
+NPROC=$(nproc 2>/dev/null) || NPROC=4
+export PKGDB_DIR EXCLUDED_LIBS PRINT_ALL
 
-    while read -r line; do
-        count=$((count + 1))
-        unset NEW_LIB_NAME
+xargs -P "$NPROC" -I {} "$SELF" --check-file {} < "$FILE_LIST" > "$TMP_OUT"
 
-        lib_name="${line##*/}"
-        printf ' %d%% %s\033[0K\r' "$((100 * count / total))" "$lib_name"
-
-        case "$(file -bi "$line")" in
-            *application/x-sharedlib* | *application/x-executable* | *application/x-pie-executable*)
-                ldd_out=$(ldd_file "$line")
-
-                case "$ldd_out" in
-                    *"not found"*)
-                        LIB_NAME=$(printf '%s\n' "$ldd_out" | awk '/not found/ && !seen[$1]++ {
-                            print $1;
-                        }')
-
-                        # filter excluded libraries
-                        for l in $LIB_NAME; do
-                            case " $EXCLUDED_LIBS " in
-                                *" $l "*) ;;
-                                *) NEW_LIB_NAME="$NEW_LIB_NAME $l" ;;
-                            esac
-                        done
-
-                        [ -n "$NEW_LIB_NAME" ] || continue
-                        LIB_NAME=$NEW_LIB_NAME
-
-                        # Use the known package name directly
-                        PKG_NAME="$PKG"
-
-                        case " $expkg " in
-                            *" $PKG_NAME "*) continue ;;
-                        esac
-
-                        # Get required libraries
-                        REQ_LIB=$(objdump -p "$line" 2>/dev/null | awk '/NEEDED/ {
-                            printf "%s ", $2;
-                        }')
-
-                        for i in $LIB_NAME; do
-                            [ "$PRINT_ALL" -eq 1 ] && printf ' %s -> %s (requires %s)\n' "$PKG_NAME" "$line" "$i"
-
-                            case " $REQ_LIB" in
-                                *" $i "*)
-                                    [ "$PRINT_ALL" -eq 1 ] || printf ' %s -> %s (requires %s)\n' "$PKG_NAME" "$line" "$i"
-
-                                    case " $ALL_PKG " in
-                                        *" $PKG_NAME "*) ;;
-                                        *) ALL_PKG="$ALL_PKG $PKG_NAME" ;;
-                                    esac
-                                ;;
-                            esac
-                        done
-                    ;;
-                esac
-            ;;
+# Collect and display results
+if [ -s "$TMP_OUT" ]; then
+    while IFS='|' read -r pkg_name file lib; do
+        case " $expkg " in
+            *" $pkg_name "*) continue ;;
         esac
-    done < "$FILE_LIST"
 
-    printf '\033[0K'
-else
-    # All-files mode: parallel via self-invocation, no temporary helper script
-    NPROC=$(nproc 2>/dev/null) || NPROC=4
-    export PKGDB_DIR EXCLUDED_LIBS PRINT_ALL
+        printf ' %s -> %s (requires %s)\n' "$pkg_name" "$file" "$lib"
 
-    xargs -P "$NPROC" -I {} "$SELF" --check-file {} < "$FILE_LIST" > "$TMP_OUT"
-
-    # Collect and display results
-    if [ -s "$TMP_OUT" ]; then
-        while IFS='|' read -r pkg_name file lib; do
-            case " $expkg " in
-                *" $pkg_name "*) continue ;;
-            esac
-
-            printf ' %s -> %s (requires %s)\n' "$pkg_name" "$file" "$lib"
-
-            case " $ALL_PKG " in
-                *" $pkg_name "*) ;;
-                *) ALL_PKG="$ALL_PKG $pkg_name" ;;
-            esac
-        done < "$TMP_OUT"
-    fi
+        case " $ALL_PKG " in
+            *" $pkg_name "*) ;;
+            *) ALL_PKG="$ALL_PKG $pkg_name" ;;
+        esac
+    done < "$TMP_OUT"
 fi
 
 # Check for broken module packages
-if [ -z "$PKG" ]; then
-    printf '\nChecking for broken packages...\n'
+printf '\nChecking for broken packages...\n'
 
-    check_python_modules
-    check_perl_modules
-    check_ruby_gem
-fi
+check_python_modules
+check_perl_modules
+check_ruby_gem
 
 # Consolidate broken packages
 if [ -n "$broken_pkg" ]; then

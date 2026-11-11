@@ -16,9 +16,6 @@ Print all affected files, rather than a summary.
 .B -r, --rebuild
 Rebuild and reinstall the package associated with a broken dependency.
 .TP
-.B -p, --package PKG
-Check only the specified package.
-.TP
 .B -f, --no-filter
 Ignore configured excluded directories, files, and libraries.
 .TP
