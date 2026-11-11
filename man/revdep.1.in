@@ -34,7 +34,10 @@ Show help.
 .br
 .I @SYSCONFDIR@/revdep.d/*.conf
 .SH EXIT STATUS
-Zero when no problem is found or the requested operation succeeds; non-zero when broken dependencies are found or the operation fails.
+.B revdep
+returns zero when the scan completes successfully, including when broken
+dependencies are found. It returns non-zero when the scan or a requested
+rebuild operation fails.
 .SH SEE ALSO
 .BR revdep.conf (5),
 .BR pkgbuild (1)
