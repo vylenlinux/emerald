@@ -473,7 +473,12 @@ printf 'Checking for broken linkage...\n'
 NPROC=$(nproc 2>/dev/null) || NPROC=4
 export PKGDB_DIR EXCLUDED_LIBS PRINT_ALL
 
-xargs -P "$NPROC" -I {} "$SELF" --check-file {} < "$FILE_LIST" > "$TMP_OUT"
+xargs -P "$NPROC" -I {} "$SELF" --check-file {} < "$FILE_LIST" > "$TMP_OUT" || {
+    printf 'ERROR: Parallel file check failed (xargs exit status %s)\n' "$?" >&2
+    cleanup
+
+    exit 1
+}
 
 # Collect and display results
 if [ -s "$TMP_OUT" ]; then
