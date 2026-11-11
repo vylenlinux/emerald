@@ -11,18 +11,19 @@
 # acts as a single-file worker and writes 'pkg|file|lib' lines to stdout.
 # xargs -P uses this to fan out work without a temporary helper script.
 
-# Check shared objects with their own directory on the lookup path,
-# as they may depend on sibling DSOs outside the default library paths.
+# Check ELF files with their directory and the library directories discovered
+# by revdep on the lookup path. The latter covers private DSOs in arbitrary subdirectories.
 ldd_file() {
     _ldd_file="$1"
     _ldd_dir="${_ldd_file%/*}"
 
     [ "$_ldd_dir" = "$_ldd_file" ] && _ldd_dir=.
 
-    case "$(file -bi "$_ldd_file")" in
-        *application/x-sharedlib*) LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}${_ldd_dir}" ldd "$_ldd_file" 2>/dev/null ;;
-        *) ldd "$_ldd_file" 2>/dev/null ;;
-    esac
+    # Keep the object's directory first: if several scanned directories
+    # contain the same SONAME, its private sibling is the least surprising
+    # candidate. The indexed paths cover arbitrary nesting below SEARCH_DIRS.
+    _ldd_path="${_ldd_dir}${REVDEP_LIBRARY_PATH:+:$REVDEP_LIBRARY_PATH}"
+    LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}${_ldd_path}" ldd "$_ldd_file" 2>/dev/null
 }
 
 # ==> Worker mode (invoked by xargs -P)
@@ -454,6 +455,15 @@ find $SEARCH_DIRS $EXCLUDED_DIRS $EXCLUDED_FILES -type f \( \
     -name '*.so.*' \
 \) -print 2>/dev/null | sort -u > "$FILE_LIST"
 
+# ldd only knows system library directories and the paths encoded in an ELF.
+# Build an additional path list from the files revdep is actually scanning so
+# private libraries are resolved regardless of how deeply they are nested.
+REVDEP_LIBRARY_PATH=$(grep -E '(^|/)[^/]+\.so(\.[^/]*)?$' "$FILE_LIST" | while IFS= read -r _file; do
+    dirname "$_file"
+done | sort -u | tr '\n' ':')
+
+REVDEP_LIBRARY_PATH="${REVDEP_LIBRARY_PATH%:}"
+
 total=$(wc -l < "$FILE_LIST")
 printf '%s files found\n' "$total"
 
@@ -468,7 +478,7 @@ printf 'Checking for broken linkage...\n'
 
 # All-files mode: parallel via self-invocation, no temporary helper script
 NPROC=$(nproc 2>/dev/null) || NPROC=4
-export PKGDB_DIR EXCLUDED_LIBS PRINT_ALL
+export PKGDB_DIR EXCLUDED_LIBS PRINT_ALL REVDEP_LIBRARY_PATH
 
 xargs -P "$NPROC" -I {} "$SELF" --check-file {} < "$FILE_LIST" > "$TMP_OUT" || {
     printf 'ERROR: Parallel file check failed (xargs exit status %s)\n' "$?" >&2
