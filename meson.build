@@ -1,4 +1,4 @@
-project('emerald', 'c', version: '20261111')
+project('emerald', 'c', version: files('meson.version'))
 
 PREFIX = get_option('prefix')
 SYSCONFDIR = get_option('sysconfdir')
