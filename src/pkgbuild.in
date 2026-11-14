@@ -608,7 +608,7 @@ pkg_package() {
         rm -f usr/lib/charset.alias # on musl system
 
         rm -rf usr/share/licenses usr/lib/python3.*/site-packages/*.dist-info/licenses
-        rm -rf usr/share/installed-tests usr/share/installed-tests
+        rm -rf usr/share/installed-tests usr/lib/installed-tests
 
         find . \( \
             -name perllocal.pod -o \
