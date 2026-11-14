@@ -119,6 +119,20 @@ do_udev_rules() {
     done
 }
 
+do_polkit_rules() {
+    for _name in "$@"; do
+        _file="$_name.rules"
+
+        [ -f "$SRC/files/polkit/$_file" ] || {
+            msg_error "polkit rules file not found: $_file"
+            exit 1
+        }
+
+        install -Dm644 "$SRC/files/polkit/$_file" -t "$PKG/usr/share/polkit-1/rules.d/"
+        msg_info "Installed: /usr/share/polkit-1/rules.d/$_file"
+    done
+}
+
 do_systemd_scripts() {
     for _name in "$@"; do
         [ -f "$SRC/files/systemd/scripts/$_name" ] || {
