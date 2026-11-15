@@ -880,7 +880,6 @@ Options:
                                    -f           force rebuild package
                                    -m           skip checksum checking
                                    -o           fetch sources only
-                                   -q, --quiet  show only status messages and errors
                                    -w           keep working directory
                                    -y           skip ask user confirmation
                                    -C, --clean  remove downloaded sources and prebuilt packages
@@ -893,7 +892,6 @@ Options:
                                    -m           skip checksum checking
                                    -n           skip dependencies
                                    -o           fetch sources only
-                                   -q, --quiet  show only status messages and errors
                                    -r           reinstall
                                    -w           keep working directory
                                    -y, --yes    skip ask user confirmation
@@ -907,7 +905,6 @@ Options:
                                    -m           skip checksum checking
                                    -n           skip dependencies
                                    -o           fetch sources only
-                                   -q, --quiet  show only status messages and errors
                                    -w           keep working directory
                                    -y, --yes    skip ask user confirmation
                                    --exclude=*  exclude dependencies, comma separated
@@ -920,7 +917,6 @@ Options:
                                    -m           skip checksum checking
                                    -n           skip dependencies
                                    -o           fetch sources only
-                                   -q, --quiet  show only status messages and errors
                                    -w           keep working directory
                                    -y, --yes    skip ask user confirmation
                                    --exclude=*  exclude dependencies, comma separated

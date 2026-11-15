@@ -41,9 +41,6 @@ Skip checksum checking.
 .B -o
 Fetch sources only.
 .TP
-.B -q, --quiet
-Show only status messages and errors.
-.TP
 .B -w
 Keep the working directory.
 .TP
@@ -78,9 +75,6 @@ Skip dependencies.
 .TP
 .B -o
 Fetch sources only.
-.TP
-.B -q, --quiet
-Show only status messages and errors.
 .TP
 .B -r
 Reinstall.
@@ -120,9 +114,6 @@ Skip dependencies.
 .B -o
 Fetch sources only.
 .TP
-.B -q, --quiet
-Show only status messages and errors.
-.TP
 .B -w
 Keep the working directory.
 .TP
@@ -157,9 +148,6 @@ Skip dependencies.
 .TP
 .B -o
 Fetch sources only.
-.TP
-.B -q, --quiet
-Show only status messages and errors.
 .TP
 .B -w
 Keep the working directory.

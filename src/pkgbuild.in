@@ -384,12 +384,10 @@ pkg_fetch() {
 
         # check partial file
         pkg_check_partial "$filepath" "$i" || COPT="-C -"
-
         msg_info "Fetching: $i"
-        [ "$QUIET" != "yes" ] || _curl_quiet="--silent"
 
         # shellcheck disable=SC2086
-        curl ${COPT} ${_curl_quiet} -L --fail --retry 3 --retry-delay 3 -o "$filepath.partial" ${CURL_OPTS} "$url" || {
+        curl ${COPT} -L --fail --retry 3 --retry-delay 3 -o "$filepath.partial" ${CURL_OPTS} "$url" || {
             msg_error "Fetching failed: $i"
             rm -f "$filepath.partial"
 
@@ -502,11 +500,7 @@ pkg_build() {
         export PERL_INSTALLDIRS=vendor
         export PERL_MM_USE_DEFAULT=1
 
-        if [ "$QUIET" = "yes" ]; then
-            (set -e && build) >/dev/null 2>&1
-        else
-            (set -e -x && build) 2>&1
-        fi || {
+        (set -e -x && build) 2>&1 || {
             msg_error "Build failed: $name-$version-$release"
             abort 1
         }
@@ -683,7 +677,7 @@ pkg_package() {
 
         # Capture listing once; reuse for display and pkgfiles (avoids re-reading the archive)
         _tar_list=$(tar --quoting-style=literal -tvf "$PACKAGE_DIR/$PKG_NAME")
-        [ "$QUIET" != "yes" ] && printf '%s\n' "$_tar_list" | sort -k 6
+        printf '%s\n' "$_tar_list" | sort -k 6
 
         msg_info "Packaging success: $PKG_NAME ($(ls -lh "$PACKAGE_DIR/$PKG_NAME" | awk '{print $5;}'))"
     cd - >/dev/null || return 1
@@ -863,7 +857,6 @@ parse_opts() {
         esac
 
         case "$1" in
-            -q | --quiet) QUIET=yes ;;
             -i | --install) INSTALL_PKG=yes ;;
 
             -u | --upgrade)
@@ -911,7 +904,6 @@ Usage:
     pkgbuild <options> [<arg>]
 
 Options:
-    -q  --quiet            show only status messages and errors
     -i, --install          install package into system
     -u, --upgrade          upgrade package
     -r, --reinstall        reinstall package

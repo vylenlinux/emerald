@@ -59,7 +59,6 @@ complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from sync' -s s -l source 
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from build' -s f -l force-rebuild -d 'force rebuild package'
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from build' -s m -l skip-checksum -d 'skip checksum checking'
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from build' -s o -l download -d 'download sources only'
-complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from build' -s q -l quiet -d 'show only status messages and errors'
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from build' -s i -l install -d 'install package after build'
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from build' -s u -l upgrade -d 'upgrade package after build'
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from build' -s r -l reinstall -d 'reinstall package after build'
@@ -91,7 +90,6 @@ complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from install' -s x -l extr
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from install' -s p -l pkgfiles -d 'generate package file list'
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from install' -s n -d 'skip dependencies'
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from install' -s o -l download -d 'download sources only'
-complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from install' -s q -l quiet -d 'show only status messages and errors'
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from install' -s r -l reinstall -d 'reinstall'
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from install' -s w -l keep-work -d 'keep working directory'
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from install' -s y -l yes -d 'skip ask user confirmation'
@@ -116,7 +114,6 @@ complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from upgrade sysup' -s x -
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from upgrade sysup' -s p -l pkgfiles -d 'generate package file list'
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from upgrade sysup' -s n -d 'skip dependencies'
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from upgrade sysup' -s o -l download -d 'download sources only'
-complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from upgrade sysup' -s q -l quiet -d 'show only status messages and errors'
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from upgrade sysup' -s w -l keep-work -d 'keep working directory'
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from upgrade sysup' -s y -l yes -d 'skip ask user confirmation'
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from upgrade sysup' -l exclude -r -a '(@PROJECT_NAME@ list 2>/dev/null)' -d 'exclude dependencies, comma separated'
@@ -175,7 +172,6 @@ complete -c pkgbase -f -a '(@PROJECT_NAME@ installed 2>/dev/null | string replac
 # }}}
 
 # {{{ pkgbuild
-complete -c pkgbuild -s q -l quiet -d 'show only status messages and errors'
 complete -c pkgbuild -s i -l install -d 'install package after build'
 complete -c pkgbuild -s u -l upgrade -d 'upgrade package after build'
 complete -c pkgbuild -s r -l reinstall -d 'reinstall package after build'

@@ -10,9 +10,6 @@ pkgbuild \- build an Emerald port package
 fetches, verifies, extracts, builds, and packages a port according to its build script. Depending on options it can stop after downloading or extraction, install the result, or generate package metadata. Build and cache paths come from the configuration unless overridden.
 .SH OPTIONS
 .TP
-.B -q, --quiet
-Show only status messages and errors.
-.TP
 .B -i, --install
 Install the resulting package.
 .TP

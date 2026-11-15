@@ -81,7 +81,6 @@ _emerald() {
 
                 build)
                     _arguments \
-                        '(-q --quiet)'{-q,--quiet}'[show only status messages and errors]' \
                         '(-i --install)'{-i,--install}'[install package after build]' \
                         '(-u --upgrade)'{-u,--upgrade}'[upgrade package after build]' \
                         '(-r --reinstall)'{-r,--reinstall}'[reinstall package after build]' \
@@ -109,7 +108,6 @@ _emerald() {
 
                 install)
                     _arguments \
-                        '(-q --quiet)'{-q,--quiet}'[show only status messages and errors]' \
                         '(-i --install)'{-i,--install}'[install package after build]' \
                         '(-u --upgrade)'{-u,--upgrade}'[upgrade package after build]' \
                         '(-r --reinstall)'{-r,--reinstall}'[reinstall package after build]' \
@@ -137,7 +135,6 @@ _emerald() {
 
                 upgrade)
                     _arguments \
-                        '(-q --quiet)'{-q,--quiet}'[show only status messages and errors]' \
                         '(-i --install)'{-i,--install}'[install package after build]' \
                         '(-u --upgrade)'{-u,--upgrade}'[upgrade package after build]' \
                         '(-r --reinstall)'{-r,--reinstall}'[reinstall package after build]' \
@@ -165,7 +162,6 @@ _emerald() {
 
                 sysup)
                     _arguments \
-                        '(-q --quiet)'{-q,--quiet}'[show only status messages and errors]' \
                         '(-i --install)'{-i,--install}'[install package after build]' \
                         '(-u --upgrade)'{-u,--upgrade}'[upgrade package after build]' \
                         '(-r --reinstall)'{-r,--reinstall}'[reinstall package after build]' \
@@ -302,7 +298,6 @@ _pkgbase() {
 # {{{ pkgbuild
 _pkgbuild() {
     _arguments \
-        '(-q --quiet)'{-q,--quiet}'[show only status messages and errors]' \
         '(-i --install)'{-i,--install}'[install package after build]' \
         '(-u --upgrade)'{-u,--upgrade}'[upgrade package after build]' \
         '(-r --reinstall)'{-r,--reinstall}'[reinstall package after build]' \
