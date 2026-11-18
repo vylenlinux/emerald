@@ -160,12 +160,7 @@ get_conflicts() {
     conflicts_file="$PPATH/conflicts"
     [ -f "$conflicts_file" ] || return 0
 
-    awk '/^[[:space:]]*#/ || /^[[:space:]]*$/ {
-        next;
-    } {
-        sub(/[[:space:]]*#.*/, "");
-        for (i = 1; i <= NF; i++) print $i;
-    }' "$conflicts_file"
+    grep -v '^$' "$conflicts_file"
 }
 
 check_conflicts() {
