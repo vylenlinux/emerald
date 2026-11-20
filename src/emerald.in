@@ -973,9 +973,16 @@ EOF
 }
 
 emerald_list() {
-    find "@PORTS_DIR@" -mindepth 2 -maxdepth 2 -type d | while IFS= read -r p; do
-        printf '%s\n' "${p##*/}"
-    done
+    for repo in $PORT_REPO; do
+        [ -d "$repo" ] || continue
+
+        for p in "$repo"/*; do
+            [ -d "$p" ] || continue
+            [ -f "$p/$BUILD_SCRIPT" ] || continue
+
+            printf '%s\n' "${p##*/}"
+        done
+    done | sort -u
 }
 
 emerald_version() {
