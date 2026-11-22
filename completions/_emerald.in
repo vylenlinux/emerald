@@ -313,7 +313,7 @@ _pkgbuild() {
         '--pkgdir=[use custom package directory]:directory:_directories' \
         '--workdir=[use custom work directory]:directory:_directories' \
         '--no-backup[skip backup when upgrading package]' \
-        '--root=[install to custom root directory]:root directory:_directories'
+        '--root=[install to custom root directory]:root directory:_directories' && ret=0
 }
 # }}}
 
