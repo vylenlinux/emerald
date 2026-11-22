@@ -171,6 +171,18 @@ do_systemd_system_preset() {
     done
 }
 
+do_pkgconfig() {
+    for _name in "$@"; do
+        [ -f "$SRC/files/pkgconfig/$_name.pc" ] || {
+            msg_error "pkgconfig file not found: $_name"
+            exit 1
+        }
+
+        install -Dm644 "$SRC/files/pkgconfig/$_name.pc" -t "${PKG}/usr/lib/pkgconfig/"
+        msg_info "Installed: /usr/lib/pkgconfig/$_name.pc"
+    done
+}
+
 do_pam() {
     for _pam in "$@"; do
         _pam_dir="$SRC/files/pam.d"
@@ -222,6 +234,9 @@ do_dkms() {
     chmod 755 "$PKG/var/lib/dkms/buildmodules-$name.sh"
     msg_info "Installed: /var/lib/dkms/buildmodules-$name.sh"
 }
+
+# ----------
+# ----------
 
 do_man() {
     _section=1
