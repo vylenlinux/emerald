@@ -55,8 +55,8 @@ _emerald_opts() {
     case $1 in
         search) opts="-n --name" ;;
         sync) opts="-p --prune -r --reset -s --source -h --help" ;;
-        build) opts="-q -i --install -u --upgrade -r --reinstall -c --ignore-conflict -v --verbose -f --force-rebuild -m --skip-checksum -g --gen-checksum -o --download -x --extract -p --pkgfiles -w --keep-work -y --clean -C --clean --log --jobs= --no-backup --root= --config= --srcdir= --pkgdir= --workdir=" ;;
-        install | upgrade | sysup) opts="-q -i --install -u --upgrade -r --reinstall -c --ignore-conflict -v --verbose -f --force-rebuild -m --skip-checksum -g --gen-checksum -o --download -x --extract -p --pkgfiles -w --keep-work -y --yes -n --exclude= --no-backup --jobs= --root= --config= --srcdir= --pkgdir= --workdir=" ;;
+        build) opts="-q -i --install -u --upgrade -r --reinstall -c --ignore-conflict -v --verbose -f --force-rebuild -m --skip-checksum -g --gen-checksum -o --download -x --extract -p --pkgfiles -w --keep-work -y --clean -C --clean --log --no-backup --root= --config= --srcdir= --pkgdir= --workdir=" ;;
+        install | upgrade | sysup) opts="-q -i --install -u --upgrade -r --reinstall -c --ignore-conflict -v --verbose -f --force-rebuild -m --skip-checksum -g --gen-checksum -o --download -x --extract -p --pkgfiles -w --keep-work -y --yes -n --exclude= --no-backup --root= --config= --srcdir= --pkgdir= --workdir=" ;;
         remove | purge) opts="-y --yes -h --help -v --verbose --root=" ;;
         deplist) opts="-q --quick --exclude=" ;;
         redeps) opts="-w --world -f --fix" ;;
@@ -284,7 +284,7 @@ _pkgbuild() {
     fi
 
     if [[ $cur == -* ]]; then
-        COMPREPLY=($(compgen -W "-q -i --install -u --upgrade -r --reinstall -c --ignore-conflict -v --verbose -f --force-rebuild -m --skip-checksum -g --gen-checksum -o --download -x --extract -p --pkgfiles -w --keep-work -h --help -C --clean --config= --srcdir= --pkgdir= --workdir= --jobs= --no-backup --root=" -- "$cur"))
+        COMPREPLY=($(compgen -W "-q -i --install -u --upgrade -r --reinstall -c --ignore-conflict -v --verbose -f --force-rebuild -m --skip-checksum -g --gen-checksum -o --download -x --extract -p --pkgfiles -w --keep-work -h --help -C --clean --config= --srcdir= --pkgdir= --workdir= --no-backup --root=" -- "$cur"))
     fi
 }
 # }}}

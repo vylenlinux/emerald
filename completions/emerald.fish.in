@@ -76,7 +76,6 @@ complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from build' -l srcdir -r -
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from build' -l pkgdir -r -a '(__fish_complete_directories)' -d 'use custom package directory'
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from build' -l workdir -r -a '(__fish_complete_directories)' -d 'use custom work directory'
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from build' -l root -r -a '(__fish_complete_directories)' -d 'install to custom root directory'
-complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from build' -l jobs -r -d 'override parallel build jobs'
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from build' -l no-backup -d 'skip backup when upgrading package'
 
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from install' -s c -l ignore-conflict -d 'ignore conflict when installing package'
@@ -100,7 +99,6 @@ complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from install' -l srcdir -r
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from install' -l pkgdir -r -a '(__fish_complete_directories)' -d 'use custom package directory'
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from install' -l workdir -r -a '(__fish_complete_directories)' -d 'use custom work directory'
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from install' -l root -r -a '(__fish_complete_directories)' -d 'install to custom root directory'
-complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from install' -l jobs -r -d 'override parallel build jobs'
 
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from upgrade sysup' -s c -l ignore-conflict -d 'ignore conflict when installing package'
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from upgrade sysup' -s f -l force-rebuild -d 'force rebuild package'
@@ -123,7 +121,6 @@ complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from upgrade sysup' -l src
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from upgrade sysup' -l pkgdir -r -a '(__fish_complete_directories)' -d 'use custom package directory'
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from upgrade sysup' -l workdir -r -a '(__fish_complete_directories)' -d 'use custom work directory'
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from upgrade sysup' -l root -r -a '(__fish_complete_directories)' -d 'install to custom root directory'
-complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from upgrade sysup' -l jobs -r -d 'override parallel build jobs'
 
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from remove purge' -s y -l yes -d 'skip ask user confirmation'
 complete -c @PROJECT_NAME@ -n '__fish_seen_subcommand_from remove purge' -s h -l help -d 'show help message'
@@ -190,7 +187,6 @@ complete -c pkgbuild -l config -r -F -d 'use custom config file'
 complete -c pkgbuild -l srcdir -r -a '(__fish_complete_directories)' -d 'use custom source directory'
 complete -c pkgbuild -l pkgdir -r -a '(__fish_complete_directories)' -d 'use custom package directory'
 complete -c pkgbuild -l workdir -r -a '(__fish_complete_directories)' -d 'use custom work directory'
-complete -c pkgbuild -l jobs -r -d 'override parallel build jobs'
 complete -c pkgbuild -l no-backup -d 'skip backup when upgrading package'
 complete -c pkgbuild -l root -r -a '(__fish_complete_directories)' -d 'install to custom root directory'
 # }}}

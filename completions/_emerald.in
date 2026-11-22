@@ -101,7 +101,6 @@ _emerald() {
                         '--workdir=[use custom work directory]:directory:_directories' \
                         '--root=[install to custom root directory]:root directory:_directories' \
                         '--log[log build process]' \
-                        '--jobs=[override parallel build jobs]:jobs:' \
                         '--no-backup[skip backup when upgrading package]' \
                         '*:port:->ports' && ret=0
                 ;;
@@ -129,7 +128,6 @@ _emerald() {
                         '--pkgdir=[use custom package directory]:directory:_directories' \
                         '--workdir=[use custom work directory]:directory:_directories' \
                         '--root=[install to custom root directory]:root directory:_directories' \
-                        '--jobs=[override parallel build jobs]:jobs:' \
                         '*:port:->ports' && ret=0
                 ;;
 
@@ -156,7 +154,6 @@ _emerald() {
                         '--pkgdir=[use custom package directory]:directory:_directories' \
                         '--workdir=[use custom work directory]:directory:_directories' \
                         '--root=[install to custom root directory]:root directory:_directories' \
-                        '--jobs=[override parallel build jobs]:jobs:' \
                         '*:installed port:->installed' && ret=0
                 ;;
 
@@ -182,8 +179,7 @@ _emerald() {
                         '--srcdir=[use custom source directory]:directory:_directories' \
                         '--pkgdir=[use custom package directory]:directory:_directories' \
                         '--workdir=[use custom work directory]:directory:_directories' \
-                        '--root=[install to custom root directory]:root directory:_directories' \
-                        '--jobs=[override parallel build jobs]:jobs:' && ret=0
+                        '--root=[install to custom root directory]:root directory:_directories'
                 ;;
 
                 remove | purge)
@@ -316,7 +312,6 @@ _pkgbuild() {
         '--srcdir=[use custom source directory]:directory:_directories' \
         '--pkgdir=[use custom package directory]:directory:_directories' \
         '--workdir=[use custom work directory]:directory:_directories' \
-        '--jobs=[override parallel build jobs]:jobs:' \
         '--no-backup[skip backup when upgrading package]' \
         '--root=[install to custom root directory]:root directory:_directories'
 }

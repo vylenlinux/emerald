@@ -53,9 +53,6 @@ Remove downloaded sources and prebuilt packages.
 .B --log
 Log the build process.
 .TP
-.B --jobs=N
-Override the number of parallel build jobs.
-.RE
 .TP
 .B install PORT...
 Build and install ports using \fBpkgbuild\fR.
@@ -91,9 +88,6 @@ Exclude comma-separated dependencies.
 .B --no-backup
 Skip backup when reinstalling packages.
 .TP
-.B --jobs=N
-Override the number of parallel build jobs.
-.RE
 .TP
 .B upgrade PORT...
 Upgrade ports using \fBpkgbuild\fR.
@@ -126,9 +120,6 @@ Exclude comma-separated dependencies.
 .B --no-backup
 Skip backup when upgrading packages.
 .TP
-.B --jobs=N
-Override the number of parallel build jobs.
-.RE
 .TP
 .B sysup [ARG]
 Perform a full system upgrade using \fBpkgbuild\fR while respecting masks.
@@ -161,9 +152,6 @@ Exclude comma-separated dependencies.
 .B --no-backup
 Skip backup when upgrading packages.
 .TP
-.B --jobs=N
-Override the number of parallel build jobs.
-.RE
 .TP
 .B remove PORT...
 Remove installed ports using \fBpkgdel\fR.

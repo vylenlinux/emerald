@@ -64,9 +64,6 @@ Override the package cache directory.
 .B --workdir=PATH
 Override the working directory.
 .TP
-.B --jobs=N
-Override parallel build jobs; by default uses JOBS or the number of processors.
-.TP
 .B --no-backup
 Do not back up configuration files during an upgrade.
 .SH FILES
