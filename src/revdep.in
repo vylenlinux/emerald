@@ -23,7 +23,7 @@ ldd_file() {
     # contain the same SONAME, its private sibling is the least surprising
     # candidate. The indexed paths cover arbitrary nesting below SEARCH_DIRS.
     _ldd_path="${_ldd_dir}${REVDEP_LIBRARY_PATH:+:$REVDEP_LIBRARY_PATH}"
-    LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}${_ldd_path}" ldd "$_ldd_file" 2>/dev/null
+    LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}${_ldd_path}" LC_ALL=C ldd "$_ldd_file" 2>/dev/null
 }
 
 # ==> Worker mode (invoked by xargs -P)
@@ -31,7 +31,7 @@ if [ "$1" = "--check-file" ]; then
     [ -z "$2" ] && exit 0
     line="$2"
 
-    case "$(file -bi "$line")" in
+    case "$(LC_ALL=C file -bi "$line")" in
         *application/x-sharedlib* | *application/x-executable* | *application/x-pie-executable*)
             ldd_out=$(ldd_file "$line")
 
@@ -59,7 +59,7 @@ if [ "$1" = "--check-file" ]; then
                     pkg_name=${pkg_path##*/}
 
                     # Check NEEDED entries to confirm the library is truly required
-                    REQ_LIB=$(objdump -p "$line" 2>/dev/null | awk '/NEEDED/ {
+                    REQ_LIB=$(LC_ALL=C objdump -p "$line" 2>/dev/null | awk '/NEEDED/ {
                         printf "%s ", $2;
                     }')
 
@@ -94,12 +94,11 @@ cleanup() {
 }
 
 interrupted() {
-    cleanup
     printf '\n'
-
     exit 1
 }
 
+trap "cleanup" 0
 trap "interrupted" 1 2 3 15
 
 help() {
@@ -316,7 +315,7 @@ check_python_modules() {
 check_perl_modules() {
     command -v perl >/dev/null 2>&1 || return
 
-    perl_path=$(perl -MConfig -e 'print $Config{sitearch}')
+    perl_path=$(perl -MConfig -e 'print $Config{sitearch}' 2>/dev/null)
     [ -d "$perl_path" ] || return
 
     for i in "${perl_path%/*}"/*; do
@@ -330,8 +329,8 @@ check_perl_modules() {
 check_ruby_gem() {
     command -v gem >/dev/null 2>&1 || return
 
-    gem_path=$(gem env gemdir)
-    [ -z "$gem_path" ] && return
+    gem_path=$(gem env gemdir 2>/dev/null)
+    [ -d "$gem_path" ] || return
 
     for i in "${gem_path%/*}"/*; do
         [ "$gem_path" = "$i" ] && continue
