@@ -37,7 +37,8 @@ EOF
 }
 
 ret() {
-    rm -f "$ROOT_DIR/$LOCK_FILE"
+    # Only remove the lock if this process owns it
+    [ "$LOCKED" = "yes" ] && rm -f "$ROOT_DIR/$LOCK_FILE"
     exit "$1"
 }
 
@@ -64,7 +65,7 @@ while [ -n "$1" ]; do
         --root=*) ROOT_DIR="${1#*=}" ;;
 
         -*)
-            msg_info "Invalid option: ($1)"
+            msg_error "Invalid option: ($1)"
             exit 1
         ;;
 
@@ -101,17 +102,22 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-if [ -f "$ROOT_DIR/$LOCK_FILE" ]; then
+(
+    set -C
+    : > "$ROOT_DIR/$LOCK_FILE"
+) 2>/dev/null || {
+    [ -e "$ROOT_DIR/$LOCK_FILE" ] || {
+        msg_error "Cannot create lock file in '$ROOT_DIR/$LOCK_FILE'"
+        exit 1
+    }
+
     msg_error "Cannot install/remove package simultaneously."
     msg_error "remove '$ROOT_DIR/$LOCK_FILE' if no install/remove package process running."
 
     exit 1
-fi
-
-touch "$ROOT_DIR/$LOCK_FILE" 2>/dev/null || {
-    msg_error "Cannot create lock file in '$ROOT_DIR/$LOCK_FILE'"
-    exit 1
 }
+
+LOCKED=yes
 
 [ -s "$ROOT_DIR/$PKGDB_DIR/$PKG_NAME" ] || {
     msg_error "Package '$PKG_NAME' not installed."
@@ -148,7 +154,7 @@ awk -v rm_files="$_rm_files" -v rm_dirs="$_rm_dirs" 'NR > 1 {
 # Remove regular files in one xargs batch
 if [ -s "$_rm_files" ]; then
     [ "$VERBOSE_REMOVE" = "yes" ] && sed "s|^|removing '${ROOT_DIR}/|;s|\$|'|" "$_rm_files"
-    sed "s|^|${ROOT_DIR}/|" "$_rm_files" | xargs -r rm -f
+    sed "s|^|${ROOT_DIR}/|" "$_rm_files" | xargs -d '\n' -r rm -f --
 fi
 
 # Remove directories deepest-first; skip any still referenced by another package
