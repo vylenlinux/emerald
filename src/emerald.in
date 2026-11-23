@@ -383,20 +383,12 @@ EOF
 
     # Scan package cache
     if [ "$clean_pkg" -eq 1 ]; then
-        # shellcheck disable=SC2044
-        for f in $(find "$PACKAGE_DIR" -type f 2>/dev/null); do
-            file=${f##*/}
-            all_pkg="${all_pkg}${all_pkg:+|}$file"
-        done
+        all_pkg=$(find "$PACKAGE_DIR" -type f -printf '%f\n' 2>/dev/null | paste -sd '|' -)
     fi
 
     # Scan source cache
     if [ "$clean_src" -eq 1 ]; then
-        # shellcheck disable=SC2044
-        for f in $(find "$SOURCE_DIR" -type f 2>/dev/null); do
-            file=${f##*/}
-            all_src="${all_src}${all_src:+|}$file"
-        done
+        all_src=$(find "$SOURCE_DIR" -type f -printf '%f\n' 2>/dev/null | paste -sd '|' -)
     fi
 
     # Scan PKGDB to determine what to keep
